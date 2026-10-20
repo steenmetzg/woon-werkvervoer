@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Bike, Car, ChevronLeft, ChevronRight, House, TrainFront, TreePalm, type LucideIcon } from 'lucide-react'
+import { Bike, Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon, TrainFront, TreePalm, type LucideIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
+import Settings from './Settings'
 import { MODES, loadRegistrations, saveRegistrations, type Mode, type Registrations } from './storage'
 
 const MODE_INFO: Record<Mode, { label: string; Icon: LucideIcon }> = {
@@ -18,6 +19,7 @@ export default function App() {
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -69,15 +71,28 @@ export default function App() {
     })
   }
 
-  const totals = MODES.map((mode) => ({
-    mode,
-    count: days.filter((d) => registrations[dateKey(d)] === mode).length,
-  }))
+  if (showSettings) {
+    return (
+      <Settings
+        registrations={registrations}
+        onRestore={setRegistrations}
+        onClose={() => setShowSettings(false)}
+      />
+    )
+  }
 
   return (
     <main className="app" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <header className="header">
         <h1>Woon-werkvervoer</h1>
+        <button
+          type="button"
+          className="icon-button settings-button"
+          aria-label="Instellingen en backup"
+          onClick={() => setShowSettings(true)}
+        >
+          <SettingsIcon size={20} strokeWidth={1.75} aria-hidden />
+        </button>
         <nav className="week-nav" aria-label="Week kiezen">
           <button
             type="button"
@@ -87,7 +102,7 @@ export default function App() {
           >
             <ChevronLeft size={20} strokeWidth={1.75} aria-hidden />
           </button>
-          <span className="week-label">{weekLabel(monday)}</span>
+          <span className="week-label">{weekLabel(monday, today.getFullYear())}</span>
           <button
             type="button"
             className="icon-button"
@@ -146,14 +161,6 @@ export default function App() {
         })}
       </ol>
 
-      <footer className="totals" aria-label="Weektotalen" data-testid="totalen">
-        {totals.map(({ mode, count }, i) => (
-          <span key={mode} className="total">
-            {i > 0 && <span className="sep" aria-hidden>{' · '}</span>}
-            {MODE_INFO[mode].label} {count}
-          </span>
-        ))}
-      </footer>
     </main>
   )
 }

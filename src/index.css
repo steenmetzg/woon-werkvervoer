@@ -47,21 +47,25 @@ button {
 
 h1 {
   margin: 0;
+  white-space: nowrap;
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .week-nav {
-  grid-column: 1 / -1;
-  grid-row: 2;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.settings-button {
+  justify-self: end;
+}
+
 .week-label {
   flex: 1;
+  line-height: 1.2;
   text-align: center;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -149,18 +153,11 @@ h1 {
   color: #ffffff;
 }
 
-.totals {
-  margin-top: 12px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.9375rem;
-  font-variant-numeric: tabular-nums;
-}
-
 @media (hover: hover) {
   .mode:not(.selected):hover,
   .icon-button:hover,
-  .today-button:not(:disabled):hover {
+  .today-button:not(:disabled):hover,
+  .wide-button:hover {
     border-color: #c7cbd1;
   }
 }
@@ -168,4 +165,59 @@ h1 {
 button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.setting {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.setting:last-child {
+  border-bottom: none;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.muted {
+  margin: 0 0 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.backup-buttons {
+  display: grid;
+  gap: 8px;
+}
+
+.wide-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.message {
+  margin: 12px 0 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.message.error {
+  color: #b42318;
 }

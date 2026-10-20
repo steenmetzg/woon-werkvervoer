@@ -40,12 +40,13 @@ export function longLabel(date: Date): string {
   return `${WEEKDAGEN_LANG[date.getDay()]} ${date.getDate()} ${MAANDEN_LANG[date.getMonth()]}`
 }
 
-/** Bijv. "20 – 24 okt 2026" of "27 okt – 31 okt 2026". */
-export function weekLabel(monday: Date): string {
+/** Bijv. "19 – 23 okt" of "29 dec – 2 jan 2027"; het jaartal alleen als het niet `currentYear` is. */
+export function weekLabel(monday: Date, currentYear: number): string {
   const friday = addDays(monday, 4)
   const start =
     monday.getMonth() === friday.getMonth()
       ? `${monday.getDate()}`
       : `${monday.getDate()} ${MAANDEN_KORT[monday.getMonth()]}`
-  return `${start} – ${friday.getDate()} ${MAANDEN_KORT[friday.getMonth()]} ${friday.getFullYear()}`
+  const year = friday.getFullYear() === currentYear && monday.getFullYear() === currentYear ? '' : ` ${friday.getFullYear()}`
+  return `${start} – ${friday.getDate()} ${MAANDEN_KORT[friday.getMonth()]}${year}`
 }

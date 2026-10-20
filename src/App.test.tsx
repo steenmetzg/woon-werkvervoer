@@ -159,16 +159,13 @@ describe('AC7: vandaag herkennen', () => {
   })
 })
 
-describe('AC8: weektotalen', () => {
-  it('telt per vervoermiddel de gekozen dagen', async () => {
+describe('AC8: geen weektotalen', () => {
+  it('toont geen totalen onder de week', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(modeButton('maandag 19 oktober', 'Trein'))
-    await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
-    await user.click(modeButton('woensdag 21 oktober', 'Fiets'))
-    await user.click(modeButton('donderdag 22 oktober', 'Thuis'))
-    await user.click(modeButton('vrijdag 23 oktober', 'Vrij'))
-    expect(screen.getByTestId('totalen')).toHaveTextContent('Thuis 1 · Trein 2 · Fiets 1 · Auto 0 · Vrij 1')
+    expect(screen.queryByTestId('totalen')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Trein 1/)).not.toBeInTheDocument()
   })
 })
 
