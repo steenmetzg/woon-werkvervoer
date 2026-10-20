@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -113,6 +113,34 @@ describe('AC6: bladeren', () => {
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Vorige week' }))
     expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 12 oktober')
+  })
+})
+
+describe('AC6b: swipen', () => {
+  function swipe(from: { x: number; y: number }, to: { x: number; y: number }) {
+    const target = screen.getByRole('main')
+    fireEvent.touchStart(target, { touches: [{ clientX: from.x, clientY: from.y }] })
+    fireEvent.touchEnd(target, { changedTouches: [{ clientX: to.x, clientY: to.y }] })
+  }
+  const firstDay = () => screen.getAllByRole('listitem')[0]
+
+  it('gaat naar de volgende week bij naar links swipen', () => {
+    render(<App />)
+    swipe({ x: 300, y: 400 }, { x: 100, y: 410 })
+    expect(firstDay()).toHaveAccessibleName('maandag 26 oktober')
+  })
+
+  it('gaat naar de vorige week bij naar rechts swipen', () => {
+    render(<App />)
+    swipe({ x: 100, y: 400 }, { x: 300, y: 390 })
+    expect(firstDay()).toHaveAccessibleName('maandag 12 oktober')
+  })
+
+  it('wisselt niet bij een korte of vooral verticale beweging', () => {
+    render(<App />)
+    swipe({ x: 200, y: 400 }, { x: 170, y: 400 })
+    swipe({ x: 200, y: 400 }, { x: 120, y: 200 })
+    expect(firstDay()).toHaveAccessibleName('maandag 19 oktober')
   })
 })
 

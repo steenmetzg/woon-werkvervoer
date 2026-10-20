@@ -35,7 +35,7 @@ Je keuzes worden alleen op die telefoon bewaard. Als je de websitegegevens van j
 
 ## Opbouw
 
-- `src/App.tsx`: het scherm met de week, de knoppen en de totalen
+- `src/App.tsx`: het scherm met de week, de knoppen, de totalen en het swipen tussen weken
 - `src/dates.ts`: rekenen met datums (maandag van de week, Nederlandse namen)
 - `src/storage.ts`: bewaren en ophalen van keuzes in de browser
 - `src/index.css`: de vormgeving

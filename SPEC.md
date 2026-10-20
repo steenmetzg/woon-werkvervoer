@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 0.7 (20 oktober 2026): compactere indeling zodat de hele week op een Samsung S25 past, op verzoek van Greco
+Versie: 0.8 (20 oktober 2026): swipen tussen weken, op verzoek van Greco
 
 ## 1. Doel
 
@@ -27,7 +27,7 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F1 | Weekoverzicht | Het scherm toont één week: vijf regels, maandag t/m vrijdag, elk met datum (bijv. "ma 20 okt"). Bij openen is dat de huidige week. |
 | F2 | Vervoer kiezen | Elke dag heeft vijf knoppen (Thuis, Trein, Fiets, Auto, Vrij). Eén klik legt de keuze vast; de gekozen knop is duidelijk gemarkeerd. |
 | F3 | Keuze wijzigen of wissen | Klik op een andere knop om de keuze te veranderen. Klik op de al gekozen knop om de keuze te wissen. |
-| F4 | Bladeren | Knoppen "◀ Vorige week" en "Volgende week ▶" en een knop "Deze week" om terug te springen. |
+| F4 | Bladeren | Knoppen "◀ Vorige week" en "Volgende week ▶" en een knop "Deze week" om terug te springen. Op een aanraakscherm kan het ook met swipen: naar links swipen gaat naar de volgende week, naar rechts swipen naar de vorige week. |
 | F5 | Vandaag herkennen | De regel van vandaag is visueel gemarkeerd, zodat je in één oogopslag ziet waar je moet klikken. |
 | F6 | Weektotalen | Onder de week staat per vervoermiddel hoeveel dagen het gekozen is, in dezelfde volgorde, bijvoorbeeld "Thuis 2 · Trein 2 · Fiets 1 · Auto 0 · Vrij 0". |
 | F7 | Onthouden | Alle keuzes blijven bewaard na verversen of het sluiten van de browser (opslag op de telefoon zelf). |
@@ -44,6 +44,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC4 (F3)** Als dinsdag "Fiets" heeft en ik klik op "Trein", heeft dinsdag "Trein".
 - **AC5 (F3)** Als dinsdag "Fiets" heeft en ik klik nogmaals op "Fiets", heeft dinsdag geen keuze meer.
 - **AC6 (F4)** Na "Volgende week" zie ik de maandag t/m vrijdag van de week erna; na "Deze week" zie ik weer de huidige week. Keuzes in een andere week blijven bewaard als ik terugblader.
+- **AC6b (F4)** Als ik over het scherm minstens 50 pixels naar links swipe, zie ik de volgende week; naar rechts swipen toont de vorige week. Een korte of vooral verticale beweging (zoals scrollen) wisselt niet van week, en een gewone tik op een knop blijft gewoon een keuze.
 - **AC7 (F5)** Op een werkdag is de regel van vandaag gemarkeerd; in een andere week is geen regel gemarkeerd.
 - **AC8 (F6)** Met de keuzes Trein, Trein, Fiets, Thuis en Vrij toont de week "Thuis 1 · Trein 2 · Fiets 1 · Auto 0 · Vrij 1".
 - **AC9 (F7)** Na het verversen van de pagina staan alle keuzes er nog.
