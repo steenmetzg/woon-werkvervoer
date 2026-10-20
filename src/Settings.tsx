@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { ArrowLeft, Download, FolderOpen, Upload } from 'lucide-react'
+import { ArrowLeft, Download, FolderOpen, RotateCcw, Upload } from 'lucide-react'
 import { backupFileName, createBackup, parseBackup } from './backup'
 import {
   canChooseFolder,
@@ -12,6 +12,7 @@ import {
   writeFileToFolder,
 } from './files'
 import { loadStoredFolder, storeFolder } from './folderStore'
+import { askAgainFrom, forgetLater, isInstalledApp } from './installPrompt'
 import { MODE_INFO } from './modeInfo'
 import { MODES, type Mode, type Registrations } from './storage'
 
@@ -34,6 +35,8 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+  const [askAgain, setAskAgain] = useState(() => (isInstalledApp() ? null : askAgainFrom(new Date())))
+  const [installMessage, setInstallMessage] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -112,6 +115,12 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
     } catch (error) {
       if (!isAbortError(error)) setMessage({ kind: 'error', text: 'Het bestand kan niet worden geopend.' })
     }
+  }
+
+  function handleShowInstallQuestion() {
+    forgetLater()
+    setAskAgain(null)
+    setInstallMessage('De vraag om te installeren staat weer onderaan het weekscherm, als Chrome de app installeerbaar vindt.')
   }
 
   function handleFileInput(e: ChangeEvent<HTMLInputElement>) {
@@ -198,6 +207,28 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
           </p>
         )}
       </section>
+
+      {(askAgain || installMessage) && (
+        <section className="setting">
+          <h2>App installeren</h2>
+          {askAgain ? (
+            <>
+              <p className="muted">
+                Je koos "Niet nu". De vraag om te installeren komt terug op{' '}
+                {askAgain.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}.
+              </p>
+              <button type="button" className="wide-button" onClick={handleShowInstallQuestion}>
+                <RotateCcw size={20} strokeWidth={1.75} aria-hidden />
+                Vraag weer tonen
+              </button>
+            </>
+          ) : (
+            <p className="message" role="status">
+              {installMessage}
+            </p>
+          )}
+        </section>
+      )}
     </main>
   )
 }
