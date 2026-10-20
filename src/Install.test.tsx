@@ -139,6 +139,9 @@ describe('AC28: vraag weer tonen vanuit de instellingen', () => {
     expect(screen.getByText(/komt terug op 19 november/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Vraag weer tonen' }))
     expect(localStorage.getItem(INSTALL_LATER_KEY)).toBeNull()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'De vraag om de app op je telefoon te installeren staat onderaan in het startscherm als de app geïnstalleerd kan worden.',
+    )
     expect(screen.queryByRole('button', { name: 'Vraag weer tonen' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(installQuestion()).toBeInTheDocument()

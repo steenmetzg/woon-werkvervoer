@@ -120,7 +120,7 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
   function handleShowInstallQuestion() {
     forgetLater()
     setAskAgain(null)
-    setInstallMessage('De vraag om te installeren staat weer onderaan het weekscherm, als Chrome de app installeerbaar vindt.')
+    setInstallMessage('De vraag om de app op je telefoon te installeren staat onderaan in het startscherm als de app geïnstalleerd kan worden.')
   }
 
   function handleFileInput(e: ChangeEvent<HTMLInputElement>) {
