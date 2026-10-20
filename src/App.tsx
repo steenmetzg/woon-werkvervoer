@@ -84,7 +84,7 @@ export default function App() {
   return (
     <main className="app" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <header className="header">
-        <h1>Woon-werkvervoer</h1>
+        <h1>WoonWerk</h1>
         <button
           type="button"
           className="icon-button settings-button"

@@ -67,7 +67,7 @@ export async function pickFileInFolder(folder: FileSystemDirectoryHandle | null)
   const [handle] = await pickers().showOpenFilePicker!({
     id: 'backupmap',
     ...(folder ? { startIn: folder } : {}),
-    types: [{ description: 'Backup van Woon-werkvervoer', accept: { 'application/json': ['.json'] } }],
+    types: [{ description: 'Backup van WoonWerk', accept: { 'application/json': ['.json'] } }],
   })
   return handle.getFile()
 }

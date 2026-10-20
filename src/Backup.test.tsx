@@ -169,7 +169,7 @@ describe('AC16: backup inlezen', () => {
     render(<App />)
     await openSettings(user)
     await user.upload(screen.getByLabelText('Backupbestand'), backupFile('{"iets": "anders"}', 'boodschappen.json'))
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('geen backup van Woon-werkvervoer'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('geen backup van WoonWerk'))
     expect(confirm).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))

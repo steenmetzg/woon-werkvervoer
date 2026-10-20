@@ -25,10 +25,10 @@ export function parseBackup(text: string): { gemaakt: Date | null; registraties:
   try {
     data = JSON.parse(text)
   } catch {
-    throw new Error('Dit bestand is geen backup van Woon-werkvervoer.')
+    throw new Error('Dit bestand is geen backup van WoonWerk.')
   }
   const backup = data as Partial<Backup> | null
-  if (!backup || backup.app !== APP_ID) throw new Error('Dit bestand is geen backup van Woon-werkvervoer.')
+  if (!backup || backup.app !== APP_ID) throw new Error('Dit bestand is geen backup van WoonWerk.')
   if (backup.versie !== 1) throw new Error('Deze backup is gemaakt met een onbekende versie van de app.')
   const registraties = parseRegistrations(backup.registraties)
   if (!registraties) throw new Error('Deze backup is beschadigd.')

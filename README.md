@@ -1,4 +1,4 @@
-# Woon-werkvervoer
+# WoonWerk
 
 Leg per werkdag met één tik vast hoe je naar je werk bent gegaan: thuis, trein, fiets, auto of vrij.
 De specificatie staat in [SPEC.md](SPEC.md).

@@ -200,7 +200,8 @@ describe('AC10: op beginscherm', () => {
     expect(html).toContain('rel="apple-touch-icon"')
 
     const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'))
-    expect(manifest.name).toBe('Woon-werkvervoer')
+    expect(manifest.name).toBe('WoonWerk')
+    expect(manifest.short_name).toBe('WoonWerk')
     expect(manifest.display).toBe('standalone')
     expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toEqual(
       expect.arrayContaining(['192x192', '512x512']),

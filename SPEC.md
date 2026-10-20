@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.0 (20 oktober 2026): installeerbare progressive web app die ook offline werkt, op verzoek van Greco
+Versie: 1.1 (20 oktober 2026): app heet WoonWerk, op verzoek van Greco
 
 ## 1. Doel
 
@@ -54,7 +54,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC7 (F5)** Op een werkdag is de regel van vandaag gemarkeerd; in een andere week is geen regel gemarkeerd.
 - **AC8 (F6)** Onder de week staan geen weektotalen meer.
 - **AC9 (F7)** Na het verversen van de pagina staan alle keuzes er nog.
-- **AC10 (F8)** De app heeft een naam, een eigen icoon en een app-manifest, zodat "Zet op beginscherm" een schermvullende app oplevert.
+- **AC10 (F8)** De app heet **WoonWerk** (die naam staat onder het icoon en in het installatievenster), heeft een eigen icoon en een app-manifest, zodat "Zet op beginscherm" een schermvullende app oplevert.
 - **AC11 (ontwerp)** Op een telefoonscherm van 360 pixels breed past alles zonder zijwaarts scrollen, en elke knop is minstens 44 pixels hoog, zodat hij makkelijk met een duim te raken is.
 - **AC13 (F9)** Met de tandwielknop open ik de instellingen; met "Terug" zie ik weer dezelfde week.
 - **AC14 (F10)** Na het kiezen van een map toont de instelling de naam van die map, ook nadat de app opnieuw is geopend.

@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Woon-werkvervoer",
-  "short_name": "Vervoer",
+  "name": "WoonWerk",
+  "short_name": "WoonWerk",
   "description": "Leg per werkdag vast hoe je naar je werk bent gegaan.",
   "lang": "nl",
   "start_url": "./",
