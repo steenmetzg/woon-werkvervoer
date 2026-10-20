@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 0.9 (20 oktober 2026): weektotalen weggehaald, backup maken en inlezen met een instelbare backupmap, op verzoek van Greco
+Versie: 1.0 (20 oktober 2026): installeerbare progressive web app die ook offline werkt, op verzoek van Greco
 
 ## 1. Doel
 
@@ -35,7 +35,9 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F10 | Backupmap kiezen | In de instellingen kies je met de mappenkiezer van je telefoon een map waar backups worden opgeslagen en waaruit ze worden ingelezen. De app onthoudt die map en toont de naam. |
 | F11 | Backup maken | De knop "Backup maken" slaat alle ingevulde dagen op als één bestand in de backupmap, met de datum in de naam, bijvoorbeeld `woon-werkvervoer-backup-2026-10-20.json`. Is er geen map gekozen of kan de telefoon geen map onthouden, dan komt het bestand in de map Downloads. |
 | F12 | Backup inlezen | De knop "Backup inlezen" opent de bestandskiezer in de backupmap, zodat je een specifieke backup kiest. Na een bevestiging vervangt de inhoud van de backup alle huidige keuzes. Een bestand dat geen geldige backup is, wordt geweigerd met een duidelijke melding en verandert niets. |
-| F8 | Op beginscherm | De app kan via "Zet op beginscherm" als icoon op de telefoon worden gezet en opent dan schermvullend, zonder adresbalk, net als een gewone app. |
+| F8 | Installeren | De app is een progressive web app (PWA): Chrome biedt "App installeren" aan, waarna de app als gewone app tussen je apps staat en schermvullend opent, zonder adresbalk. |
+| F13 | Offline gebruiken | Na de eerste keer openen werkt de app ook zonder internetverbinding: openen, kiezen, bladeren, instellingen en backups. |
+| F14 | Updates | Staat er een nieuwe versie online, dan haalt de app die op de achtergrond op zodra er internet is. De nieuwe versie is actief de volgende keer dat je de app opent. |
 
 ## 5. Acceptatiecriteria
 
@@ -58,6 +60,8 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC14 (F10)** Na het kiezen van een map toont de instelling de naam van die map, ook nadat de app opnieuw is geopend.
 - **AC15 (F11)** "Backup maken" schrijft een bestand `woon-werkvervoer-backup-JJJJ-MM-DD.json` met alle ingevulde dagen in de gekozen map, en meldt waar het staat. Zonder gekozen map wordt hetzelfde bestand gedownload.
 - **AC16 (F12)** Na het inlezen van een backup toont de app precies de keuzes uit dat bestand; keuzes die niet in de backup staan zijn weg. Bij een ongeldig bestand verschijnt een melding en blijven de huidige keuzes ongewijzigd. Als ik de bevestiging annuleer, verandert er niets.
+- **AC17 (F13)** Als de app één keer met internet is geopend, opent hij daarna ook zonder internetverbinding volledig, en kun je keuzes maken die bewaard blijven.
+- **AC18 (F8)** De app heeft een geldig app-manifest en een service worker, zodat Chrome hem als installeerbare app herkent.
 - **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie en alle vijf dagen met hun knoppen volledig te zien zonder te scrollen.
 
 ## 6. Ontwerp
@@ -75,7 +79,7 @@ Strak, modern en minimalistisch. Geen toeters en bellen.
 
 Werktijden, kilometers of kosten, maand- of jaaroverzichten, exporteren naar
 Excel, automatisch herkennen van feestdagen of vakantie, weekenddagen, accounts, synchroniseren tussen
-apparaten, werken zonder internetverbinding.
+apparaten.
 
 ## 8. Techniek
 
@@ -86,6 +90,7 @@ apparaten, werken zonder internetverbinding.
 - Opslag via `localStorage` van de browser, dus geen server of database. Let op: de gegevens staan alleen op die ene telefoon; als je de browsergegevens wist, zijn ze weg.
 - Backupmap: via de File System Access API van de browser (Chrome op Android vanaf versie 132). De gekozen map wordt onthouden in IndexedDB van de browser. Chrome kan bij het eerste gebruik na het openen van de app opnieuw om toestemming voor de map vragen; dat is een beveiliging van de browser zelf. Android staat niet toe dat de hoofdmap van Downloads of de hele telefoon wordt gekozen, dus kies een eigen map, bijvoorbeeld `Documents/Woon-werkvervoer`.
 - Backupbestand: JSON met de velden `app` (`"woon-werkvervoer"`), `versie` (1), `gemaakt` (datum en tijd) en `registraties` (per datum de keuze, bijv. `"2026-10-20": "fiets"`).
+- Offline en installeren: **vite-plugin-pwa** (met Workbox van Google, beide veelgebruikt en open source) maakt een service worker die alle bestanden van de app op de telefoon bewaart.
 - Online zetten als statische website, zodat de telefoon de app kan openen (de manier van hosten wordt apart gekozen).
 
 ## 9. Oplevering

@@ -28,10 +28,13 @@ Open daarna het adres dat verschijnt (meestal http://localhost:5173).
 
 ## Op je telefoon
 
-Elke wijziging op de branch `main` wordt automatisch getest en online gezet via GitHub Pages. Open het adres op je telefoon en kies
-"Zet op beginscherm" (iPhone: deelknop, Android: menu met drie puntjes). De app opent dan schermvullend.
+De app is een progressive web app. Open https://steenmetzg.github.io/woon-werkvervoer/ in Chrome en kies in het menu
+(drie puntjes) **App installeren**. De app staat daarna tussen je andere apps en werkt ook zonder internet.
 
-Je keuzes worden alleen op die telefoon bewaard. Als je de websitegegevens van je browser wist, zijn ze weg.
+Elke wijziging op de branch `main` wordt automatisch getest en online gezet via GitHub Pages. De app haalt een nieuwe
+versie op de achtergrond op; die is actief de volgende keer dat je de app opent.
+
+Je keuzes worden alleen op die telefoon bewaard. Maak daarom af en toe een backup via het tandwiel rechtsboven.
 
 ## Opbouw
 
@@ -43,4 +46,5 @@ Je keuzes worden alleen op die telefoon bewaard. Als je de websitegegevens van j
 - `src/storage.ts`: bewaren en ophalen van keuzes in de browser
 - `src/index.css`: de vormgeving
 - `src/App.test.tsx` en `src/Backup.test.tsx`: de tests, één groep per acceptatiecriterium
-- `public/`: app-icoon en manifest voor "Zet op beginscherm"
+- `public/`: app-icoon en manifest voor het installeren
+- `vite.config.ts`: bouwinstellingen, inclusief de service worker voor offline gebruik
