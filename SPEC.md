@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.7.1 (20 oktober 2026): rand van de installatievraag in de accentkleur, op verzoek van Greco (app-versie WoonWerk 1.2)
+Versie: 1.8 (20 oktober 2026): installatievraag weer tonen vanuit de instellingen, op verzoek van Greco (app-versie WoonWerk 1.3)
 
 ## 1. Doel
 
@@ -42,6 +42,7 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F17 | Vervoervormen aan/uit | In de instellingen staat bovenaan het onderdeel "Vervoervormen" met dezelfde vijf knoppen (icoon met naam) als bij een dag. Een knop die aan staat is gevuld met de accentkleur; tik erop om hem uit te zetten (dan is hij wit met een rand), en nog eens tikken zet hem weer aan. Thuis staat altijd aan en is een inactieve knop: er gebeurt niets als je erop tikt. Standaard staat alles aan. Een vervoervorm die uit staat, wordt nergens meer getoond: niet als knop bij de dagen, en bij Auto ook niet de knop voor het overzicht auto rechtsboven. De keuze wordt onthouden, net als de registraties. Al vastgelegde dagen met een vervoervorm die uit staat blijven bewaard (ook in backups), maar zijn onzichtbaar; zet je de vorm weer aan, dan zie je ze weer. De aan/uit-instelling zelf zit niet in de backup. |
 | F8 | Installeren | De app is een progressive web app (PWA): Chrome biedt "App installeren" aan, waarna de app als gewone app tussen je apps staat en schermvullend opent, zonder adresbalk. |
 | F18 | Vraag om te installeren | Open je de app in de browser terwijl hij nog niet op de telefoon is geïnstalleerd, dan staat onderaan het scherm een rustige balk "WoonWerk als app installeren?" met de knoppen **Niet nu** en **Installeren** (gevuld met de accentkleur). De rand van de balk heeft dezelfde accentkleur (diep blauw) als de knop Installeren. De balk blijft onderaan in beeld en ligt over de onderkant van de week; vrijdag zie je helemaal door een stukje te scrollen. "Installeren" opent het installatievenster van Chrome zelf. De balk verschijnt alleen als Chrome meldt dat de app installeerbaar is en nog niet is geïnstalleerd; in de geïnstalleerde app zelf (schermvullend) verschijnt hij nooit. Na installeren verdwijnt de balk. Kies je "Niet nu" of sluit je het venster van Chrome zonder te installeren, dan komt de vraag 30 dagen niet terug (dat wordt onthouden op de telefoon). De balk staat alleen op het weekscherm, niet in de instellingen of overzichten. |
+| F19 | Installatievraag weer tonen | Heb je "Niet nu" gekozen, dan staat onderaan de instellingen het onderdeel "App installeren" met de datum waarop de vraag vanzelf terugkomt en de knop **Vraag weer tonen**. Die knop vergeet "Niet nu", zodat de balk weer op het weekscherm staat zodra Chrome de app installeerbaar vindt. In de geïnstalleerde app, of als je geen "Niet nu" koos, staat dit onderdeel er niet. Je registraties blijven gewoon bewaard. |
 | F13 | Offline gebruiken | Na de eerste keer openen werkt de app ook zonder internetverbinding: openen, kiezen, bladeren, instellingen en backups. |
 | F14 | Updates | Staat er een nieuwe versie online, dan haalt de app die op de achtergrond op zodra er internet is. De nieuwe versie is actief de volgende keer dat je de app opent. |
 
@@ -76,6 +77,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC25 (F18)** Meldt Chrome dat de app installeerbaar is, dan staat onderaan het scherm de vraag met "Installeren" en "Niet nu". Zonder die melding van Chrome, of als de app al schermvullend als geïnstalleerde app draait, staat er geen vraag.
 - **AC26 (F18)** "Installeren" opent het installatievenster van Chrome. Na installeren is de vraag weg.
 - **AC27 (F18)** Na "Niet nu", of na het sluiten van het installatievenster zonder te installeren, is de vraag weg en komt hij ook na opnieuw openen niet terug. Na 30 dagen verschijnt hij weer als de app dan nog steeds niet is geïnstalleerd.
+- **AC28 (F19)** Na "Niet nu" op 20 oktober staat in de instellingen dat de vraag terugkomt op 19 november. Na "Vraag weer tonen" verdwijnt dat onderdeel, en terug op het weekscherm staat de vraag er weer. Zonder "Niet nu", of in de geïnstalleerde app, staat het onderdeel niet in de instellingen.
 - **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie en alle vijf dagen met hun knoppen volledig te zien zonder te scrollen.
 
 ## 6. Ontwerp

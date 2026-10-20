@@ -41,7 +41,7 @@ Je keuzes worden alleen op die telefoon bewaard. Maak daarom af en toe een backu
 - `src/App.tsx`: het scherm met de week, de knoppen en het swipen tussen weken
 - `src/Settings.tsx`: het scherm Instellingen en backup
 - `src/Overview.tsx`: de overzichten thuiswerkvergoeding en auto
-- `src/installPrompt.ts`: de vraag om de app te installeren (alleen als hij nog niet geïnstalleerd is)
+- `src/installPrompt.ts`: de vraag om de app te installeren (alleen als hij nog niet geïnstalleerd is), en die vraag weer tonen na "Niet nu"
 - `src/backup.ts`: het backupbestand maken en controleren
 - `src/files.ts` en `src/folderStore.ts`: de backupmap kiezen, onthouden en bestanden schrijven
 - `src/dates.ts`: rekenen met datums (maandag van de week, Nederlandse namen)

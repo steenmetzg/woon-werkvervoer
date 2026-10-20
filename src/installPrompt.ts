@@ -30,19 +30,35 @@ if (typeof window !== 'undefined') {
   })
 }
 
-function isInstalledApp(): boolean {
+export function isInstalledApp(): boolean {
   return window.matchMedia?.('(display-mode: standalone)').matches ?? false
 }
 
-function askedLaterRecently(now: Date): boolean {
+/** Tot wanneer de vraag na "Niet nu" wegblijft; `null` als hij niet wegblijft. */
+export function askAgainFrom(now: Date): Date | null {
   try {
     const raw = localStorage.getItem(INSTALL_LATER_KEY)
-    if (!raw) return false
-    const since = now.getTime() - Number(raw)
-    return since >= 0 && since < INSTALL_LATER_DAYS * 24 * 60 * 60 * 1000
+    if (!raw) return null
+    const chosen = Number(raw)
+    const until = new Date(chosen + INSTALL_LATER_DAYS * 24 * 60 * 60 * 1000)
+    return chosen <= now.getTime() && now < until ? until : null
   } catch {
-    return false
+    return null
   }
+}
+
+function askedLaterRecently(now: Date): boolean {
+  return askAgainFrom(now) !== null
+}
+
+/** Vergeet "Niet nu", zodat de vraag weer verschijnt zodra Chrome de app installeerbaar vindt. */
+export function forgetLater() {
+  try {
+    localStorage.removeItem(INSTALL_LATER_KEY)
+  } catch {
+    // Opslag niet beschikbaar; dan was er ook niets onthouden.
+  }
+  notify()
 }
 
 function rememberLater(now: Date) {
@@ -59,7 +75,10 @@ export function useInstallPrompt() {
   const [later, setLater] = useState(() => askedLaterRecently(new Date()))
 
   useEffect(() => {
-    const update = () => setEvent(pending)
+    const update = () => {
+      setEvent(pending)
+      setLater(askedLaterRecently(new Date()))
+    }
     listeners.add(update)
     update()
     return () => {

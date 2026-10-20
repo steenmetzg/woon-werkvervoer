@@ -128,3 +128,35 @@ describe('AC27: Niet nu', () => {
     expect(localStorage.getItem(INSTALL_LATER_KEY)).not.toBeNull()
   })
 })
+
+describe('AC28: vraag weer tonen vanuit de instellingen', () => {
+  it('toont na "Niet nu" in de instellingen een knop die de vraag terugbrengt', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    chromeOffersInstall()
+    await user.click(screen.getByRole('button', { name: 'Niet nu' }))
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    expect(screen.getByText(/komt terug op 19 november/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Vraag weer tonen' }))
+    expect(localStorage.getItem(INSTALL_LATER_KEY)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Vraag weer tonen' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(installQuestion()).toBeInTheDocument()
+  })
+
+  it('toont het onderdeel niet als je geen "Niet nu" koos', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    expect(screen.queryByRole('heading', { name: 'App installeren' })).not.toBeInTheDocument()
+  })
+
+  it('toont het onderdeel niet in de geïnstalleerde app', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(display-mode: standalone)' }))
+    localStorage.setItem(INSTALL_LATER_KEY, String(new Date(2026, 9, 19).getTime()))
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    expect(screen.queryByRole('heading', { name: 'App installeren' })).not.toBeInTheDocument()
+  })
+})
