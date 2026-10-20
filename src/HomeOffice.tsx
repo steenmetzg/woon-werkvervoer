@@ -28,7 +28,7 @@ export default function HomeOffice({ registrations, today, onClose }: Props) {
   return (
     <main className="app">
       <header className="settings-header">
-        <button type="button" className="icon-button" aria-label="Terug" onClick={onClose}>
+        <button type="button" className="back-button" aria-label="Terug" onClick={onClose}>
           <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
         </button>
         <h1 className="wrap">Overzicht thuiswerkvergoeding</h1>

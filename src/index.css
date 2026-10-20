@@ -170,6 +170,19 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
+.back-button {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center start;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  /* Het pijltje heeft links wat witruimte in het icoon; zo staat de lijn precies op de kolomrand. */
+  margin-left: -3.5px;
+  margin-right: 3.5px;
+}
+
 .settings-header {
   display: flex;
   align-items: center;
@@ -240,7 +253,9 @@ h1.wrap {
 }
 
 .period-icon {
-  justify-self: center;
+  justify-self: start;
+  /* Lucide-iconen hebben een kleine witrand; schuif het huisje zodat de lijn precies op de kolomrand staat. */
+  margin-left: -2.5px;
   color: var(--accent);
 }
 
