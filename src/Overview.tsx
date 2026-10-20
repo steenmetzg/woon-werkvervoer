@@ -1,26 +1,32 @@
-import { ArrowLeft, House } from 'lucide-react'
+import { ArrowLeft, type LucideIcon } from 'lucide-react'
 import { addDays, compactDay, dateKey, fullDate, monthName, overviewPeriod } from './dates'
-import type { Registrations } from './storage'
+import type { Mode, Registrations } from './storage'
 
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
 interface Props {
+  /** De keuze waarvoor het overzicht de dagen toont, bijv. 'thuis' of 'auto'. */
+  mode: Mode
+  title: string
+  Icon: LucideIcon
+  iconLabel: string
   registrations: Registrations
   today: Date
   onClose: () => void
 }
 
-export default function HomeOffice({ registrations, today, onClose }: Props) {
+/** Overzicht van alle dagen met één bepaalde keuze, van 3 maanden geleden tot vandaag, per maand een kolom. */
+export default function Overview({ mode, title, Icon, iconLabel, registrations, today, onClose }: Props) {
   const { start, end, months } = overviewPeriod(today)
 
-  // Alle dagen in de periode met Thuis, gegroepeerd per kalendermaand.
+  // Alle dagen in de periode met deze keuze, gegroepeerd per kalendermaand.
   const columns = months.map((month) => {
     const days: Date[] = []
     const first = month < start ? start : month
     for (let d = first; d.getMonth() === month.getMonth() && d <= end; d = addDays(d, 1)) {
-      if (registrations[dateKey(d)] === 'thuis') days.push(d)
+      if (registrations[dateKey(d)] === mode) days.push(d)
     }
     return { month, days }
   })
@@ -31,11 +37,11 @@ export default function HomeOffice({ registrations, today, onClose }: Props) {
         <button type="button" className="back-button" aria-label="Terug" onClick={onClose}>
           <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
         </button>
-        <h1 className="wrap">Overzicht thuiswerkvergoeding</h1>
+        <h1 className="wrap">{title}</h1>
       </header>
 
       <div className="period">
-        <House className="period-icon" size={28} strokeWidth={1.75} aria-label="Thuis" />
+        <Icon className="period-icon" size={28} strokeWidth={1.75} aria-label={iconLabel} />
         <dl>
           <div>
             <dt>Vanaf</dt>

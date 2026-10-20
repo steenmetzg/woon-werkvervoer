@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { Bike, Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon, TrainFront, TreePalm, type LucideIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
-import HomeOffice from './HomeOffice'
+import Overview from './Overview'
 import Settings from './Settings'
 import { MODES, loadRegistrations, saveRegistrations, type Mode, type Registrations } from './storage'
 
@@ -13,6 +13,11 @@ const MODE_INFO: Record<Mode, { label: string; Icon: LucideIcon }> = {
   vrij: { label: 'Vrij', Icon: TreePalm },
 }
 
+const OVERVIEWS = {
+  thuis: { title: 'Overzicht thuiswerkvergoeding' },
+  auto: { title: 'Overzicht auto' },
+} as const
+
 const SWIPE_MIN_DISTANCE = 50
 
 export default function App() {
@@ -20,7 +25,7 @@ export default function App() {
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
-  const [screen, setScreen] = useState<'week' | 'settings' | 'thuis'>('week')
+  const [screen, setScreen] = useState<'week' | 'settings' | 'thuis' | 'auto'>('week')
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -82,8 +87,20 @@ export default function App() {
     )
   }
 
-  if (screen === 'thuis') {
-    return <HomeOffice registrations={registrations} today={today} onClose={() => setScreen('week')} />
+  if (screen === 'thuis' || screen === 'auto') {
+    const { title } = OVERVIEWS[screen]
+    const { label, Icon } = MODE_INFO[screen]
+    return (
+      <Overview
+        mode={screen}
+        title={title}
+        Icon={Icon}
+        iconLabel={label}
+        registrations={registrations}
+        today={today}
+        onClose={() => setScreen('week')}
+      />
+    )
   }
 
   return (
@@ -98,6 +115,14 @@ export default function App() {
             onClick={() => setScreen('thuis')}
           >
             <House size={20} strokeWidth={1.75} aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Overzicht auto"
+            onClick={() => setScreen('auto')}
+          >
+            <Car size={20} strokeWidth={1.75} aria-hidden />
           </button>
           <button
             type="button"
@@ -126,15 +151,15 @@ export default function App() {
           >
             <ChevronRight size={20} strokeWidth={1.75} aria-hidden />
           </button>
+          <button
+            type="button"
+            className="today-button"
+            disabled={isThisWeek}
+            onClick={() => setMonday(thisMonday)}
+          >
+            Deze week
+          </button>
         </nav>
-        <button
-          type="button"
-          className="today-button"
-          disabled={isThisWeek}
-          onClick={() => setMonday(thisMonday)}
-        >
-          Deze week
-        </button>
       </header>
 
       <ol className="days">

@@ -80,3 +80,34 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
     expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 12 oktober')
   })
 })
+
+describe('AC21: overzicht auto', () => {
+  it('toont precies hetzelfde overzicht, maar dan voor de dagen met Auto', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        '2026-07-17': 'auto', // vóór de periode
+        '2026-07-21': 'auto',
+        '2026-08-03': 'thuis', // andere keuze
+        '2026-09-15': 'auto',
+        '2026-10-20': 'auto', // vandaag
+        '2026-10-22': 'auto', // na vandaag
+      }),
+    )
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Overzicht auto' }))
+
+    expect(screen.getByRole('heading', { name: 'Overzicht auto' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Auto')).toBeInTheDocument()
+    expect(screen.getByTestId('vanaf')).toHaveTextContent('20 juli 2026')
+    expect(screen.getByTestId('tot')).toHaveTextContent('20 oktober 2026')
+    expect(column('juli').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 21'])
+    expect(column('augustus').queryAllByRole('listitem')).toHaveLength(0)
+    expect(column('september').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 15'])
+    expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 20'])
+
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 19 oktober')
+  })
+})
