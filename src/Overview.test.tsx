@@ -81,7 +81,7 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
   })
 })
 
-describe('AC21: overzicht auto', () => {
+describe('AC21: overzicht kilometervergoeding', () => {
   it('toont precies hetzelfde overzicht, maar dan voor de dagen met Auto', async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -96,9 +96,9 @@ describe('AC21: overzicht auto', () => {
     )
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Overzicht auto' }))
+    await user.click(screen.getByRole('button', { name: 'Overzicht kilometervergoeding' }))
 
-    expect(screen.getByRole('heading', { name: 'Overzicht auto' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Overzicht kilometervergoeding' })).toBeInTheDocument()
     expect(screen.getByLabelText('Auto')).toBeInTheDocument()
     expect(screen.getByTestId('vanaf')).toHaveTextContent('20 juli 2026')
     expect(screen.getByTestId('tot')).toHaveTextContent('20 oktober 2026')

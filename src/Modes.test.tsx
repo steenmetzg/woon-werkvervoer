@@ -28,13 +28,13 @@ function settingButton(mode: string) {
 }
 
 describe('AC22: vervoervormen aan- en uitzetten', () => {
-  it('toont standaard alle vijf de knoppen en het overzicht auto', () => {
+  it('toont standaard alle vijf de knoppen en het overzicht kilometervergoeding', () => {
     render(<App />)
     expect(dayButtons('dinsdag 20 oktober').map((b) => b.textContent)).toEqual(['Thuis', 'Trein', 'Fiets', 'Auto', 'Vrij'])
-    expect(screen.getByRole('button', { name: 'Overzicht auto' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Overzicht kilometervergoeding' })).toBeInTheDocument()
   })
 
-  it('verbergt uitgezette vormen bij elke dag en het overzicht auto, ook na opnieuw openen', async () => {
+  it('verbergt uitgezette vormen bij elke dag en het overzicht kilometervergoeding, ook na opnieuw openen', async () => {
     const user = userEvent.setup()
     const { unmount } = render(<App />)
     await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
@@ -47,13 +47,13 @@ describe('AC22: vervoervormen aan- en uitzetten', () => {
     for (const d of screen.getAllByRole('listitem')) {
       expect(within(d).getAllByRole('button').map((b) => b.textContent)).toEqual(['Thuis', 'Fiets', 'Vrij'])
     }
-    expect(screen.queryByRole('button', { name: 'Overzicht auto' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Overzicht kilometervergoeding' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' })).toBeInTheDocument()
 
     unmount()
     render(<App />)
     expect(dayButtons('dinsdag 20 oktober').map((b) => b.textContent)).toEqual(['Thuis', 'Fiets', 'Vrij'])
-    expect(screen.queryByRole('button', { name: 'Overzicht auto' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Overzicht kilometervergoeding' })).not.toBeInTheDocument()
   })
 })
 
@@ -93,6 +93,6 @@ describe('AC24: keuzes van een uitgezette vorm blijven bewaard', () => {
       'aria-pressed',
       'true',
     )
-    expect(screen.getByRole('button', { name: 'Overzicht auto' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Overzicht kilometervergoeding' })).toBeInTheDocument()
   })
 })
