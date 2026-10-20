@@ -74,6 +74,7 @@ h1 {
 }
 
 .icon-button {
+  flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 44px;
@@ -230,11 +231,16 @@ h1.wrap {
 }
 
 .period {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px 1fr;
   align-items: center;
-  gap: 16px;
-  padding: 12px 0 16px;
+  column-gap: 12px;
+  padding: 4px 0 16px;
   border-bottom: 1px solid var(--line);
+}
+
+.period-icon {
+  justify-self: center;
   color: var(--accent);
 }
 
@@ -242,7 +248,7 @@ h1.wrap {
   display: grid;
   gap: 2px;
   margin: 0;
-  color: var(--text);
+  font-size: 0.875rem;
 }
 
 .period dl div {
@@ -251,7 +257,7 @@ h1.wrap {
 }
 
 .period dt {
-  min-width: 5.5em;
+  min-width: 6.5em;
   color: var(--muted);
 }
 
@@ -261,14 +267,16 @@ h1.wrap {
 
 .months {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
   padding-top: 12px;
 }
 
 .month h2 {
   margin: 0 0 6px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .month ul {

@@ -2,6 +2,10 @@ import { ArrowLeft, House } from 'lucide-react'
 import { addDays, compactDay, dateKey, fullDate, monthName, overviewPeriod } from './dates'
 import type { Registrations } from './storage'
 
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
 interface Props {
   registrations: Registrations
   today: Date
@@ -31,7 +35,7 @@ export default function HomeOffice({ registrations, today, onClose }: Props) {
       </header>
 
       <div className="period">
-        <House size={28} strokeWidth={1.75} aria-label="Thuis" />
+        <House className="period-icon" size={28} strokeWidth={1.75} aria-label="Thuis" />
         <dl>
           <div>
             <dt>Vanaf</dt>
@@ -47,7 +51,7 @@ export default function HomeOffice({ registrations, today, onClose }: Props) {
       <div className="months">
         {columns.map(({ month, days }) => (
           <section key={dateKey(month)} className="month" aria-label={monthName(month)}>
-            <h2>{monthName(month)}</h2>
+            <h2>{capitalize(monthName(month))}</h2>
             {days.length > 0 ? (
               <ul>
                 {days.map((d) => (

@@ -53,6 +53,12 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
     expect(column('augustus').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['ma 3', 'vr 28'])
     expect(column('september').queryAllByRole('listitem')).toHaveLength(0)
     expect(column('september').getByText('–')).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Juli',
+      'Augustus',
+      'September',
+      'Oktober',
+    ])
     expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 1', 'di 20'])
   })
 

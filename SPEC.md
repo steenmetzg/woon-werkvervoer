@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.2 (20 oktober 2026): overzicht thuiswerkvergoeding, op verzoek van Greco
+Versie: 1.3 (20 oktober 2026): opmaak overzicht thuiswerkvergoeding verfijnd, op verzoek van Greco
 
 ## 1. Doel
 
@@ -35,7 +35,7 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F10 | Backupmap kiezen | In de instellingen kies je met de mappenkiezer van je telefoon een map waar backups worden opgeslagen en waaruit ze worden ingelezen. De app onthoudt die map en toont de naam. |
 | F11 | Backup maken | De knop "Backup maken" slaat alle ingevulde dagen op als één bestand in de backupmap, met de datum in de naam, bijvoorbeeld `woon-werkvervoer-backup-2026-10-20.json`. Is er geen map gekozen of kan de telefoon geen map onthouden, dan komt het bestand in de map Downloads. |
 | F12 | Backup inlezen | De knop "Backup inlezen" opent de bestandskiezer in de backupmap, zodat je een specifieke backup kiest. Na een bevestiging vervangt de inhoud van de backup alle huidige keuzes. Een bestand dat geen geldige backup is, wordt geweigerd met een duidelijke melding en verandert niets. |
-| F15 | Overzicht thuiswerkvergoeding | Een knop met het thuis-icoon rechtsboven, naast het tandwiel, opent het scherm "Overzicht thuiswerkvergoeding". Het toont standaard alle dagen waarop Thuis is gekozen, van precies 3 maanden geleden tot en met vandaag (op 20 oktober dus vanaf 20 juli; bestaat die dag niet, zoals 31 februari, dan de laatste dag van die maand). Bovenaan staan het thuis-icoon, de vanaf-datum en de tot-datum. Daaronder staan heel compact de datums in kolommen: elke kalendermaand een eigen kolom (meestal 4, omdat de periode in een maand halverwege begint; Greco koos hiervoor boven precies 3 kolommen), de oudste maand links, met de maandnaam erboven. Een maand zonder thuisdagen toont een streepje. "Terug" brengt je weer naar de week. |
+| F15 | Overzicht thuiswerkvergoeding | Een knop met het thuis-icoon rechtsboven, naast het tandwiel, opent het scherm "Overzicht thuiswerkvergoeding". Het toont standaard alle dagen waarop Thuis is gekozen, van precies 3 maanden geleden tot en met vandaag (op 20 oktober dus vanaf 20 juli; bestaat die dag niet, zoals 31 februari, dan de laatste dag van die maand). Bovenaan staan het thuis-icoon, de vanaf-datum en de tot-datum. Daaronder staan heel compact de datums in kolommen: elke kalendermaand een eigen kolom (meestal 4, omdat de periode in een maand halverwege begint; Greco koos hiervoor boven precies 3 kolommen), de oudste maand links, met de maandnaam erboven. Een maand zonder thuisdagen toont een streepje. Opmaak: de vanaf- en tot-datum in kleinere tekst, met de labels uitgelijnd met de titel van het overzicht; de maandnamen met een hoofdletter (bijv. "Augustus") en iets groter dan de datums; alle kolommen even breed. "Terug" brengt je weer naar de week. |
 | F8 | Installeren | De app is een progressive web app (PWA): Chrome biedt "App installeren" aan, waarna de app als gewone app tussen je apps staat en schermvullend opent, zonder adresbalk. |
 | F13 | Offline gebruiken | Na de eerste keer openen werkt de app ook zonder internetverbinding: openen, kiezen, bladeren, instellingen en backups. |
 | F14 | Updates | Staat er een nieuwe versie online, dan haalt de app die op de achtergrond op zodra er internet is. De nieuwe versie is actief de volgende keer dat je de app opent. |
