@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.1 (20 oktober 2026): app heet WoonWerk, op verzoek van Greco
+Versie: 1.2 (20 oktober 2026): bij inlezen een lijst met alleen de backups uit de backupmap, op verzoek van Greco
 
 ## 1. Doel
 
@@ -34,7 +34,7 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F9 | Instellingen | Een tandwielknop rechtsboven opent het scherm "Instellingen en backup". Een knop "Terug" brengt je weer naar de week. |
 | F10 | Backupmap kiezen | In de instellingen kies je met de mappenkiezer van je telefoon een map waar backups worden opgeslagen en waaruit ze worden ingelezen. De app onthoudt die map en toont de naam. |
 | F11 | Backup maken | De knop "Backup maken" slaat alle ingevulde dagen op als één bestand in de backupmap, met de datum in de naam, bijvoorbeeld `woon-werkvervoer-backup-2026-10-20.json`. Is er geen map gekozen of kan de telefoon geen map onthouden, dan komt het bestand in de map Downloads. |
-| F12 | Backup inlezen | De knop "Backup inlezen" opent de bestandskiezer in de backupmap, zodat je een specifieke backup kiest. Na een bevestiging vervangt de inhoud van de backup alle huidige keuzes. Een bestand dat geen geldige backup is, wordt geweigerd met een duidelijke melding en verandert niets. |
+| F12 | Backup inlezen | Is er een backupmap gekozen, dan toont de knop "Backup inlezen" een lijst met alleen de backups uit die map (bestanden die beginnen met `woon-werkvervoer-backup-`), de nieuwste bovenaan, met de datum. Je tikt er één aan. Via "Ander bestand kiezen" kun je toch de bestandskiezer van de telefoon gebruiken; zonder backupmap opent meteen de bestandskiezer. Na een bevestiging vervangt de inhoud van de backup alle huidige keuzes. Een bestand dat geen geldige backup is, wordt geweigerd met een duidelijke melding en verandert niets. |
 | F8 | Installeren | De app is een progressive web app (PWA): Chrome biedt "App installeren" aan, waarna de app als gewone app tussen je apps staat en schermvullend opent, zonder adresbalk. |
 | F13 | Offline gebruiken | Na de eerste keer openen werkt de app ook zonder internetverbinding: openen, kiezen, bladeren, instellingen en backups. |
 | F14 | Updates | Staat er een nieuwe versie online, dan haalt de app die op de achtergrond op zodra er internet is. De nieuwe versie is actief de volgende keer dat je de app opent. |
@@ -60,6 +60,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC14 (F10)** Na het kiezen van een map toont de instelling de naam van die map, ook nadat de app opnieuw is geopend.
 - **AC15 (F11)** "Backup maken" schrijft een bestand `woon-werkvervoer-backup-JJJJ-MM-DD.json` met alle ingevulde dagen in de gekozen map, en meldt waar het staat. Zonder gekozen map wordt hetzelfde bestand gedownload.
 - **AC16 (F12)** Na het inlezen van een backup toont de app precies de keuzes uit dat bestand; keuzes die niet in de backup staan zijn weg. Bij een ongeldig bestand verschijnt een melding en blijven de huidige keuzes ongewijzigd. Als ik de bevestiging annuleer, verandert er niets.
+- **AC19 (F12)** Met een gekozen backupmap toont "Backup inlezen" alleen de bestanden waarvan de naam begint met `woon-werkvervoer-backup-` en eindigt op `.json`, de nieuwste bovenaan. Andere bestanden in de map staan er niet tussen. Als er geen backups in de map staan, meldt de app dat.
 - **AC17 (F13)** Als de app één keer met internet is geopend, opent hij daarna ook zonder internetverbinding volledig, en kun je keuzes maken die bewaard blijven.
 - **AC18 (F8)** De app heeft een geldig app-manifest en een service worker, zodat Chrome hem als installeerbare app herkent.
 - **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie en alle vijf dagen met hun knoppen volledig te zien zonder te scrollen.

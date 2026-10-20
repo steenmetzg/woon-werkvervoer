@@ -71,3 +71,19 @@ export async function pickFileInFolder(folder: FileSystemDirectoryHandle | null)
   })
   return handle.getFile()
 }
+
+interface IterableDirectory {
+  values(): AsyncIterable<FileSystemHandle>
+}
+
+/** Alle bestanden in de map waarvan `keep(naam)` waar is, op naam aflopend gesorteerd. */
+export async function listFiles(
+  folder: FileSystemDirectoryHandle,
+  keep: (name: string) => boolean,
+): Promise<FileSystemFileHandle[]> {
+  const files: FileSystemFileHandle[] = []
+  for await (const entry of (folder as unknown as IterableDirectory).values()) {
+    if (entry.kind === 'file' && keep(entry.name)) files.push(entry as FileSystemFileHandle)
+  }
+  return files.sort((a, b) => b.name.localeCompare(a.name))
+}

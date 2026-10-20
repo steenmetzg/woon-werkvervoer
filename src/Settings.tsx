@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { ArrowLeft, Download, FolderOpen, Upload } from 'lucide-react'
-import { backupFileName, createBackup, parseBackup } from './backup'
+import { backupFileName, backupLabel, createBackup, isBackupFileName, parseBackup } from './backup'
 import {
   canChooseFolder,
   canPickFileInFolder,
@@ -8,6 +8,7 @@ import {
   downloadFile,
   ensureWriteAccess,
   isAbortError,
+  listFiles,
   pickFileInFolder,
   writeFileToFolder,
 } from './files'
@@ -30,6 +31,7 @@ function dayCount(registrations: Registrations): string {
 export default function Settings({ registrations, onRestore, onClose }: Props) {
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
+  const [backupList, setBackupList] = useState<FileSystemFileHandle[] | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -95,6 +97,28 @@ export default function Settings({ registrations, onRestore, onClose }: Props) {
   }
 
   async function handleRestore() {
+    setMessage(null)
+    if (!folder) {
+      await pickOtherFile()
+      return
+    }
+    try {
+      if (!(await ensureWriteAccess(folder))) {
+        setMessage({ kind: 'error', text: `Geen toestemming voor de map "${folder.name}". Probeer het opnieuw.` })
+        return
+      }
+      const backups = await listFiles(folder, isBackupFileName)
+      setBackupList(backups)
+      if (backups.length === 0) {
+        setMessage({ kind: 'error', text: `Geen backups gevonden in de map "${folder.name}".` })
+      }
+    } catch {
+      setMessage({ kind: 'error', text: `De map "${folder.name}" kan niet worden gelezen. Kies de map opnieuw.` })
+    }
+  }
+
+  async function pickOtherFile() {
+    setBackupList(null)
     if (!canPickFileInFolder()) {
       fileInput.current?.click()
       return
@@ -103,6 +127,16 @@ export default function Settings({ registrations, onRestore, onClose }: Props) {
       await restoreFrom(await pickFileInFolder(folder))
     } catch (error) {
       if (!isAbortError(error)) setMessage({ kind: 'error', text: 'Het bestand kan niet worden geopend.' })
+    }
+  }
+
+  async function restoreFromList(handle: FileSystemFileHandle) {
+    try {
+      const file = await handle.getFile()
+      setBackupList(null)
+      await restoreFrom(file)
+    } catch {
+      setMessage({ kind: 'error', text: 'Het bestand kan niet worden geopend.' })
     }
   }
 
@@ -152,6 +186,38 @@ export default function Settings({ registrations, onRestore, onClose }: Props) {
             Backup inlezen
           </button>
         </div>
+        {backupList && (
+          <div className="backup-list">
+            {backupList.length > 0 && <h3>Kies een backup</h3>}
+            {backupList.length > 0 && (
+              <ul>
+                {backupList.map((handle) => (
+                  <li key={handle.name}>
+                    <button type="button" className="list-button" onClick={() => restoreFromList(handle)}>
+                      <span>{backupLabel(handle.name)}</span>
+                      <span className="file-name">{handle.name}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="list-actions">
+              <button type="button" className="text-button" onClick={pickOtherFile}>
+                Ander bestand kiezen
+              </button>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  setBackupList(null)
+                  setMessage(null)
+                }}
+              >
+                Annuleren
+              </button>
+            </div>
+          </div>
+        )}
         <input
           ref={fileInput}
           type="file"
