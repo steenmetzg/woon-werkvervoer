@@ -17,7 +17,7 @@ import {
 
 const OVERVIEWS = {
   thuis: { title: 'Overzicht thuiswerkvergoeding' },
-  auto: { title: 'Overzicht auto' },
+  auto: { title: 'Overzicht kilometervergoeding' },
 } as const
 
 const SWIPE_MIN_DISTANCE = 50
@@ -130,7 +130,7 @@ export default function App() {
             <button
               type="button"
               className="icon-button"
-              aria-label="Overzicht auto"
+              aria-label="Overzicht kilometervergoeding"
               onClick={() => setScreen('auto')}
             >
               <CostIcon Icon={Car} />
