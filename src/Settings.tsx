@@ -12,10 +12,13 @@ import {
   writeFileToFolder,
 } from './files'
 import { loadStoredFolder, storeFolder } from './folderStore'
-import type { Registrations } from './storage'
+import { MODE_INFO } from './modeInfo'
+import { MODES, type Mode, type Registrations } from './storage'
 
 interface Props {
   registrations: Registrations
+  enabledModes: Mode[]
+  onChangeEnabledModes: (modes: Mode[]) => void
   onRestore: (registrations: Registrations) => void
   onClose: () => void
 }
@@ -27,7 +30,7 @@ function dayCount(registrations: Registrations): string {
   return n === 1 ? '1 dag' : `${n} dagen`
 }
 
-export default function Settings({ registrations, onRestore, onClose }: Props) {
+export default function Settings({ registrations, enabledModes, onChangeEnabledModes, onRestore, onClose }: Props) {
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -41,6 +44,11 @@ export default function Settings({ registrations, onRestore, onClose }: Props) {
       active = false
     }
   }, [])
+
+  function toggleMode(mode: Mode) {
+    const on = !enabledModes.includes(mode)
+    onChangeEnabledModes(MODES.filter((m) => (m === mode ? on : enabledModes.includes(m))))
+  }
 
   async function handleChooseFolder() {
     try {
@@ -120,6 +128,30 @@ export default function Settings({ registrations, onRestore, onClose }: Props) {
         </button>
         <h1>Instellingen en backup</h1>
       </header>
+
+      <section className="setting">
+        <h2>Vervoervormen</h2>
+        <p className="muted">Alleen de vormen die aan staan zie je in de week. Thuis staat altijd aan.</p>
+        <div className="modes" role="group" aria-label="Vervoervormen">
+          {MODES.map((mode) => {
+            const { label, Icon } = MODE_INFO[mode]
+            const on = enabledModes.includes(mode)
+            return (
+              <button
+                key={mode}
+                type="button"
+                className={on ? 'mode selected' : 'mode'}
+                aria-pressed={on}
+                disabled={mode === 'thuis'}
+                onClick={() => toggleMode(mode)}
+              >
+                <Icon size={20} strokeWidth={1.75} aria-hidden />
+                <span>{label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
 
       <section className="setting">
         <h2>Backupmap</h2>
