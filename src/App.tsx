@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
+import { useInstallPrompt } from './installPrompt'
 import Overview from './Overview'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
@@ -27,6 +28,7 @@ export default function App() {
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
   const [screen, setScreen] = useState<'week' | 'settings' | 'thuis' | 'auto'>('week')
+  const installPrompt = useInstallPrompt()
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -210,6 +212,17 @@ export default function App() {
         })}
       </ol>
 
+      {installPrompt.show && (
+        <section className="install" aria-label="App installeren">
+          <p>WoonWerk als app installeren?</p>
+          <button type="button" onClick={installPrompt.notNow}>
+            Niet nu
+          </button>
+          <button type="button" className="install-now" onClick={installPrompt.install}>
+            Installeren
+          </button>
+        </section>
+      )}
     </main>
   )
 }

@@ -29,7 +29,7 @@ Open daarna het adres dat verschijnt (meestal http://localhost:5173).
 ## Op je telefoon
 
 De app is een progressive web app. Open https://steenmetzg.github.io/woon-werkvervoer/ in Chrome en kies in het menu
-(drie puntjes) **App installeren**. De app staat daarna tussen je andere apps en werkt ook zonder internet.
+(drie puntjes) **App installeren**, of tik op **Installeren** in de balk onderaan die de app zelf toont zolang hij nog niet geïnstalleerd is. De app staat daarna tussen je andere apps en werkt ook zonder internet.
 
 Elke wijziging op de branch `main` wordt automatisch getest en online gezet via GitHub Pages. De app haalt een nieuwe
 versie op de achtergrond op; die is actief de volgende keer dat je de app opent.
@@ -41,11 +41,12 @@ Je keuzes worden alleen op die telefoon bewaard. Maak daarom af en toe een backu
 - `src/App.tsx`: het scherm met de week, de knoppen en het swipen tussen weken
 - `src/Settings.tsx`: het scherm Instellingen en backup
 - `src/Overview.tsx`: de overzichten thuiswerkvergoeding en auto
+- `src/installPrompt.ts`: de vraag om de app te installeren (alleen als hij nog niet geïnstalleerd is)
 - `src/backup.ts`: het backupbestand maken en controleren
 - `src/files.ts` en `src/folderStore.ts`: de backupmap kiezen, onthouden en bestanden schrijven
 - `src/dates.ts`: rekenen met datums (maandag van de week, Nederlandse namen)
 - `src/storage.ts`: bewaren en ophalen van keuzes in de browser
 - `src/index.css`: de vormgeving
-- `src/App.test.tsx`, `src/Backup.test.tsx` en `src/Overview.test.tsx`: de tests, één groep per acceptatiecriterium
+- `src/*.test.tsx`: de tests, één groep per acceptatiecriterium
 - `public/`: app-icoon en manifest voor het installeren
 - `vite.config.ts`: bouwinstellingen, inclusief de service worker voor offline gebruik

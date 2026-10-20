@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.6 (20 oktober 2026): vervoervormen aan- en uitzetten, op verzoek van Greco (app-versie WoonWerk 1.1)
+Versie: 1.7 (20 oktober 2026): vraag om de app te installeren, op verzoek van Greco (app-versie WoonWerk 1.2)
 
 ## 1. Doel
 
@@ -41,6 +41,7 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F16 | Overzicht auto | Precies hetzelfde overzicht als F15, maar voor de dagen waarop Auto is gekozen. Een knop met het auto-icoon rechtsboven, tussen het thuis-icoon en het tandwiel, opent het scherm "Overzicht auto". Zelfde periode, indeling en opmaak, met het auto-icoon bovenaan. |
 | F17 | Vervoervormen aan/uit | In de instellingen staat bovenaan het onderdeel "Vervoervormen" met dezelfde vijf knoppen (icoon met naam) als bij een dag. Een knop die aan staat is gevuld met de accentkleur; tik erop om hem uit te zetten (dan is hij wit met een rand), en nog eens tikken zet hem weer aan. Thuis staat altijd aan en is een inactieve knop: er gebeurt niets als je erop tikt. Standaard staat alles aan. Een vervoervorm die uit staat, wordt nergens meer getoond: niet als knop bij de dagen, en bij Auto ook niet de knop voor het overzicht auto rechtsboven. De keuze wordt onthouden, net als de registraties. Al vastgelegde dagen met een vervoervorm die uit staat blijven bewaard (ook in backups), maar zijn onzichtbaar; zet je de vorm weer aan, dan zie je ze weer. De aan/uit-instelling zelf zit niet in de backup. |
 | F8 | Installeren | De app is een progressive web app (PWA): Chrome biedt "App installeren" aan, waarna de app als gewone app tussen je apps staat en schermvullend opent, zonder adresbalk. |
+| F18 | Vraag om te installeren | Open je de app in de browser terwijl hij nog niet op de telefoon is geïnstalleerd, dan staat onderaan het scherm een rustige balk "WoonWerk als app installeren?" met de knoppen **Niet nu** en **Installeren** (gevuld met de accentkleur). De balk blijft onderaan in beeld en ligt over de onderkant van de week; vrijdag zie je helemaal door een stukje te scrollen. "Installeren" opent het installatievenster van Chrome zelf. De balk verschijnt alleen als Chrome meldt dat de app installeerbaar is en nog niet is geïnstalleerd; in de geïnstalleerde app zelf (schermvullend) verschijnt hij nooit. Na installeren verdwijnt de balk. Kies je "Niet nu" of sluit je het venster van Chrome zonder te installeren, dan komt de vraag 30 dagen niet terug (dat wordt onthouden op de telefoon). De balk staat alleen op het weekscherm, niet in de instellingen of overzichten. |
 | F13 | Offline gebruiken | Na de eerste keer openen werkt de app ook zonder internetverbinding: openen, kiezen, bladeren, instellingen en backups. |
 | F14 | Updates | Staat er een nieuwe versie online, dan haalt de app die op de achtergrond op zodra er internet is. De nieuwe versie is actief de volgende keer dat je de app opent. |
 
@@ -72,6 +73,9 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC24 (F17)** Staat er op dinsdag Auto en zet ik Auto uit, dan is bij dinsdag niets gemarkeerd. Zet ik Auto weer aan, dan staat dinsdag weer op Auto en is de overzichtsknop terug.
 - **AC17 (F13)** Als de app één keer met internet is geopend, opent hij daarna ook zonder internetverbinding volledig, en kun je keuzes maken die bewaard blijven.
 - **AC18 (F8)** De app heeft een geldig app-manifest en een service worker, zodat Chrome hem als installeerbare app herkent.
+- **AC25 (F18)** Meldt Chrome dat de app installeerbaar is, dan staat onderaan het scherm de vraag met "Installeren" en "Niet nu". Zonder die melding van Chrome, of als de app al schermvullend als geïnstalleerde app draait, staat er geen vraag.
+- **AC26 (F18)** "Installeren" opent het installatievenster van Chrome. Na installeren is de vraag weg.
+- **AC27 (F18)** Na "Niet nu", of na het sluiten van het installatievenster zonder te installeren, is de vraag weg en komt hij ook na opnieuw openen niet terug. Na 30 dagen verschijnt hij weer als de app dan nog steeds niet is geïnstalleerd.
 - **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie en alle vijf dagen met hun knoppen volledig te zien zonder te scrollen.
 
 ## 6. Ontwerp
@@ -83,7 +87,7 @@ Strak, modern en minimalistisch. Geen toeters en bellen.
 - **Knoppen**: een strak lijnicoon met de naam eronder, zodat elk vervoermiddel direct herkenbaar is. Dunne rand en afgeronde hoeken. De gekozen knop is gevuld met de accentkleur en witte tekst.
 - **Indeling**: smalle kolom gecentreerd op het scherm, compact in de hoogte zodat de hele week in één scherm past, dunne lijnen als scheiding tussen de dagen. Bovenaan staan de titel met rechts de knoppen voor het thuiswerkoverzicht, het auto-overzicht (alleen als Auto aan staat) en de instellingen, en daaronder de weeknavigatie met "Deze week". De week staat er kort, bijv. "19 – 23 okt"; het jaartal verschijnt alleen bij een week in een ander jaar.
 - **Mobiel eerst**: ontworpen voor een telefoonscherm, met grote knoppen voor je duim; de vijf knoppen passen naast elkaar; staan er minder aan, dan worden ze breder. Op een groter scherm blijft het een smalle kolom.
-- **Geen extra's**: geen logo, geen afbeeldingen, geen pop-ups. Uitzonderingen: de bevestigingsvraag voor het inlezen van een backup (die vervangt immers alles), en de mappen- en bestandskiezer van de telefoon zelf. Meldingen over backups verschijnen als korte regel tekst in het instellingenscherm.
+- **Geen extra's**: geen logo, geen afbeeldingen, geen pop-ups. Uitzonderingen: de bevestigingsvraag voor het inlezen van een backup (die vervangt immers alles), de mappen- en bestandskiezer en het installatievenster van de telefoon zelf. De vraag om te installeren (F18) is geen pop-up maar een smalle balk onderaan het weekscherm; zolang die er staat, geldt AC12 niet helemaal (vrijdag zie je door te scrollen). Meldingen over backups verschijnen als korte regel tekst in het instellingenscherm.
 
 ## 7. Buiten scope (versie 1)
 
@@ -97,10 +101,11 @@ apparaten.
 - **Vitest** en **React Testing Library** (automatische tests van de acceptatiecriteria)
 - **Lucide** (`lucide-react`) voor de iconen: een veelgebruikte open source iconenset met strakke lijniconen en miljoenen downloads per week.
 - Geen andere bibliotheken (ook geen CSS-framework, de vormgeving is gewone CSS); datums worden met standaard JavaScript berekend.
-- Opslag via `localStorage` van de browser (de registraties, en apart welke vervoervormen aan staan), dus geen server of database. Let op: de gegevens staan alleen op die ene telefoon; als je de browsergegevens wist, zijn ze weg.
+- Opslag via `localStorage` van de browser (de registraties, apart welke vervoervormen aan staan, en wanneer je "Niet nu" koos bij de installatievraag), dus geen server of database. Let op: de gegevens staan alleen op die ene telefoon; als je de browsergegevens wist, zijn ze weg.
 - Backupmap: via de File System Access API van de browser (Chrome op Android vanaf versie 132). De gekozen map wordt onthouden in IndexedDB van de browser. Chrome kan bij het eerste gebruik na het openen van de app opnieuw om toestemming voor de map vragen; dat is een beveiliging van de browser zelf. Android staat niet toe dat de hoofdmap van Downloads of de hele telefoon wordt gekozen, dus kies een eigen map, bijvoorbeeld `Documents/Woon-werkvervoer`.
 - Backupbestand: JSON met de velden `app` (`"woon-werkvervoer"`), `versie` (1), `gemaakt` (datum en tijd) en `registraties` (per datum de keuze, bijv. `"2026-10-20": "fiets"`).
 - Offline en installeren: **vite-plugin-pwa** (met Workbox van Google, beide veelgebruikt en open source) maakt een service worker die alle bestanden van de app op de telefoon bewaart.
+- Installatievraag: Chrome stuurt het standaard browsersignaal `beforeinstallprompt` alleen als de app installeerbaar is en nog niet geïnstalleerd. De app vangt dat op, toont zijn eigen balk in plaats van de standaardmelding van Chrome, en roept bij "Installeren" het installatievenster van Chrome aan. Draait de app al als geïnstalleerde app (`display-mode: standalone`), dan wordt er nooit gevraagd.
 - Online zetten als statische website, zodat de telefoon de app kan openen (de manier van hosten wordt apart gekozen).
 
 ## 9. Oplevering
