@@ -1,5 +1,5 @@
 import { ArrowLeft, type LucideIcon } from 'lucide-react'
-import CostIcon from './CostIcon'
+import BadgeIcon from './BadgeIcon'
 import { addDays, compactDay, dateKey, fullDate, monthName, overviewPeriod } from './dates'
 import type { Mode, Registrations } from './storage'
 
@@ -12,6 +12,8 @@ interface Props {
   mode: Mode
   title: string
   Icon: LucideIcon
+  /** Het tekentje in het rondje bij het icoon; standaard een euroteken. */
+  Badge?: LucideIcon
   iconLabel: string
   registrations: Registrations
   today: Date
@@ -19,7 +21,7 @@ interface Props {
 }
 
 /** Overzicht van alle dagen met één bepaalde keuze, van 3 maanden geleden tot vandaag, per maand een kolom. */
-export default function Overview({ mode, title, Icon, iconLabel, registrations, today, onClose }: Props) {
+export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, today, onClose }: Props) {
   const { start, end, months } = overviewPeriod(today)
 
   // Alle dagen in de periode met deze keuze, gegroepeerd per kalendermaand.
@@ -42,7 +44,7 @@ export default function Overview({ mode, title, Icon, iconLabel, registrations, 
       </header>
 
       <div className="period">
-        <CostIcon Icon={Icon} className="period-icon" size={28} label={iconLabel} />
+        <BadgeIcon Icon={Icon} Badge={Badge} className="period-icon" size={28} label={iconLabel} />
         <dl>
           <div>
             <dt>Vanaf</dt>

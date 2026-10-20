@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon } from 'lucide-react'
+import { Car, Check, ChevronLeft, ChevronRight, House, Settings as SettingsIcon, TreePalm } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
-import CostIcon from './CostIcon'
+import BadgeIcon from './BadgeIcon'
 import { useInstallPrompt } from './installPrompt'
 import Overview from './Overview'
 import { MODE_INFO } from './modeInfo'
@@ -18,6 +18,7 @@ import {
 const OVERVIEWS = {
   thuis: { title: 'Overzicht thuiswerkvergoeding' },
   auto: { title: 'Overzicht kilometervergoeding' },
+  vrij: { title: 'Overzicht vrije dagen' },
 } as const
 
 const SWIPE_MIN_DISTANCE = 50
@@ -28,7 +29,7 @@ export default function App() {
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
-  const [screen, setScreen] = useState<'week' | 'settings' | 'thuis' | 'auto'>('week')
+  const [screen, setScreen] = useState<'week' | 'settings' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
 
   useEffect(() => {
@@ -97,7 +98,7 @@ export default function App() {
     )
   }
 
-  if (screen === 'thuis' || screen === 'auto') {
+  if (screen !== 'week') {
     const { title } = OVERVIEWS[screen]
     const { label, Icon } = MODE_INFO[screen]
     return (
@@ -105,6 +106,7 @@ export default function App() {
         mode={screen}
         title={title}
         Icon={Icon}
+        Badge={screen === 'vrij' ? Check : undefined}
         iconLabel={label}
         registrations={registrations}
         today={today}
@@ -124,7 +126,7 @@ export default function App() {
             aria-label="Overzicht thuiswerkvergoeding"
             onClick={() => setScreen('thuis')}
           >
-            <CostIcon Icon={House} />
+            <BadgeIcon Icon={House} />
           </button>
           {enabledModes.includes('auto') && (
             <button
@@ -133,7 +135,17 @@ export default function App() {
               aria-label="Overzicht kilometervergoeding"
               onClick={() => setScreen('auto')}
             >
-              <CostIcon Icon={Car} />
+              <BadgeIcon Icon={Car} />
+            </button>
+          )}
+          {enabledModes.includes('vrij') && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Overzicht vrije dagen"
+              onClick={() => setScreen('vrij')}
+            >
+              <BadgeIcon Icon={TreePalm} Badge={Check} />
             </button>
           )}
           <button

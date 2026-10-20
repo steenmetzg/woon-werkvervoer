@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import { STORAGE_KEY } from './storage'
+import { ENABLED_KEY, STORAGE_KEY } from './storage'
 
 // "Vandaag" is dinsdag 20 oktober 2026.
 beforeEach(() => {
@@ -109,5 +109,39 @@ describe('AC21: overzicht kilometervergoeding', () => {
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 19 oktober')
+  })
+})
+
+describe('AC29: overzicht vrije dagen', () => {
+  it('toont precies hetzelfde overzicht, maar dan voor de dagen met Vrij', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        '2026-07-17': 'vrij', // vóór de periode
+        '2026-08-03': 'vrij',
+        '2026-08-04': 'auto', // andere keuze
+        '2026-10-19': 'vrij',
+        '2026-10-23': 'vrij', // na vandaag
+      }),
+    )
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Overzicht vrije dagen' }))
+
+    expect(screen.getByRole('heading', { name: 'Overzicht vrije dagen' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Vrij')).toBeInTheDocument()
+    expect(column('juli').queryAllByRole('listitem')).toHaveLength(0)
+    expect(column('augustus').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['ma 3'])
+    expect(column('september').queryAllByRole('listitem')).toHaveLength(0)
+    expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['ma 19'])
+
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 19 oktober')
+  })
+
+  it('heeft geen knop als Vrij uit staat', () => {
+    localStorage.setItem(ENABLED_KEY, JSON.stringify(['thuis', 'trein', 'fiets', 'auto']))
+    render(<App />)
+    expect(screen.queryByRole('button', { name: 'Overzicht vrije dagen' })).not.toBeInTheDocument()
   })
 })
