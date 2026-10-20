@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.8.1 (20 oktober 2026): tekst na "Vraag weer tonen" aangepast, op verzoek van Greco (app-versie WoonWerk 1.3)
+Versie: 1.9 (20 oktober 2026): knoppen voor de overzichten met euroteken, op verzoek van Greco (app-versie WoonWerk 1.4)
 
 ## 1. Doel
 
@@ -86,6 +86,7 @@ Strak, modern en minimalistisch. Geen toeters en bellen.
 
 - **Rustig**: witte achtergrond, donkergrijze tekst, één accentkleur (diep blauw) voor de gekozen knop en de markering van vandaag. Geen verlopen, schaduwen of animaties, alleen een subtiele overgang bij klikken.
 - **Typografie**: het standaard systeemlettertype van het apparaat (zoals San Francisco of Segoe UI), in twee groottes: een titel en normale tekst.
+- **Knoppen naar de overzichten**: de knoppen rechtsboven voor het overzicht thuiswerkvergoeding en het overzicht auto tonen het huis- en auto-icoon iets kleiner, met rechtsonder een wit rondje met een dunne donkerblauwe rand (de accentkleur) en een donkerblauw euroteken. Zo zie je dat het om vergoedingen gaat. De iconen bij de dagen en bovenaan de overzichten blijven gewoon.
 - **Knoppen**: een strak lijnicoon met de naam eronder, zodat elk vervoermiddel direct herkenbaar is. Dunne rand en afgeronde hoeken. De gekozen knop is gevuld met de accentkleur en witte tekst.
 - **Indeling**: smalle kolom gecentreerd op het scherm, compact in de hoogte zodat de hele week in één scherm past, dunne lijnen als scheiding tussen de dagen. Bovenaan staan de titel met rechts de knoppen voor het thuiswerkoverzicht, het auto-overzicht (alleen als Auto aan staat) en de instellingen, en daaronder de weeknavigatie met "Deze week". De week staat er kort, bijv. "19 – 23 okt"; het jaartal verschijnt alleen bij een week in een ander jaar.
 - **Mobiel eerst**: ontworpen voor een telefoonscherm, met grote knoppen voor je duim; de vijf knoppen passen naast elkaar; staan er minder aan, dan worden ze breder. Op een groter scherm blijft het een smalle kolom.

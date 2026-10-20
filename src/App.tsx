@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
+import CostIcon from './CostIcon'
 import { useInstallPrompt } from './installPrompt'
 import Overview from './Overview'
 import { MODE_INFO } from './modeInfo'
@@ -123,7 +124,7 @@ export default function App() {
             aria-label="Overzicht thuiswerkvergoeding"
             onClick={() => setScreen('thuis')}
           >
-            <House size={20} strokeWidth={1.75} aria-hidden />
+            <CostIcon Icon={House} />
           </button>
           {enabledModes.includes('auto') && (
             <button
@@ -132,7 +133,7 @@ export default function App() {
               aria-label="Overzicht auto"
               onClick={() => setScreen('auto')}
             >
-              <Car size={20} strokeWidth={1.75} aria-hidden />
+              <CostIcon Icon={Car} />
             </button>
           )}
           <button
