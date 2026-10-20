@@ -1,4 +1,5 @@
 import { ArrowLeft, type LucideIcon } from 'lucide-react'
+import CostIcon from './CostIcon'
 import { addDays, compactDay, dateKey, fullDate, monthName, overviewPeriod } from './dates'
 import type { Mode, Registrations } from './storage'
 
@@ -41,7 +42,7 @@ export default function Overview({ mode, title, Icon, iconLabel, registrations, 
       </header>
 
       <div className="period">
-        <Icon className="period-icon" size={28} strokeWidth={1.75} aria-label={iconLabel} />
+        <CostIcon Icon={Icon} className="period-icon" size={28} label={iconLabel} />
         <dl>
           <div>
             <dt>Vanaf</dt>

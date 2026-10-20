@@ -264,7 +264,7 @@ h1.wrap {
 .period-icon {
   justify-self: start;
   /* Lucide-iconen hebben een kleine witrand; schuif het huisje zodat de lijn precies op de kolomrand staat. */
-  margin-left: -2.5px;
+  margin-left: -2.9px;
   color: var(--accent);
 }
 
