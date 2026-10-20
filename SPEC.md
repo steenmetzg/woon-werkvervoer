@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 0.6 (20 oktober 2026): keuze "Vrij" toegevoegd en volgorde aangepast op verzoek van Greco
+Versie: 0.7 (20 oktober 2026): compactere indeling zodat de hele week op een Samsung S25 past, op verzoek van Greco
 
 ## 1. Doel
 
@@ -49,6 +49,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC9 (F7)** Na het verversen van de pagina staan alle keuzes er nog.
 - **AC10 (F8)** De app heeft een naam, een eigen icoon en een app-manifest, zodat "Zet op beginscherm" een schermvullende app oplevert.
 - **AC11 (ontwerp)** Op een telefoonscherm van 360 pixels breed past alles zonder zijwaarts scrollen, en elke knop is minstens 44 pixels hoog, zodat hij makkelijk met een duim te raken is.
+- **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie en alle vijf dagen met hun knoppen volledig te zien zonder te scrollen. De weektotalen mogen eronder vallen.
 
 ## 6. Ontwerp
 
@@ -57,7 +58,7 @@ Strak, modern en minimalistisch. Geen toeters en bellen.
 - **Rustig**: witte achtergrond, donkergrijze tekst, één accentkleur (diep blauw) voor de gekozen knop en de markering van vandaag. Geen verlopen, schaduwen of animaties, alleen een subtiele overgang bij klikken.
 - **Typografie**: het standaard systeemlettertype van het apparaat (zoals San Francisco of Segoe UI), in twee groottes: een titel en normale tekst.
 - **Knoppen**: een strak lijnicoon met de naam eronder, zodat elk vervoermiddel direct herkenbaar is. Dunne rand en afgeronde hoeken. De gekozen knop is gevuld met de accentkleur en witte tekst.
-- **Indeling**: smalle kolom gecentreerd op het scherm, ruime witruimte tussen de dagen, dunne lijnen als scheiding.
+- **Indeling**: smalle kolom gecentreerd op het scherm, compact in de hoogte zodat de hele week in één scherm past, dunne lijnen als scheiding tussen de dagen. Titel, weeknavigatie en "Deze week" staan samen bovenaan.
 - **Mobiel eerst**: ontworpen voor een telefoonscherm, met grote knoppen voor je duim; de vijf knoppen passen naast elkaar. Op een groter scherm blijft het een smalle kolom.
 - **Geen extra's**: geen logo, geen afbeeldingen, geen meldingen of pop-ups.
 

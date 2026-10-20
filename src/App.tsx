@@ -111,7 +111,7 @@ export default function App() {
                       aria-pressed={selected}
                       onClick={() => choose(day, mode)}
                     >
-                      <Icon size={22} strokeWidth={1.75} aria-hidden />
+                      <Icon size={20} strokeWidth={1.75} aria-hidden />
                       <span>{label}</span>
                     </button>
                   )
