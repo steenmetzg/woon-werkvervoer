@@ -1,4 +1,4 @@
-export const MODES = ['trein', 'fiets', 'auto', 'thuis'] as const
+export const MODES = ['thuis', 'trein', 'fiets', 'auto', 'vrij'] as const
 export type Mode = (typeof MODES)[number]
 export type Registrations = Record<string, Mode>
 

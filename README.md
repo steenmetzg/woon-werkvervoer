@@ -1,6 +1,6 @@
 # Woon-werkvervoer
 
-Leg per werkdag met één tik vast hoe je naar je werk bent gegaan: trein, fiets, auto of thuis.
+Leg per werkdag met één tik vast hoe je naar je werk bent gegaan: thuis, trein, fiets, auto of vrij.
 De specificatie staat in [SPEC.md](SPEC.md).
 
 De app staat online op https://steenmetzg.github.io/woon-werkvervoer/

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Bike, Car, ChevronLeft, ChevronRight, House, TrainFront, type LucideIcon } from 'lucide-react'
+import { Bike, Car, ChevronLeft, ChevronRight, House, TrainFront, TreePalm, type LucideIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import { MODES, loadRegistrations, saveRegistrations, type Mode, type Registrations } from './storage'
 
 const MODE_INFO: Record<Mode, { label: string; Icon: LucideIcon }> = {
+  thuis: { label: 'Thuis', Icon: House },
   trein: { label: 'Trein', Icon: TrainFront },
   fiets: { label: 'Fiets', Icon: Bike },
   auto: { label: 'Auto', Icon: Car },
-  thuis: { label: 'Thuis', Icon: House },
+  vrij: { label: 'Vrij', Icon: TreePalm },
 }
 
 export default function App() {

@@ -55,6 +55,15 @@ describe('AC2 en AC3: vervoer kiezen', () => {
     expect(chosenModes('dinsdag 20 oktober')).toEqual(['Fiets'])
   })
 
+  it('toont de knoppen in de volgorde Thuis, Trein, Fiets, Auto, Vrij (AC2b)', () => {
+    render(<App />)
+    for (const d of screen.getAllByRole('listitem')) {
+      expect(within(d).getAllByRole('button').map((b) => b.textContent)).toEqual([
+        'Thuis', 'Trein', 'Fiets', 'Auto', 'Vrij',
+      ])
+    }
+  })
+
   it('verandert niets aan de andere dagen', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -130,7 +139,8 @@ describe('AC8: weektotalen', () => {
     await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
     await user.click(modeButton('woensdag 21 oktober', 'Fiets'))
     await user.click(modeButton('donderdag 22 oktober', 'Thuis'))
-    expect(screen.getByTestId('totalen')).toHaveTextContent('Trein 2 · Fiets 1 · Auto 0 · Thuis 1')
+    await user.click(modeButton('vrijdag 23 oktober', 'Vrij'))
+    expect(screen.getByTestId('totalen')).toHaveTextContent('Thuis 1 · Trein 2 · Fiets 1 · Auto 0 · Vrij 1')
   })
 })
 
