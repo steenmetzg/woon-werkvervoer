@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Bike, Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon, TrainFront, TreePalm, type LucideIcon } from 'lucide-react'
+import { Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import Overview from './Overview'
+import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
-import { MODES, loadRegistrations, saveRegistrations, type Mode, type Registrations } from './storage'
-
-const MODE_INFO: Record<Mode, { label: string; Icon: LucideIcon }> = {
-  thuis: { label: 'Thuis', Icon: House },
-  trein: { label: 'Trein', Icon: TrainFront },
-  fiets: { label: 'Fiets', Icon: Bike },
-  auto: { label: 'Auto', Icon: Car },
-  vrij: { label: 'Vrij', Icon: TreePalm },
-}
+import {
+  loadEnabledModes,
+  loadRegistrations,
+  saveEnabledModes,
+  saveRegistrations,
+  type Mode,
+  type Registrations,
+} from './storage'
 
 const OVERVIEWS = {
   thuis: { title: 'Overzicht thuiswerkvergoeding' },
@@ -25,11 +25,16 @@ export default function App() {
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
+  const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
   const [screen, setScreen] = useState<'week' | 'settings' | 'thuis' | 'auto'>('week')
 
   useEffect(() => {
     saveRegistrations(registrations)
   }, [registrations])
+
+  useEffect(() => {
+    saveEnabledModes(enabledModes)
+  }, [enabledModes])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
@@ -81,6 +86,8 @@ export default function App() {
     return (
       <Settings
         registrations={registrations}
+        enabledModes={enabledModes}
+        onChangeEnabledModes={setEnabledModes}
         onRestore={setRegistrations}
         onClose={() => setScreen('week')}
       />
@@ -116,14 +123,16 @@ export default function App() {
           >
             <House size={20} strokeWidth={1.75} aria-hidden />
           </button>
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="Overzicht auto"
-            onClick={() => setScreen('auto')}
-          >
-            <Car size={20} strokeWidth={1.75} aria-hidden />
-          </button>
+          {enabledModes.includes('auto') && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Overzicht auto"
+              onClick={() => setScreen('auto')}
+            >
+              <Car size={20} strokeWidth={1.75} aria-hidden />
+            </button>
+          )}
           <button
             type="button"
             className="icon-button"
@@ -179,7 +188,7 @@ export default function App() {
                 {isToday && <span className="today-tag">vandaag</span>}
               </div>
               <div className="modes" role="group" aria-label={`Vervoer op ${longLabel(day)}`}>
-                {MODES.map((mode) => {
+                {enabledModes.map((mode) => {
                   const { label, Icon } = MODE_INFO[mode]
                   const selected = chosen === mode
                   return (

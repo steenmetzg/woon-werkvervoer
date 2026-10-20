@@ -33,3 +33,26 @@ export function saveRegistrations(registrations: Registrations): void {
     // Opslag niet beschikbaar (bijv. privévenster); de app werkt dan zonder onthouden.
   }
 }
+
+export const ENABLED_KEY = 'vervoer-aan'
+
+/** Welke keuzes aan staan, in de vaste volgorde. Thuis staat altijd aan. */
+export function loadEnabledModes(): Mode[] {
+  try {
+    const raw = localStorage.getItem(ENABLED_KEY)
+    if (!raw) return [...MODES]
+    const stored: unknown = JSON.parse(raw)
+    if (!Array.isArray(stored)) return [...MODES]
+    return MODES.filter((mode) => mode === 'thuis' || stored.includes(mode))
+  } catch {
+    return [...MODES]
+  }
+}
+
+export function saveEnabledModes(modes: Mode[]): void {
+  try {
+    localStorage.setItem(ENABLED_KEY, JSON.stringify(modes))
+  } catch {
+    // Opslag niet beschikbaar; de instelling geldt dan alleen zolang de app open is.
+  }
+}
