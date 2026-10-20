@@ -50,3 +50,34 @@ export function weekLabel(monday: Date, currentYear: number): string {
   const year = friday.getFullYear() === currentYear && monday.getFullYear() === currentYear ? '' : ` ${friday.getFullYear()}`
   return `${start} – ${friday.getDate()} ${MAANDEN_KORT[friday.getMonth()]}${year}`
 }
+
+/** Bijv. "1 augustus 2026". */
+export function fullDate(date: Date): string {
+  return `${date.getDate()} ${MAANDEN_LANG[date.getMonth()]} ${date.getFullYear()}`
+}
+
+/** Bijv. "ma 3". */
+export function compactDay(date: Date): string {
+  return `${WEEKDAGEN_KORT[date.getDay()]} ${date.getDate()}`
+}
+
+/** Bijv. "augustus". */
+export function monthName(date: Date): string {
+  return MAANDEN_LANG[date.getMonth()]
+}
+
+/**
+ * De periode van het thuiswerkoverzicht: van precies `monthsBack` maanden geleden
+ * tot en met vandaag, plus de kalendermaanden die daarin vallen. Bestaat de dag
+ * niet in die maand (bijv. 31 februari), dan wordt het de laatste dag van die maand.
+ */
+export function overviewPeriod(today: Date, monthsBack = 3): { start: Date; end: Date; months: Date[] } {
+  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const lastDay = new Date(today.getFullYear(), today.getMonth() - monthsBack + 1, 0).getDate()
+  const start = new Date(today.getFullYear(), today.getMonth() - monthsBack, Math.min(today.getDate(), lastDay))
+  const months = Array.from(
+    { length: monthsBack + 1 },
+    (_, i) => new Date(start.getFullYear(), start.getMonth() + i, 1),
+  )
+  return { start, end, months }
+}

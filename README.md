@@ -40,11 +40,12 @@ Je keuzes worden alleen op die telefoon bewaard. Maak daarom af en toe een backu
 
 - `src/App.tsx`: het scherm met de week, de knoppen en het swipen tussen weken
 - `src/Settings.tsx`: het scherm Instellingen en backup
+- `src/HomeOffice.tsx`: het overzicht thuiswerkvergoeding
 - `src/backup.ts`: het backupbestand maken en controleren
 - `src/files.ts` en `src/folderStore.ts`: de backupmap kiezen, onthouden en bestanden schrijven
 - `src/dates.ts`: rekenen met datums (maandag van de week, Nederlandse namen)
 - `src/storage.ts`: bewaren en ophalen van keuzes in de browser
 - `src/index.css`: de vormgeving
-- `src/App.test.tsx` en `src/Backup.test.tsx`: de tests, één groep per acceptatiecriterium
+- `src/App.test.tsx`, `src/Backup.test.tsx` en `src/HomeOffice.test.tsx`: de tests, één groep per acceptatiecriterium
 - `public/`: app-icoon en manifest voor het installeren
 - `vite.config.ts`: bouwinstellingen, inclusief de service worker voor offline gebruik

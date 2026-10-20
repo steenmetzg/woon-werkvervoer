@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 20 oktober 2026**
-Versie: 1.1 (20 oktober 2026): app heet WoonWerk, op verzoek van Greco
+Versie: 1.2 (20 oktober 2026): overzicht thuiswerkvergoeding, op verzoek van Greco
 
 ## 1. Doel
 
@@ -35,6 +35,7 @@ Eén persoon (Greco) die de app op zijn telefoon gebruikt, via een snelkoppeling
 | F10 | Backupmap kiezen | In de instellingen kies je met de mappenkiezer van je telefoon een map waar backups worden opgeslagen en waaruit ze worden ingelezen. De app onthoudt die map en toont de naam. |
 | F11 | Backup maken | De knop "Backup maken" slaat alle ingevulde dagen op als één bestand in de backupmap, met de datum in de naam, bijvoorbeeld `woon-werkvervoer-backup-2026-10-20.json`. Is er geen map gekozen of kan de telefoon geen map onthouden, dan komt het bestand in de map Downloads. |
 | F12 | Backup inlezen | De knop "Backup inlezen" opent de bestandskiezer in de backupmap, zodat je een specifieke backup kiest. Na een bevestiging vervangt de inhoud van de backup alle huidige keuzes. Een bestand dat geen geldige backup is, wordt geweigerd met een duidelijke melding en verandert niets. |
+| F15 | Overzicht thuiswerkvergoeding | Een knop met het thuis-icoon rechtsboven, naast het tandwiel, opent het scherm "Overzicht thuiswerkvergoeding". Het toont standaard alle dagen waarop Thuis is gekozen, van precies 3 maanden geleden tot en met vandaag (op 20 oktober dus vanaf 20 juli; bestaat die dag niet, zoals 31 februari, dan de laatste dag van die maand). Bovenaan staan het thuis-icoon, de vanaf-datum en de tot-datum. Daaronder staan heel compact de datums in kolommen: elke kalendermaand een eigen kolom (meestal 4, omdat de periode in een maand halverwege begint; Greco koos hiervoor boven precies 3 kolommen), de oudste maand links, met de maandnaam erboven. Een maand zonder thuisdagen toont een streepje. "Terug" brengt je weer naar de week. |
 | F8 | Installeren | De app is een progressive web app (PWA): Chrome biedt "App installeren" aan, waarna de app als gewone app tussen je apps staat en schermvullend opent, zonder adresbalk. |
 | F13 | Offline gebruiken | Na de eerste keer openen werkt de app ook zonder internetverbinding: openen, kiezen, bladeren, instellingen en backups. |
 | F14 | Updates | Staat er een nieuwe versie online, dan haalt de app die op de achtergrond op zodra er internet is. De nieuwe versie is actief de volgende keer dat je de app opent. |
@@ -60,6 +61,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC14 (F10)** Na het kiezen van een map toont de instelling de naam van die map, ook nadat de app opnieuw is geopend.
 - **AC15 (F11)** "Backup maken" schrijft een bestand `woon-werkvervoer-backup-JJJJ-MM-DD.json` met alle ingevulde dagen in de gekozen map, en meldt waar het staat. Zonder gekozen map wordt hetzelfde bestand gedownload.
 - **AC16 (F12)** Na het inlezen van een backup toont de app precies de keuzes uit dat bestand; keuzes die niet in de backup staan zijn weg. Bij een ongeldig bestand verschijnt een melding en blijven de huidige keuzes ongewijzigd. Als ik de bevestiging annuleer, verandert er niets.
+- **AC20 (F15)** Op dinsdag 20 oktober 2026 toont het overzicht de periode van 20 juli 2026 tot en met 20 oktober 2026, met de kolommen juli, augustus, september en oktober. Alleen dagen met Thuis staan erin, in de kolom van hun eigen maand en op volgorde; dagen met een andere keuze, dagen vóór 20 juli en dagen na vandaag staan er niet in. Op 31 mei begint de periode op 28 februari (of 29 in een schrikkeljaar).
 - **AC17 (F13)** Als de app één keer met internet is geopend, opent hij daarna ook zonder internetverbinding volledig, en kun je keuzes maken die bewaard blijven.
 - **AC18 (F8)** De app heeft een geldig app-manifest en een service worker, zodat Chrome hem als installeerbare app herkent.
 - **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie en alle vijf dagen met hun knoppen volledig te zien zonder te scrollen.
@@ -71,7 +73,7 @@ Strak, modern en minimalistisch. Geen toeters en bellen.
 - **Rustig**: witte achtergrond, donkergrijze tekst, één accentkleur (diep blauw) voor de gekozen knop en de markering van vandaag. Geen verlopen, schaduwen of animaties, alleen een subtiele overgang bij klikken.
 - **Typografie**: het standaard systeemlettertype van het apparaat (zoals San Francisco of Segoe UI), in twee groottes: een titel en normale tekst.
 - **Knoppen**: een strak lijnicoon met de naam eronder, zodat elk vervoermiddel direct herkenbaar is. Dunne rand en afgeronde hoeken. De gekozen knop is gevuld met de accentkleur en witte tekst.
-- **Indeling**: smalle kolom gecentreerd op het scherm, compact in de hoogte zodat de hele week in één scherm past, dunne lijnen als scheiding tussen de dagen. Bovenaan staan de titel met rechts de tandwielknop, en daaronder de weeknavigatie met "Deze week". De week staat er kort, bijv. "19 – 23 okt"; het jaartal verschijnt alleen bij een week in een ander jaar.
+- **Indeling**: smalle kolom gecentreerd op het scherm, compact in de hoogte zodat de hele week in één scherm past, dunne lijnen als scheiding tussen de dagen. Bovenaan staan de titel met rechts de knoppen voor het thuiswerkoverzicht en de instellingen, en daaronder de weeknavigatie met "Deze week". De week staat er kort, bijv. "19 – 23 okt"; het jaartal verschijnt alleen bij een week in een ander jaar.
 - **Mobiel eerst**: ontworpen voor een telefoonscherm, met grote knoppen voor je duim; de vijf knoppen passen naast elkaar. Op een groter scherm blijft het een smalle kolom.
 - **Geen extra's**: geen logo, geen afbeeldingen, geen pop-ups. Uitzonderingen: de bevestigingsvraag voor het inlezen van een backup (die vervangt immers alles), en de mappen- en bestandskiezer van de telefoon zelf. Meldingen over backups verschijnen als korte regel tekst in het instellingenscherm.
 

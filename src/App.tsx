@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { Bike, Car, ChevronLeft, ChevronRight, House, Settings as SettingsIcon, TrainFront, TreePalm, type LucideIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
+import HomeOffice from './HomeOffice'
 import Settings from './Settings'
 import { MODES, loadRegistrations, saveRegistrations, type Mode, type Registrations } from './storage'
 
@@ -19,7 +20,7 @@ export default function App() {
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
-  const [showSettings, setShowSettings] = useState(false)
+  const [screen, setScreen] = useState<'week' | 'settings' | 'thuis'>('week')
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -71,28 +72,42 @@ export default function App() {
     })
   }
 
-  if (showSettings) {
+  if (screen === 'settings') {
     return (
       <Settings
         registrations={registrations}
         onRestore={setRegistrations}
-        onClose={() => setShowSettings(false)}
+        onClose={() => setScreen('week')}
       />
     )
+  }
+
+  if (screen === 'thuis') {
+    return <HomeOffice registrations={registrations} today={today} onClose={() => setScreen('week')} />
   }
 
   return (
     <main className="app" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <header className="header">
         <h1>WoonWerk</h1>
-        <button
-          type="button"
-          className="icon-button settings-button"
-          aria-label="Instellingen en backup"
-          onClick={() => setShowSettings(true)}
-        >
-          <SettingsIcon size={20} strokeWidth={1.75} aria-hidden />
-        </button>
+        <div className="header-actions">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Overzicht thuiswerkvergoeding"
+            onClick={() => setScreen('thuis')}
+          >
+            <House size={20} strokeWidth={1.75} aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Instellingen en backup"
+            onClick={() => setScreen('settings')}
+          >
+            <SettingsIcon size={20} strokeWidth={1.75} aria-hidden />
+          </button>
+        </div>
         <nav className="week-nav" aria-label="Week kiezen">
           <button
             type="button"
