@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Settings as SettingsIcon } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import { useInstallPrompt } from './installPrompt'
+import Info from './Info'
 import Overview from './Overview'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
@@ -16,10 +17,13 @@ import {
   type Registrations,
 } from './storage'
 
+// In de vaste volgorde Thuis, Trein, Fiets, Auto, Vrij. Zonder vinkje krijgt het icoon een euroteken.
 const OVERVIEWS = {
-  thuis: { title: 'Overzicht thuiswerkvergoeding' },
-  auto: { title: 'Overzicht kilometervergoeding' },
-  vrij: { title: 'Overzicht vrije dagen' },
+  thuis: { title: 'Overzicht thuiswerkvergoeding', check: false },
+  trein: { title: 'Overzicht treinvergoeding', check: false },
+  fiets: { title: 'Overzicht fietsdagen', check: true },
+  auto: { title: 'Overzicht kilometervergoeding', check: false },
+  vrij: { title: 'Overzicht vrije dagen', check: true },
 } as const
 
 const SWIPE_MIN_DISTANCE = 50
@@ -30,7 +34,7 @@ export default function App() {
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
-  const [screen, setScreen] = useState<'week' | 'settings' | keyof typeof OVERVIEWS>('week')
+  const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
 
   useEffect(() => {
@@ -104,15 +108,19 @@ export default function App() {
     )
   }
 
+  if (screen === 'info') {
+    return <Info onClose={() => setScreen('week')} />
+  }
+
   if (screen !== 'week') {
-    const { title } = OVERVIEWS[screen]
+    const { title, check } = OVERVIEWS[screen]
     const { label, Icon } = MODE_INFO[screen]
     return (
       <Overview
         mode={screen}
         title={title}
         Icon={Icon}
-        Badge={screen === 'vrij' ? Check : undefined}
+        Badge={check ? Check : undefined}
         iconLabel={label}
         registrations={registrations}
         today={today}
@@ -126,6 +134,9 @@ export default function App() {
       <header className="header">
         <h1>WoonWerk</h1>
         <div className="header-actions">
+          <button type="button" className="icon-button" aria-label="Informatie" onClick={() => setScreen('info')}>
+            <InfoIcon size={20} strokeWidth={1.75} aria-hidden />
+          </button>
           <button
             type="button"
             className="icon-button"
@@ -217,10 +228,10 @@ export default function App() {
         )}
         <nav className="overview-bar" aria-label="Overzichten">
           {overviewModes.map((mode) => {
-            const { title } = OVERVIEWS[mode]
+            const { title, check } = OVERVIEWS[mode]
             return (
               <button key={mode} type="button" className="icon-button" aria-label={title} onClick={() => setScreen(mode)}>
-                <BadgeIcon Icon={MODE_INFO[mode].Icon} Badge={mode === 'vrij' ? Check : undefined} />
+                <BadgeIcon Icon={MODE_INFO[mode].Icon} Badge={check ? Check : undefined} />
               </button>
             )
           })}

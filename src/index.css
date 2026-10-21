@@ -343,6 +343,11 @@ h1.wrap {
   gap: 8px;
 }
 
+/* Een donkerblauwe rand laat de overzichtsknoppen meer opvallen dan het tandwiel. */
+.overview-bar .icon-button {
+  border-color: var(--accent);
+}
+
 /* Vraag om de app te installeren, net boven de knoppen naar de overzichten. */
 .install {
   display: flex;
@@ -374,4 +379,9 @@ h1.wrap {
   background: var(--accent);
   border-color: var(--accent);
   color: #ffffff;
+}
+
+.info p {
+  margin: 0;
+  line-height: 1.45;
 }
