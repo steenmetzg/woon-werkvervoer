@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon, X } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
 import Overview from './Overview'
-import { dueReminders } from './reminders'
+import { dueReminders, loadDismissed, saveDismissed, type Dismissed } from './reminders'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
 import {
@@ -37,6 +37,7 @@ export default function App() {
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
   const [declared, setDeclared] = useState<Declared>(loadDeclared)
+  const [dismissed, setDismissed] = useState<Dismissed>(loadDismissed)
   const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
 
@@ -52,6 +53,10 @@ export default function App() {
     saveDeclared(declared)
   }, [declared])
 
+  useEffect(() => {
+    saveDismissed(dismissed)
+  }, [dismissed])
+
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
   useEffect(() => {
@@ -66,7 +71,7 @@ export default function App() {
   const todayKey = dateKey(today)
   const isThisWeek = dateKey(monday) === dateKey(thisMonday)
   // Thuis staat altijd aan; de andere overzichten alleen als hun vervoervorm aan staat.
-  const reminders = dueReminders(declared, enabledModes, today)
+  const reminders = dueReminders(declared, enabledModes, today, dismissed)
   const overviewModes = (Object.keys(OVERVIEWS) as (keyof typeof OVERVIEWS)[]).filter((mode) =>
     enabledModes.includes(mode),
   )
@@ -254,13 +259,23 @@ export default function App() {
           </section>
         )}
         {reminders.map(({ mode, title, text }) => (
-          <button key={mode} type="button" className="reminder" onClick={() => setScreen(mode)}>
-            <BadgeIcon Icon={MODE_INFO[mode].Icon} />
-            <span>
-              <strong>{title}</strong>
-              <span>{text}</span>
-            </span>
-          </button>
+          <section key={mode} className="reminder" aria-label={title}>
+            <button type="button" className="reminder-open" onClick={() => setScreen(mode)}>
+              <BadgeIcon Icon={MODE_INFO[mode].Icon} />
+              <span>
+                <strong>{title}</strong>
+                <span>{text}</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="reminder-close"
+              aria-label="Herinnering sluiten tot morgen"
+              onClick={() => setDismissed((prev) => ({ ...prev, [mode]: todayKey }))}
+            >
+              <X size={18} strokeWidth={1.75} aria-hidden />
+            </button>
+          </section>
         ))}
         <nav className="overview-bar" aria-label="Overzichten">
           {overviewModes.map((mode) => {

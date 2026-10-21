@@ -104,6 +104,28 @@ describe('AC42: herinnering om te declareren', () => {
     expect(reminder('kilometervergoeding')).toBeInTheDocument()
   })
 
+  it('zet de herinnering met het x-je weg tot morgen (AC43)', async () => {
+    localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-07-01', auto: '2026-07-01' }))
+    const user = userEvent.setup()
+    const { unmount } = render(<App />)
+    const thuis = screen.getByRole('region', { name: 'Tip: Declareer tijdig je thuiswerkvergoeding.' })
+    await user.click(within(thuis).getByRole('button', { name: 'Herinnering sluiten tot morgen' }))
+    expect(reminderButtons().map((b) => b.textContent)).toEqual([
+      'Tip: Declareer tijdig je kilometervergoeding.Je hebt je kilometervergoeding voor het laatst gedeclareerd op 1 juli 2026.',
+    ])
+
+    // Ook na opnieuw openen op dezelfde dag blijft hij weg.
+    unmount()
+    const second = render(<App />)
+    expect(reminderButtons()).toHaveLength(1)
+    second.unmount()
+
+    // De volgende dag is hij terug.
+    vi.setSystemTime(new Date(2026, 9, 22, 9, 0))
+    render(<App />)
+    expect(reminderButtons()).toHaveLength(2)
+  })
+
   it('geeft alleen herinneringen voor vormen die aan staan', () => {
     const declared = { thuis: '2026-07-01', trein: '2026-07-01', auto: '2026-07-01' }
     const today = new Date(2026, 9, 21)
