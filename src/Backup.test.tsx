@@ -114,13 +114,13 @@ describe('AC15: backup maken', () => {
     await waitFor(() => expect(screen.getByTestId('backupmap')).toHaveTextContent('Woon-werkvervoer'))
     await user.click(screen.getByRole('button', { name: 'Backup maken' }))
 
-    const written = folder.files['woon-werkvervoer-backup-2026-10-20.json']
+    const written = folder.files['2026-10-20-woonwerk.json']
     expect(JSON.parse(written)).toMatchObject({
       app: 'woon-werkvervoer',
       versie: 2,
       registraties: { '2026-10-19': ['trein'], '2026-10-20': ['fiets'] },
     })
-    expect(screen.getByRole('status')).toHaveTextContent('opgeslagen als woon-werkvervoer-backup-2026-10-20.json in de map "Woon-werkvervoer"')
+    expect(screen.getByRole('status')).toHaveTextContent('opgeslagen als 2026-10-20-woonwerk.json in de map "Woon-werkvervoer"')
   })
 
   it('downloadt de backup als er geen map is gekozen', async () => {
@@ -140,7 +140,7 @@ describe('AC15: backup maken', () => {
     await openSettings(user)
     await user.click(screen.getByRole('button', { name: 'Backup maken' }))
 
-    expect(clicked).toEqual(['woon-werkvervoer-backup-2026-10-20.json'])
+    expect(clicked).toEqual(['2026-10-20-woonwerk.json'])
     expect(JSON.parse(await blobs[0].text()).registraties).toEqual({ '2026-10-19': ['thuis'] })
     expect(screen.getByRole('status')).toHaveTextContent('in Downloads')
   })
@@ -160,6 +160,17 @@ describe('AC16: backup inlezen', () => {
     expect(chosenModes('maandag 19 oktober')).toEqual(['Auto'])
     expect(chosenModes('dinsdag 20 oktober')).toEqual([])
     expect(chosenModes('woensdag 21 oktober')).toEqual(['Vrij'])
+  })
+
+  it('leest backups met de oude en de nieuwe bestandsnaam', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    render(<App />)
+    await openSettings(user)
+    for (const name of ['woon-werkvervoer-backup-2026-10-01.json', '2026-10-01-woonwerk.json']) {
+      await user.upload(screen.getByLabelText('Backupbestand'), backupFile(validBackup, name))
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen: 2 dagen'))
+    }
   })
 
   it('leest ook een nieuwe backup met meerdere keuzes per dag', async () => {

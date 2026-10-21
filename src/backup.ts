@@ -11,8 +11,9 @@ export interface Backup {
   registraties: Registrations
 }
 
+/** Bijvoorbeeld 2026-10-21-woonwerk.json. Tot en met WoonWerk 1.7 was dat woon-werkvervoer-backup-2026-10-21.json. */
 export function backupFileName(now: Date): string {
-  return `${APP_ID}-backup-${dateKey(now)}.json`
+  return `${dateKey(now)}-woonwerk.json`
 }
 
 export function createBackup(registrations: Registrations, now: Date): string {
