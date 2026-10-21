@@ -1,7 +1,8 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **goedgekeurd door Greco op 21 oktober 2026**
-Versie: 1.11 (21 oktober 2026): meerdere vervoervormen per dag en de overzichtsknoppen onderaan het scherm, op verzoek van Greco (app-versie WoonWerk 1.6)
+Versie: 1.11.1 (21 oktober 2026): bugfix, het appscherm valt niet meer over de knoppenbalk van Android, op verzoek van Greco (app-versie WoonWerk 1.6.1)
+Vorige versie: 1.11 (21 oktober 2026): meerdere vervoervormen per dag en de overzichtsknoppen onderaan het scherm (app-versie WoonWerk 1.6)
 
 ## 1. Doel
 
@@ -87,6 +88,7 @@ Deze criteria worden ook als automatische tests in de code opgenomen.
 - **AC29 (F20)** Het overzicht vrije dagen toont dezelfde periode en kolommen als AC20, met alleen de dagen waarop Vrij is gekozen, en het palmboom-icoon bovenaan. "Terug" brengt je naar dezelfde week. Zet ik Vrij uit, dan is de knop voor dit overzicht weg.
 - **AC32 (F21)** Onderaan het weekscherm staan rechts drie iconknoppen zonder tekst naar de drie overzichten; rechtsboven staat alleen de tandwielknop. In de instellingen staat de balk niet.
 - **AC33 (F7, F12)** Dagen die met een eerdere versie van de app zijn vastgelegd (één keuze per dag) staan er na de update nog precies zo. Een backup van een eerdere versie (versie 1) kan nog steeds worden ingelezen.
+- **AC33 (ontwerp)** Het appscherm stopt boven de knoppenbalk van Android (terug, start, recente apps, of de veegbalk) en loopt er niet onder door. Die systeemknoppen staan op hun eigen achtergrond en zijn altijd goed te zien, ook in de geïnstalleerde app; de balk met overzichtsknoppen staat er direct boven.
 - **AC12 (ontwerp)** Op een scherm van 360 bij 640 pixels (een Samsung S25 is 360 pixels breed; 640 pixels hoog laat ruimte voor adresbalk en systeembalken) zijn de titel, de weeknavigatie, alle vijf dagen met hun knoppen en de balk met overzichtsknoppen volledig te zien zonder te scrollen.
 
 ## 6. Ontwerp
@@ -118,6 +120,7 @@ apparaten.
 - Backupbestand: JSON met de velden `app` (`"woon-werkvervoer"`), `versie` (2), `gemaakt` (datum en tijd) en `registraties` (per datum de lijst met keuzes, bijv. `"2026-10-20": ["trein", "fiets"]`). Een backup met `versie` 1 (per datum één keuze, bijv. `"fiets"`) wordt nog steeds gelezen. Ook de opslag op de telefoon gebruikt de lijsten; dagen die nog in de oude vorm staan, worden bij het openen omgezet. Let op: een backup van versie 2 kan door WoonWerk 1.5 of ouder niet worden gelezen.
 - Offline en installeren: **vite-plugin-pwa** (met Workbox van Google, beide veelgebruikt en open source) maakt een service worker die alle bestanden van de app op de telefoon bewaart.
 - Installatievraag: Chrome stuurt het standaard browsersignaal `beforeinstallprompt` alleen als de app installeerbaar is en nog niet geïnstalleerd. De app vangt dat op, toont zijn eigen balk in plaats van de standaardmelding van Chrome, en roept bij "Installeren" het installatievenster van Chrome aan. Draait de app al als geïnstalleerde app (`display-mode: standalone`), dan wordt er nooit gevraagd.
+- Schermrand: de app vraagt de browser niet om tot onder de systeembalken van de telefoon te tekenen (geen `viewport-fit=cover`). Chrome op Android laat het scherm van de app dan ophouden boven de knoppenbalk van Android, zodat die nooit over de app heen ligt (bugfix in WoonWerk 1.6.1).
 - Online zetten als statische website, zodat de telefoon de app kan openen (de manier van hosten wordt apart gekozen).
 
 ## 9. Oplevering
