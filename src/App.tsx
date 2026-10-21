@@ -6,6 +6,7 @@ import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './dec
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
 import Overview from './Overview'
+import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
 import {
@@ -65,6 +66,7 @@ export default function App() {
   const todayKey = dateKey(today)
   const isThisWeek = dateKey(monday) === dateKey(thisMonday)
   // Thuis staat altijd aan; de andere overzichten alleen als hun vervoervorm aan staat.
+  const reminders = dueReminders(declared, enabledModes, today)
   const overviewModes = (Object.keys(OVERVIEWS) as (keyof typeof OVERVIEWS)[]).filter((mode) =>
     enabledModes.includes(mode),
   )
@@ -251,6 +253,15 @@ export default function App() {
             </button>
           </section>
         )}
+        {reminders.map(({ mode, title, text }) => (
+          <button key={mode} type="button" className="reminder" onClick={() => setScreen(mode)}>
+            <BadgeIcon Icon={MODE_INFO[mode].Icon} />
+            <span>
+              <strong>{title}</strong>
+              <span>{text}</span>
+            </span>
+          </button>
+        ))}
         <nav className="overview-bar" aria-label="Overzichten">
           {overviewModes.map((mode) => {
             const { title, check } = OVERVIEWS[mode]
