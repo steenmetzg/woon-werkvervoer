@@ -46,7 +46,8 @@ export default function Info({ onClose }: Props) {
           Met de blauwe knoppen onderaan open je per keuze een overzicht, met elke maand in een eigen kolom. Een
           euroteken betekent dat het om een vergoeding gaat (thuiswerk, trein en auto), een vinkje is een gewoon
           overzicht (fietsdagen en vrije dagen). Bij de vergoedingen vul je de datum van je laatste declaratie in; het
-          overzicht begint dan op de werkdag erna en loopt maximaal 3 maanden door. Zonder declaratiedatum, en bij
+          overzicht begint dan op de werkdag erna en loopt maximaal 3 maanden door. Met het x-je naast die datum maak
+          je hem weer leeg. Zonder declaratiedatum, en bij
           fietsdagen en vrije dagen, zie je de laatste 3 maanden. Met het kalendertje kun je de vanaf- en tot-datum
           altijd zelf aanpassen. Is je laatste declaratie bijna 3 maanden geleden (een week ervoor), dan
           staat onderaan het weekscherm een herinnering om tijdig te declareren. Tik erop om het overzicht te openen; de
