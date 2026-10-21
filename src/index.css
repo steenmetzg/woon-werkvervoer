@@ -281,31 +281,43 @@ h1.wrap {
   color: var(--accent);
 }
 
-.period dl {
+.period-fields {
   display: grid;
-  gap: 2px;
-  margin: 0;
+  grid-template-columns: minmax(0, 8.5em) auto;
+  align-items: center;
+  gap: 6px 8px;
   font-size: 0.875rem;
 }
 
-.period dl div {
-  display: flex;
-  gap: 8px;
-}
-
-.period dt {
-  min-width: 6.5em;
+.period-fields label {
   color: var(--muted);
+  line-height: 1.2;
 }
 
-.period dd {
-  margin: 0;
+.period-fields input[type='date'] {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 10px;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.period-fields input[type='date']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.empty-period {
+  padding-top: 12px;
 }
 
 .months {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
+  gap: 12px 4px;
   padding-top: 12px;
 }
 
@@ -386,37 +398,3 @@ h1.wrap {
   line-height: 1.45;
 }
 
-/* Tussen de titel en de periode, in dezelfde kolom en lettergrootte als de vanaf- en tot-datum. */
-.declared {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  column-gap: 12px;
-  row-gap: 4px;
-  padding-bottom: 12px;
-  font-size: 0.875rem;
-}
-
-.declared label,
-.declared input[type='date'] {
-  grid-column: 2;
-}
-
-.declared label {
-  color: var(--muted);
-}
-
-.declared input[type='date'] {
-  justify-self: start;
-  min-height: 44px;
-  padding: 0 10px;
-  font: inherit;
-  color: inherit;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-.declared input[type='date']:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}

@@ -42,8 +42,8 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
 
     expect(screen.getByRole('heading', { name: 'Overzicht thuiswerkvergoeding' })).toBeInTheDocument()
     expect(screen.getByLabelText('Thuis')).toBeInTheDocument()
-    expect(screen.getByTestId('vanaf')).toHaveTextContent('20 juli 2026')
-    expect(screen.getByTestId('tot')).toHaveTextContent('20 oktober 2026')
+    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-07-20')
+    expect(screen.getByLabelText('Tot en met')).toHaveValue('2026-10-20')
 
     expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label'))).toEqual([
       'juli',
@@ -64,13 +64,20 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
     expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 1', 'di 20'])
   })
 
-  it('begint op de laatste dag van de maand als die dag niet bestaat', async () => {
+  it('begint op de laatste dag van de maand als die dag niet bestaat, bij Thuis op de eerste werkdag daarna', async () => {
     vi.setSystemTime(new Date(2026, 4, 31, 9, 0)) // zondag 31 mei 2026
     const user = userEvent.setup()
     render(<App />)
-    await user.click(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' }))
-    expect(screen.getByTestId('vanaf')).toHaveTextContent('28 februari 2026')
+    await user.click(screen.getByRole('button', { name: 'Overzicht vrije dagen' }))
+    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-02-28')
     expect(screen.getAllByRole('region')).toHaveLength(4)
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+
+    // Zaterdag 28 februari is geen werkdag: het overzicht thuiswerkvergoeding begint op maandag 2 maart.
+    await user.click(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' }))
+    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-03-02')
+    expect(screen.getByLabelText('Tot en met')).toHaveValue('2026-05-31')
+    expect(screen.getAllByRole('region')).toHaveLength(3)
   })
 
   it('gaat met Terug naar dezelfde week', async () => {
@@ -103,8 +110,8 @@ describe('AC21: overzicht kilometervergoeding', () => {
 
     expect(screen.getByRole('heading', { name: 'Overzicht kilometervergoeding' })).toBeInTheDocument()
     expect(screen.getByLabelText('Auto')).toBeInTheDocument()
-    expect(screen.getByTestId('vanaf')).toHaveTextContent('20 juli 2026')
-    expect(screen.getByTestId('tot')).toHaveTextContent('20 oktober 2026')
+    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-07-20')
+    expect(screen.getByLabelText('Tot en met')).toHaveValue('2026-10-20')
     expect(column('juli').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 21'])
     expect(column('augustus').queryAllByRole('listitem')).toHaveLength(0)
     expect(column('september').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 15'])
@@ -193,9 +200,9 @@ describe('AC34: overzicht treinvergoeding en overzicht fietsdagen', () => {
   })
 })
 
-describe('AC36: gedeclareerd tot en met', () => {
+describe('AC36: datum laatste declaratie', () => {
   function dateField() {
-    return screen.getByLabelText('Gedeclareerd tot en met:') as HTMLInputElement
+    return screen.getByLabelText('Datum laatste declaratie') as HTMLInputElement
   }
 
   it('heeft in de overzichten van Thuis, Trein en Auto een leeg datumveld dat een gekozen datum onthoudt', async () => {
@@ -231,12 +238,91 @@ describe('AC36: gedeclareerd tot en met', () => {
     render(<App />)
     for (const name of ['Overzicht fietsdagen', 'Overzicht vrije dagen']) {
       await user.click(screen.getByRole('button', { name }))
-      expect(screen.queryByLabelText('Gedeclareerd tot en met:')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Datum laatste declaratie')).not.toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: 'Terug' }))
     }
   })
 
   it('zet de datum niet in de backup', () => {
     expect(JSON.parse(createBackup({}, new Date(2026, 9, 20)))).not.toHaveProperty('gedeclareerd')
+  })
+})
+
+describe('AC38: periode van de overzichten', () => {
+  function field(label: string) {
+    return screen.getByLabelText(label) as HTMLInputElement
+  }
+
+  function regions() {
+    return screen.queryAllByRole('region').map((r) => r.getAttribute('aria-label'))
+  }
+
+  async function openOverview(name: string) {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name }))
+  }
+
+  it('begint de dag na de laatste declaratie, of de eerste werkdag daarna', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-09-30': 'thuis', '2026-10-01': 'thuis' }))
+    await openOverview('Overzicht thuiswerkvergoeding')
+    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-09-30' } })
+    expect(field('Vanaf').value).toBe('2026-10-01')
+    expect(field('Tot en met').value).toBe('2026-10-20')
+    expect(regions()).toEqual(['oktober'])
+    expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 1'])
+
+    // Vrijdag 16 oktober gedeclareerd: het overzicht begint op maandag 19 oktober.
+    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-10-16' } })
+    expect(field('Vanaf').value).toBe('2026-10-19')
+  })
+
+  it('loopt tot 3 maanden na de vanaf-datum als dat vóór vandaag ligt', async () => {
+    await openOverview('Overzicht kilometervergoeding')
+    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2025-12-31' } })
+    expect(field('Vanaf').value).toBe('2026-01-01')
+    expect(field('Tot en met').value).toBe('2026-04-01')
+    expect(regions()).toEqual(['januari', 'februari', 'maart', 'april'])
+  })
+
+  it('past het overzicht aan als je de vanaf- of tot-datum met de hand kiest', async () => {
+    await openOverview('Overzicht treinvergoeding')
+    fireEvent.change(field('Vanaf'), { target: { value: '2026-05-04' } })
+    expect(field('Tot en met').value).toBe('2026-08-04')
+    expect(regions()).toEqual(['mei', 'juni', 'juli', 'augustus'])
+
+    fireEvent.change(field('Tot en met'), { target: { value: '2026-10-20' } })
+    expect(regions()).toEqual(['mei', 'juni', 'juli', 'augustus', 'september', 'oktober'])
+
+    // Een nieuwe declaratiedatum zet de periode weer op de standaard.
+    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-09-30' } })
+    expect(field('Vanaf').value).toBe('2026-10-01')
+    expect(field('Tot en met').value).toBe('2026-10-20')
+  })
+
+  it('meldt het als de vanaf-datum na de tot-datum ligt', async () => {
+    await openOverview('Overzicht thuiswerkvergoeding')
+    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-10-20' } })
+    expect(field('Vanaf').value).toBe('2026-10-21')
+    expect(field('Tot en met').value).toBe('2026-10-20')
+    expect(regions()).toEqual([])
+    expect(screen.getByText(/de vanaf-datum ligt na de tot en met-datum/)).toBeInTheDocument()
+  })
+
+  it('laat bij Fiets en Vrij de periode ook aanpassen, met vandaag als standaard tot-datum', async () => {
+    await openOverview('Overzicht fietsdagen')
+    expect(field('Vanaf').value).toBe('2026-07-20')
+    expect(field('Tot en met').value).toBe('2026-10-20')
+    fireEvent.change(field('Vanaf'), { target: { value: '2026-01-05' } })
+    expect(field('Tot en met').value).toBe('2026-10-20')
+    expect(regions()).toHaveLength(10)
+  })
+
+  it('zet bij een periode van meer dan een jaar het jaartal bij de maanden', async () => {
+    await openOverview('Overzicht vrije dagen')
+    fireEvent.change(field('Vanaf'), { target: { value: '2025-07-01' } })
+    expect(regions()[0]).toBe('juli 2025')
+    expect(regions().at(-1)).toBe('oktober 2026')
+    expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Juli 2025')
   })
 })
