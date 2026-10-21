@@ -1,7 +1,7 @@
 # Specificatie: Woon-werkvervoer registreren
 
 Status: **ter goedkeuring bij Greco (21 oktober 2026)**
-Versie: 1.12 (21 oktober 2026): overzichten voor Trein en Fiets, en de overzichtsknoppen in de volgorde Thuis, Trein, Fiets, Auto, Vrij, op verzoek van Greco (app-versie WoonWerk 1.7)
+Versie: 1.12 (21 oktober 2026): overzichten voor Trein en Fiets, de overzichtsknoppen in de volgorde Thuis, Trein, Fiets, Auto, Vrij en met een donkerblauwe rand, op verzoek van Greco (app-versie WoonWerk 1.7)
 Vorige versie: 1.11.1 (21 oktober 2026): bugfix, het appscherm valt niet meer over de knoppenbalk van Android (app-versie WoonWerk 1.6.1)
 
 ## 1. Doel
@@ -100,7 +100,7 @@ Strak, modern en minimalistisch. Geen toeters en bellen.
 
 - **Rustig**: witte achtergrond, donkergrijze tekst, één accentkleur (diep blauw) voor de gekozen knop en de markering van vandaag. Geen verlopen, schaduwen of animaties, alleen een subtiele overgang bij klikken.
 - **Typografie**: het standaard systeemlettertype van het apparaat (zoals San Francisco of Segoe UI), in twee groottes: een titel en normale tekst.
-- **Knoppen naar de overzichten**: de knoppen onderaan voor de overzichten thuiswerkvergoeding, treinvergoeding en kilometervergoeding tonen het huis-, trein- en auto-icoon iets kleiner, met rechtsonder een wit rondje met een dunne donkerblauwe rand (de accentkleur) en een donkerblauw euroteken. Zo zie je dat het om vergoedingen gaat. De overzichten fietsdagen en vrije dagen hebben in dat rondje een donkerblauw vinkje. Bovenaan de overzichten zelf staat hetzelfde icoon met euroteken (daar in de accentkleur, zoals voorheen). De iconen bij de dagen blijven gewoon.
+- **Knoppen naar de overzichten**: de knoppen onderaan voor de overzichten thuiswerkvergoeding, treinvergoeding en kilometervergoeding tonen het huis-, trein- en auto-icoon iets kleiner, met rechtsonder een wit rondje met een dunne donkerblauwe rand (de accentkleur) en een donkerblauw euroteken. Zo zie je dat het om vergoedingen gaat. De overzichten fietsdagen en vrije dagen hebben in dat rondje een donkerblauw vinkje. De rand om deze knoppen is donkerblauw (de accentkleur), zodat ze meer opvallen dan de tandwielknop met zijn grijze rand. Bovenaan de overzichten zelf staat hetzelfde icoon met euroteken (daar in de accentkleur, zoals voorheen). De iconen bij de dagen blijven gewoon.
 - **Knoppen**: een strak lijnicoon met de naam eronder (de knoppen bij de dagen zijn minstens 44 pixels hoog, iets lager dan voorheen zodat de balk onderaan ook in beeld past), zodat elk vervoermiddel direct herkenbaar is. Dunne rand en afgeronde hoeken. De gekozen knop is gevuld met de accentkleur en witte tekst.
 - **Indeling**: smalle kolom gecentreerd op het scherm, compact in de hoogte zodat de hele week in één scherm past, dunne lijnen als scheiding tussen de dagen. Bovenaan staan de titel met rechts de tandwielknop voor de instellingen, en daaronder de weeknavigatie met "Deze week". Onderaan staat de balk met de knoppen naar de overzichten (F21), met daarboven eventueel de installatievraag (F18). De week staat er kort, bijv. "19 – 23 okt"; het jaartal verschijnt alleen bij een week in een ander jaar.
 - **Mobiel eerst**: ontworpen voor een telefoonscherm, met grote knoppen voor je duim; de vijf knoppen passen naast elkaar; staan er minder aan, dan worden ze breder. Op een groter scherm blijft het een smalle kolom.
