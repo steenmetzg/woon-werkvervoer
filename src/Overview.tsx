@@ -76,7 +76,7 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
         <div className="period-fields">
           {declared && (
             <>
-              <label htmlFor="laatste-declaratie">Datum laatste declaratie</label>
+              <label htmlFor="laatste-declaratie">Laatst gedeclareerde dag:</label>
               <input
                 id="laatste-declaratie"
                 type="date"

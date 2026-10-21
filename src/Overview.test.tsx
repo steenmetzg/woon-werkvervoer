@@ -202,7 +202,7 @@ describe('AC34: overzicht treinvergoeding en overzicht fietsdagen', () => {
 
 describe('AC36: datum laatste declaratie', () => {
   function dateField() {
-    return screen.getByLabelText('Datum laatste declaratie') as HTMLInputElement
+    return screen.getByLabelText('Laatst gedeclareerde dag:') as HTMLInputElement
   }
 
   it('heeft in de overzichten van Thuis, Trein en Auto een leeg datumveld dat een gekozen datum onthoudt', async () => {
@@ -238,7 +238,7 @@ describe('AC36: datum laatste declaratie', () => {
     render(<App />)
     for (const name of ['Overzicht fietsdagen', 'Overzicht vrije dagen']) {
       await user.click(screen.getByRole('button', { name }))
-      expect(screen.queryByLabelText('Datum laatste declaratie')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Laatst gedeclareerde dag:')).not.toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: 'Terug' }))
     }
   })
@@ -266,20 +266,20 @@ describe('AC38: periode van de overzichten', () => {
   it('begint de dag na de laatste declaratie, of de eerste werkdag daarna', async () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-09-30': 'thuis', '2026-10-01': 'thuis' }))
     await openOverview('Overzicht thuiswerkvergoeding')
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-09-30' } })
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-09-30' } })
     expect(field('Vanaf').value).toBe('2026-10-01')
     expect(field('Tot en met').value).toBe('2026-10-20')
     expect(regions()).toEqual(['oktober'])
     expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 1'])
 
     // Vrijdag 16 oktober gedeclareerd: het overzicht begint op maandag 19 oktober.
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-10-16' } })
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-10-16' } })
     expect(field('Vanaf').value).toBe('2026-10-19')
   })
 
   it('loopt tot 3 maanden na de vanaf-datum als dat vóór vandaag ligt', async () => {
     await openOverview('Overzicht kilometervergoeding')
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2025-12-31' } })
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2025-12-31' } })
     expect(field('Vanaf').value).toBe('2026-01-01')
     expect(field('Tot en met').value).toBe('2026-04-01')
     expect(regions()).toEqual(['januari', 'februari', 'maart', 'april'])
@@ -295,14 +295,14 @@ describe('AC38: periode van de overzichten', () => {
     expect(regions()).toEqual(['mei', 'juni', 'juli', 'augustus', 'september', 'oktober'])
 
     // Een nieuwe declaratiedatum zet de periode weer op de standaard.
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-09-30' } })
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-09-30' } })
     expect(field('Vanaf').value).toBe('2026-10-01')
     expect(field('Tot en met').value).toBe('2026-10-20')
   })
 
   it('meldt het als de vanaf-datum na de tot-datum ligt', async () => {
     await openOverview('Overzicht thuiswerkvergoeding')
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-10-20' } })
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-10-20' } })
     expect(field('Vanaf').value).toBe('2026-10-21')
     expect(field('Tot en met').value).toBe('2026-10-20')
     expect(regions()).toEqual([])
