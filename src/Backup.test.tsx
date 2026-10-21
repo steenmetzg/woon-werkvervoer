@@ -71,6 +71,17 @@ const validBackup = {
   registraties: { '2026-10-19': 'auto', '2026-10-21': 'vrij' },
 }
 
+describe('AC40: versienummer onderaan de instellingen', () => {
+  it('toont de versie van de app in kleine tekst', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await openSettings(user)
+    const version = screen.getByText('Versie: 1.9.0')
+    expect(version).toHaveClass('version')
+    expect(version.closest('main')?.lastElementChild).toBe(version)
+  })
+})
+
 describe('AC13: instellingen openen en sluiten', () => {
   it('opent de instellingen en gaat met Terug naar dezelfde week', async () => {
     const user = userEvent.setup()
