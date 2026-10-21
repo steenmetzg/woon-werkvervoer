@@ -108,7 +108,12 @@ export default function App() {
         registrations={registrations}
         enabledModes={enabledModes}
         onChangeEnabledModes={setEnabledModes}
-        onRestore={setRegistrations}
+        declared={declared}
+        onRestore={(restored, restoredDeclared) => {
+          setRegistrations(restored)
+          // Een backup van voor WoonWerk 1.10 heeft geen gedeclareerde dagen; dan blijven de huidige staan.
+          if (restoredDeclared) setDeclared(restoredDeclared)
+        }}
         onClose={() => setScreen('week')}
       />
     )

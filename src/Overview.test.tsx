@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -14,7 +14,14 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+  vi.restoreAllMocks()
 })
+
+// De backupmap leeft in de tests niet in IndexedDB.
+vi.mock('./folderStore', () => ({
+  loadStoredFolder: async () => null,
+  storeFolder: async () => {},
+}))
 
 function column(month: string) {
   return within(screen.getByRole('region', { name: month }))
@@ -42,7 +49,7 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
 
     expect(screen.getByRole('heading', { name: 'Overzicht thuiswerkvergoeding' })).toBeInTheDocument()
     expect(screen.getByLabelText('Thuis')).toBeInTheDocument()
-    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-07-20')
+    expect(screen.getByLabelText('Toon vanaf')).toHaveValue('2026-07-20')
     expect(screen.getByLabelText('Tot en met')).toHaveValue('2026-10-20')
 
     expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label'))).toEqual([
@@ -69,13 +76,13 @@ describe('AC20: overzicht thuiswerkvergoeding', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Overzicht vrije dagen' }))
-    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-02-28')
+    expect(screen.getByLabelText('Toon vanaf')).toHaveValue('2026-02-28')
     expect(screen.getAllByRole('region')).toHaveLength(4)
     await user.click(screen.getByRole('button', { name: 'Terug' }))
 
     // Zaterdag 28 februari is geen werkdag: het overzicht thuiswerkvergoeding begint op maandag 2 maart.
     await user.click(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' }))
-    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-03-02')
+    expect(screen.getByLabelText('Toon vanaf')).toHaveValue('2026-03-02')
     expect(screen.getByLabelText('Tot en met')).toHaveValue('2026-05-31')
     expect(screen.getAllByRole('region')).toHaveLength(3)
   })
@@ -110,7 +117,7 @@ describe('AC21: overzicht kilometervergoeding', () => {
 
     expect(screen.getByRole('heading', { name: 'Overzicht kilometervergoeding' })).toBeInTheDocument()
     expect(screen.getByLabelText('Auto')).toBeInTheDocument()
-    expect(screen.getByLabelText('Vanaf')).toHaveValue('2026-07-20')
+    expect(screen.getByLabelText('Toon vanaf')).toHaveValue('2026-07-20')
     expect(screen.getByLabelText('Tot en met')).toHaveValue('2026-10-20')
     expect(column('juli').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 21'])
     expect(column('augustus').queryAllByRole('listitem')).toHaveLength(0)
@@ -202,7 +209,7 @@ describe('AC34: overzicht treinvergoeding en overzicht fietsdagen', () => {
 
 describe('AC36: datum laatste declaratie', () => {
   function dateField() {
-    return screen.getByLabelText('Datum laatste declaratie') as HTMLInputElement
+    return screen.getByLabelText('Laatst gedeclareerde dag:') as HTMLInputElement
   }
 
   it('heeft in de overzichten van Thuis, Trein en Auto een leeg datumveld dat een gekozen datum onthoudt', async () => {
@@ -238,13 +245,51 @@ describe('AC36: datum laatste declaratie', () => {
     render(<App />)
     for (const name of ['Overzicht fietsdagen', 'Overzicht vrije dagen']) {
       await user.click(screen.getByRole('button', { name }))
-      expect(screen.queryByLabelText('Datum laatste declaratie')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Laatst gedeclareerde dag:')).not.toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: 'Terug' }))
     }
   })
 
-  it('zet de datum niet in de backup', () => {
-    expect(JSON.parse(createBackup({}, new Date(2026, 9, 20)))).not.toHaveProperty('gedeclareerd')
+})
+
+describe('AC41: laatst gedeclareerde dagen in de backup', () => {
+  it('neemt de dagen mee in de backup en zet ze terug bij inlezen', async () => {
+    localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-09-30', auto: '2026-10-02' }))
+    expect(JSON.parse(createBackup({}, { thuis: '2026-09-30', auto: '2026-10-02' }, new Date(2026, 9, 20))).gedeclareerd).toEqual({
+      thuis: '2026-09-30',
+      auto: '2026-10-02',
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    const backup = { app: 'woon-werkvervoer', versie: 2, gemaakt: '2026-10-01T08:00:00.000Z', registraties: {}, gedeclareerd: { trein: '2026-08-31' } }
+    await user.upload(screen.getByLabelText('Backupbestand'), new File([JSON.stringify(backup)], 'b.json'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen'))
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    for (const [name, value] of [
+      ['Overzicht thuiswerkvergoeding', ''],
+      ['Overzicht treinvergoeding', '2026-08-31'],
+      ['Overzicht kilometervergoeding', ''],
+    ]) {
+      await user.click(screen.getByRole('button', { name }))
+      expect(screen.getByLabelText('Laatst gedeclareerde dag:')).toHaveValue(value)
+      await user.click(screen.getByRole('button', { name: 'Terug' }))
+    }
+  })
+
+  it('laat de dagen staan bij een backup van een oudere versie zonder gedeclareerde dagen', async () => {
+    localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-09-30' }))
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    const old = { app: 'woon-werkvervoer', versie: 2, gemaakt: '2026-10-01T08:00:00.000Z', registraties: {} }
+    await user.upload(screen.getByLabelText('Backupbestand'), new File([JSON.stringify(old)], 'b.json'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen'))
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    await user.click(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' }))
+    expect(screen.getByLabelText('Laatst gedeclareerde dag:')).toHaveValue('2026-09-30')
   })
 })
 
@@ -266,28 +311,28 @@ describe('AC38: periode van de overzichten', () => {
   it('begint de dag na de laatste declaratie, of de eerste werkdag daarna', async () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-09-30': 'thuis', '2026-10-01': 'thuis' }))
     await openOverview('Overzicht thuiswerkvergoeding')
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-09-30' } })
-    expect(field('Vanaf').value).toBe('2026-10-01')
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-09-30' } })
+    expect(field('Toon vanaf').value).toBe('2026-10-01')
     expect(field('Tot en met').value).toBe('2026-10-20')
     expect(regions()).toEqual(['oktober'])
     expect(column('oktober').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 1'])
 
     // Vrijdag 16 oktober gedeclareerd: het overzicht begint op maandag 19 oktober.
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-10-16' } })
-    expect(field('Vanaf').value).toBe('2026-10-19')
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-10-16' } })
+    expect(field('Toon vanaf').value).toBe('2026-10-19')
   })
 
   it('loopt tot 3 maanden na de vanaf-datum als dat vóór vandaag ligt', async () => {
     await openOverview('Overzicht kilometervergoeding')
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2025-12-31' } })
-    expect(field('Vanaf').value).toBe('2026-01-01')
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2025-12-31' } })
+    expect(field('Toon vanaf').value).toBe('2026-01-01')
     expect(field('Tot en met').value).toBe('2026-04-01')
     expect(regions()).toEqual(['januari', 'februari', 'maart', 'april'])
   })
 
   it('past het overzicht aan als je de vanaf- of tot-datum met de hand kiest', async () => {
     await openOverview('Overzicht treinvergoeding')
-    fireEvent.change(field('Vanaf'), { target: { value: '2026-05-04' } })
+    fireEvent.change(field('Toon vanaf'), { target: { value: '2026-05-04' } })
     expect(field('Tot en met').value).toBe('2026-08-04')
     expect(regions()).toEqual(['mei', 'juni', 'juli', 'augustus'])
 
@@ -295,15 +340,15 @@ describe('AC38: periode van de overzichten', () => {
     expect(regions()).toEqual(['mei', 'juni', 'juli', 'augustus', 'september', 'oktober'])
 
     // Een nieuwe declaratiedatum zet de periode weer op de standaard.
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-09-30' } })
-    expect(field('Vanaf').value).toBe('2026-10-01')
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-09-30' } })
+    expect(field('Toon vanaf').value).toBe('2026-10-01')
     expect(field('Tot en met').value).toBe('2026-10-20')
   })
 
   it('meldt het als de vanaf-datum na de tot-datum ligt', async () => {
     await openOverview('Overzicht thuiswerkvergoeding')
-    fireEvent.change(field('Datum laatste declaratie'), { target: { value: '2026-10-20' } })
-    expect(field('Vanaf').value).toBe('2026-10-21')
+    fireEvent.change(field('Laatst gedeclareerde dag:'), { target: { value: '2026-10-20' } })
+    expect(field('Toon vanaf').value).toBe('2026-10-21')
     expect(field('Tot en met').value).toBe('2026-10-20')
     expect(regions()).toEqual([])
     expect(screen.getByText(/de vanaf-datum ligt na de tot en met-datum/)).toBeInTheDocument()
@@ -311,16 +356,16 @@ describe('AC38: periode van de overzichten', () => {
 
   it('laat bij Fiets en Vrij de periode ook aanpassen, met vandaag als standaard tot-datum', async () => {
     await openOverview('Overzicht fietsdagen')
-    expect(field('Vanaf').value).toBe('2026-07-20')
+    expect(field('Toon vanaf').value).toBe('2026-07-20')
     expect(field('Tot en met').value).toBe('2026-10-20')
-    fireEvent.change(field('Vanaf'), { target: { value: '2026-01-05' } })
+    fireEvent.change(field('Toon vanaf'), { target: { value: '2026-01-05' } })
     expect(field('Tot en met').value).toBe('2026-10-20')
     expect(regions()).toHaveLength(10)
   })
 
   it('zet bij een periode van meer dan een jaar het jaartal bij de maanden', async () => {
     await openOverview('Overzicht vrije dagen')
-    fireEvent.change(field('Vanaf'), { target: { value: '2025-07-01' } })
+    fireEvent.change(field('Toon vanaf'), { target: { value: '2025-07-01' } })
     expect(regions()[0]).toBe('juli 2025')
     expect(regions().at(-1)).toBe('oktober 2026')
     expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Juli 2025')
