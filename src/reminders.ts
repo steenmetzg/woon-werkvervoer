@@ -14,29 +14,6 @@ const COMPENSATION: Record<DeclaredMode, string> = {
   auto: 'kilometervergoeding',
 }
 
-/** Per vorm de dag (JJJJ-MM-DD) waarop de herinnering met het x-je is weggezet; de dag erna komt hij terug. */
-export type Dismissed = Partial<Record<DeclaredMode, string>>
-
-export const DISMISSED_KEY = 'herinnering-weg'
-
-export function loadDismissed(): Dismissed {
-  try {
-    const raw = localStorage.getItem(DISMISSED_KEY)
-    const value: unknown = raw ? JSON.parse(raw) : {}
-    return typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Dismissed) : {}
-  } catch {
-    return {}
-  }
-}
-
-export function saveDismissed(dismissed: Dismissed): void {
-  try {
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissed))
-  } catch {
-    // Opslag niet beschikbaar; de herinnering blijft dan weg zolang de app open is.
-  }
-}
-
 /** Zoveel dagen voordat 3 maanden om zijn, verschijnt de herinnering. */
 export const REMINDER_DAYS_BEFORE = 7
 
@@ -56,15 +33,12 @@ export function reminderFrom(declaredDay: Date): Date {
   return addDays(addMonths(declaredDay, 3), -REMINDER_DAYS_BEFORE)
 }
 
-/**
- * De herinneringen die vandaag nodig zijn, in de volgorde Thuis, Trein, Auto; alleen voor vormen die aan staan
- * en niet vandaag met het x-je weggezet.
- */
-export function dueReminders(declared: Declared, enabledModes: Mode[], today: Date, dismissed: Dismissed = {}): Reminder[] {
+/** De herinneringen die vandaag nodig zijn, in de volgorde Thuis, Trein, Auto; alleen voor vormen die aan staan. */
+export function dueReminders(declared: Declared, enabledModes: Mode[], today: Date): Reminder[] {
   const todayKey = dateKey(today)
   const reminders: Reminder[] = []
   for (const mode of DECLARED_MODES) {
-    if (!enabledModes.includes(mode) || dismissed[mode] === todayKey) continue
+    if (!enabledModes.includes(mode)) continue
     const key = declared[mode]
     const day = key ? parseDateKey(key) : null
     if (!day || dateKey(reminderFrom(day)) > todayKey) continue
