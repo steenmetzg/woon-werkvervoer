@@ -17,11 +17,13 @@ interface Props {
   iconLabel: string
   registrations: Registrations
   today: Date
+  /** Alleen bij Thuis, Trein en Auto: de datum tot en met wanneer is gedeclareerd (leeg als die nog niet is gekozen). */
+  declared?: { date: string | undefined; onChange: (date: string | undefined) => void }
   onClose: () => void
 }
 
 /** Overzicht van alle dagen met één bepaalde keuze, van 3 maanden geleden tot vandaag, per maand een kolom. */
-export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, today, onClose }: Props) {
+export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, today, declared, onClose }: Props) {
   const { start, end, months } = overviewPeriod(today)
 
   // Alle dagen in de periode met deze keuze, gegroepeerd per kalendermaand.
@@ -55,6 +57,17 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
             <dd data-testid="tot">{fullDate(end)}</dd>
           </div>
         </dl>
+        {declared && (
+          <div className="declared">
+            <label htmlFor="gedeclareerd">Gedeclareerd tot en met:</label>
+            <input
+              id="gedeclareerd"
+              type="date"
+              value={declared.date ?? ''}
+              onChange={(e) => declared.onChange(e.target.value || undefined)}
+            />
+          </div>
+        )}
       </div>
 
       <div className="months">

@@ -45,16 +45,8 @@ export default function Info({ onClose }: Props) {
         <p>
           Met de blauwe knoppen onderaan open je per keuze een overzicht van de laatste 3 maanden, met elke maand in een
           eigen kolom. Een euroteken betekent dat het om een vergoeding gaat (thuiswerk, trein en auto), een vinkje is
-          een gewoon overzicht (fietsdagen en vrije dagen).
-        </p>
-      </section>
-
-      <section className="setting info">
-        <h2>Declaraties</h2>
-        <p>
-          Met de euroknop rechtsboven houd je voor Thuis, Trein en Auto bij tot en met welke dag je je declaraties hebt
-          ingediend. Tik op een datum om hem in het kalendertje te kiezen. Zolang je niets kiest, staat de datum op
-          vandaag. Je ziet alleen de vormen die aan staan.
+          een gewoon overzicht (fietsdagen en vrije dagen). In de overzichten van thuiswerk, trein en auto vul je met het
+          kalendertje in tot en met welke dag je je declaraties hebt ingediend.
         </p>
       </section>
 

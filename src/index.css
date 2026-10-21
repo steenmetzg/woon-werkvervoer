@@ -386,27 +386,25 @@ h1.wrap {
   line-height: 1.45;
 }
 
-.declared h2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.declared-icon {
-  color: var(--accent);
+.period .declared {
+  grid-column: 2;
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.875rem;
 }
 
 .declared label {
-  display: block;
-  margin-bottom: 6px;
   color: var(--muted);
 }
 
 .declared input[type='date'] {
-  width: 100%;
+  justify-self: start;
+  min-width: 11em;
   min-height: 44px;
   padding: 0 12px;
   font: inherit;
+  font-size: 1rem;
   color: inherit;
   background: var(--bg);
   border: 1px solid var(--line);

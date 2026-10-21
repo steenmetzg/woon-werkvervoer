@@ -3,8 +3,12 @@ import type { Mode } from './storage'
 /** De vormen waarvoor je bijhoudt tot en met welke dag je hebt gedeclareerd, in de vaste volgorde. */
 export const DECLARED_MODES = ['thuis', 'trein', 'auto'] as const satisfies readonly Mode[]
 export type DeclaredMode = (typeof DECLARED_MODES)[number]
-/** Per vorm de datum (JJJJ-MM-DD) tot en met wanneer is gedeclareerd. Ontbreekt een vorm, dan staat die op vandaag. */
+/** Per vorm de datum (JJJJ-MM-DD) tot en met wanneer is gedeclareerd. Ontbreekt een vorm, dan is er nog geen datum gekozen. */
 export type Declared = Partial<Record<DeclaredMode, string>>
+
+export function isDeclaredMode(mode: Mode): mode is DeclaredMode {
+  return (DECLARED_MODES as readonly Mode[]).includes(mode)
+}
 
 export const DECLARED_KEY = 'gedeclareerd-tot'
 

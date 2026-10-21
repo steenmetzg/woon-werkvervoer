@@ -1,7 +1,9 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { createBackup } from './backup'
+import { DECLARED_KEY } from './declared'
 import { ENABLED_KEY, STORAGE_KEY } from './storage'
 
 // "Vandaag" is dinsdag 20 oktober 2026.
@@ -188,5 +190,53 @@ describe('AC34: overzicht treinvergoeding en overzicht fietsdagen', () => {
         .getAllByRole('button')
         .map((b) => b.getAttribute('aria-label')),
     ).toEqual(['Overzicht thuiswerkvergoeding', 'Overzicht kilometervergoeding', 'Overzicht vrije dagen'])
+  })
+})
+
+describe('AC36: gedeclareerd tot en met', () => {
+  function dateField() {
+    return screen.getByLabelText('Gedeclareerd tot en met:') as HTMLInputElement
+  }
+
+  it('heeft in de overzichten van Thuis, Trein en Auto een leeg datumveld dat een gekozen datum onthoudt', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    await user.click(screen.getByRole('button', { name: 'Overzicht treinvergoeding' }))
+    expect(dateField().type).toBe('date')
+    expect(dateField().value).toBe('')
+    fireEvent.change(dateField(), { target: { value: '2026-09-30' } })
+    expect(dateField().value).toBe('2026-09-30')
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 26 oktober')
+
+    // Elke vorm heeft een eigen datum.
+    for (const name of ['Overzicht thuiswerkvergoeding', 'Overzicht kilometervergoeding']) {
+      await user.click(screen.getByRole('button', { name }))
+      expect(dateField().value).toBe('')
+      await user.click(screen.getByRole('button', { name: 'Terug' }))
+    }
+    unmount()
+
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Overzicht treinvergoeding' }))
+    expect(dateField().value).toBe('2026-09-30')
+    fireEvent.change(dateField(), { target: { value: '' } })
+    expect(dateField().value).toBe('')
+    expect(JSON.parse(localStorage.getItem(DECLARED_KEY)!)).toEqual({})
+  })
+
+  it('heeft geen datumveld in de overzichten fietsdagen en vrije dagen', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    for (const name of ['Overzicht fietsdagen', 'Overzicht vrije dagen']) {
+      await user.click(screen.getByRole('button', { name }))
+      expect(screen.queryByLabelText('Gedeclareerd tot en met:')).not.toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Terug' }))
+    }
+  })
+
+  it('zet de datum niet in de backup', () => {
+    expect(JSON.parse(createBackup({}, new Date(2026, 9, 20)))).not.toHaveProperty('gedeclareerd')
   })
 })

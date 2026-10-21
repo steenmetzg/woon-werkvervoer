@@ -249,8 +249,7 @@ describe('AC32: overzichtsknoppen onderaan', () => {
       'Overzicht kilometervergoeding',
       'Overzicht vrije dagen',
     ])
-    expect(within(screen.getByRole('banner')).getAllByRole('button', { name: /Overzicht|Instellingen|Informatie|Declaraties/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Declaraties',
+    expect(within(screen.getByRole('banner')).getAllByRole('button', { name: /Overzicht|Instellingen|Informatie/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
       'Informatie',
       'Instellingen en backup',
     ])
@@ -290,7 +289,6 @@ describe('AC35: informatiepagina', () => {
       'Een dag invullen',
       'Bladeren',
       'Overzichten',
-      'Declaraties',
       'Instellingen',
       'Je gegevens en backups',
       'Zonder internet',
