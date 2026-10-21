@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, X, type LucideIcon } from 'lucide-react'
 import BadgeIcon from './BadgeIcon'
 import { addDays, addMonths, compactDay, dateKey, monthName, monthsBetween, nextWorkday, parseDateKey, workdayFrom } from './dates'
 import type { Mode, Registrations } from './storage'
@@ -77,12 +77,25 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
           {declared && (
             <>
               <label htmlFor="laatste-declaratie">Laatst gedeclareerde dag:</label>
-              <input
-                id="laatste-declaratie"
-                type="date"
-                value={declared.date ?? ''}
-                onChange={(e) => changeDeclared(e.target.value)}
-              />
+              <div className="date-with-clear">
+                <input
+                  id="laatste-declaratie"
+                  type="date"
+                  value={declared.date ?? ''}
+                  onChange={(e) => changeDeclared(e.target.value)}
+                />
+                {/* Het kalendertje van Android heeft geen knop om de datum leeg te maken. */}
+                {declared.date && (
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label="Laatst gedeclareerde dag wissen"
+                    onClick={() => changeDeclared('')}
+                  >
+                    <X size={18} strokeWidth={1.75} aria-hidden />
+                  </button>
+                )}
+              </div>
             </>
           )}
           <label htmlFor="vanaf">Toon vanaf</label>

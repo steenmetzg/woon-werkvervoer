@@ -290,8 +290,16 @@ h1.wrap {
   font-size: 0.875rem;
 }
 
-.period-fields input + label {
+.period-fields input + label,
+.period-fields .date-with-clear + label {
   margin-top: 8px;
+}
+
+/* Datumveld met rechts ernaast een knop om de datum te wissen. */
+.date-with-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .period-fields label {

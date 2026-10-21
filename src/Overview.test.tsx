@@ -235,8 +235,9 @@ describe('AC36: datum laatste declaratie', () => {
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Overzicht treinvergoeding' }))
     expect(dateField().value).toBe('2026-09-30')
-    fireEvent.change(dateField(), { target: { value: '' } })
+    await user.click(screen.getByRole('button', { name: 'Laatst gedeclareerde dag wissen' }))
     expect(dateField().value).toBe('')
+    expect(screen.queryByRole('button', { name: 'Laatst gedeclareerde dag wissen' })).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem(DECLARED_KEY)!)).toEqual({})
   })
 
