@@ -45,6 +45,18 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
         <h1 className="wrap">{title}</h1>
       </header>
 
+      {declared && (
+        <div className="declared">
+          <label htmlFor="gedeclareerd">Gedeclareerd tot en met:</label>
+          <input
+            id="gedeclareerd"
+            type="date"
+            value={declared.date ?? ''}
+            onChange={(e) => declared.onChange(e.target.value || undefined)}
+          />
+        </div>
+      )}
+
       <div className="period">
         <BadgeIcon Icon={Icon} Badge={Badge} className="period-icon" size={28} label={iconLabel} />
         <dl>
@@ -57,17 +69,6 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
             <dd data-testid="tot">{fullDate(end)}</dd>
           </div>
         </dl>
-        {declared && (
-          <div className="declared">
-            <label htmlFor="gedeclareerd">Gedeclareerd tot en met:</label>
-            <input
-              id="gedeclareerd"
-              type="date"
-              value={declared.date ?? ''}
-              onChange={(e) => declared.onChange(e.target.value || undefined)}
-            />
-          </div>
-        )}
       </div>
 
       <div className="months">
