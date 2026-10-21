@@ -84,7 +84,7 @@ describe('AC24: keuzes van een uitgezette vorm blijven bewaard', () => {
     await user.click(settingButton('Auto'))
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(dayButtons('dinsdag 20 oktober').filter((b) => b.getAttribute('aria-pressed') === 'true')).toEqual([])
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ '2026-10-20': 'auto' })
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ '2026-10-20': ['auto'] })
 
     await openSettings()
     await user.click(settingButton('Auto'))

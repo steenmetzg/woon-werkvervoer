@@ -89,7 +89,8 @@ describe('AC21: overzicht kilometervergoeding', () => {
         '2026-07-17': 'auto', // vóór de periode
         '2026-07-21': 'auto',
         '2026-08-03': 'thuis', // andere keuze
-        '2026-09-15': 'auto',
+        '2026-08-04': ['trein', 'fiets'], // zonder auto
+        '2026-09-15': ['trein', 'auto'], // auto samen met trein telt mee
         '2026-10-20': 'auto', // vandaag
         '2026-10-22': 'auto', // na vandaag
       }),

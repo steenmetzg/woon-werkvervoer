@@ -1,17 +1,36 @@
 export const MODES = ['thuis', 'trein', 'fiets', 'auto', 'vrij'] as const
 export type Mode = (typeof MODES)[number]
-export type Registrations = Record<string, Mode>
+/** Per datum de gekozen keuzes, altijd in de vaste volgorde en nooit leeg. */
+export type Registrations = Record<string, Mode[]>
 
 export const STORAGE_KEY = 'vervoer-registraties'
+
+/** Thuis en Vrij gaan nooit samen met een andere keuze. */
+const ALONE: readonly Mode[] = ['thuis', 'vrij']
+
+/** De keuzes van een dag na een tik op `mode` (F2 en F3). */
+export function toggleMode(current: readonly Mode[], mode: Mode): Mode[] {
+  if (current.includes(mode)) return current.filter((m) => m !== mode)
+  if (ALONE.includes(mode)) return [mode]
+  return MODES.filter((m) => m === mode || (current.includes(m) && !ALONE.includes(m)))
+}
+
+/** Maakt een geldige lijst keuzes van één keuze (oude vorm) of een lijst; `null` als er niets geldigs in zit. */
+function parseDay(value: unknown): Mode[] | null {
+  const list: unknown[] = Array.isArray(value) ? value : [value]
+  const modes = MODES.filter((m) => list.includes(m))
+  const alone = modes.find((m) => ALONE.includes(m))
+  if (alone) return [alone]
+  return modes.length > 0 ? modes : null
+}
 
 /** Haalt de geldige keuzes uit willekeurige gegevens; `null` als het geen object is. */
 export function parseRegistrations(value: unknown): Registrations | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
   const result: Registrations = {}
-  for (const [key, mode] of Object.entries(value)) {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && (MODES as readonly string[]).includes(mode as string)) {
-      result[key] = mode as Mode
-    }
+  for (const [key, day] of Object.entries(value)) {
+    const modes = parseDay(day)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && modes) result[key] = modes
   }
   return result
 }
