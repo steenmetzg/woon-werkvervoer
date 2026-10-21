@@ -85,7 +85,7 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
               />
             </>
           )}
-          <label htmlFor="vanaf">Vanaf</label>
+          <label htmlFor="vanaf">Toon vanaf</label>
           <input
             id="vanaf"
             type="date"
