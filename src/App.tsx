@@ -17,9 +17,9 @@ import {
 } from './storage'
 
 const OVERVIEWS = {
-  thuis: { title: 'Overzicht thuiswerkvergoeding', short: 'Thuiswerk' },
-  auto: { title: 'Overzicht kilometervergoeding', short: 'Kilometers' },
-  vrij: { title: 'Overzicht vrije dagen', short: 'Vrij' },
+  thuis: { title: 'Overzicht thuiswerkvergoeding' },
+  auto: { title: 'Overzicht kilometervergoeding' },
+  vrij: { title: 'Overzicht vrije dagen' },
 } as const
 
 const SWIPE_MIN_DISTANCE = 50
@@ -217,11 +217,10 @@ export default function App() {
         )}
         <nav className="overview-bar" aria-label="Overzichten">
           {overviewModes.map((mode) => {
-            const { title, short } = OVERVIEWS[mode]
+            const { title } = OVERVIEWS[mode]
             return (
-              <button key={mode} type="button" className="overview-button" aria-label={title} onClick={() => setScreen(mode)}>
+              <button key={mode} type="button" className="icon-button" aria-label={title} onClick={() => setScreen(mode)}>
                 <BadgeIcon Icon={MODE_INFO[mode].Icon} Badge={mode === 'vrij' ? Check : undefined} />
-                <span>{short}</span>
               </button>
             )
           })}

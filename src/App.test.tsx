@@ -241,7 +241,7 @@ describe('AC32: overzichtsknoppen onderaan', () => {
     const user = userEvent.setup()
     render(<App />)
     const bar = screen.getByRole('navigation', { name: 'Overzichten' })
-    expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['Thuiswerk', 'Kilometers', 'Vrij'])
+    expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['', '', ''])
     expect(within(bar).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
       'Overzicht thuiswerkvergoeding',
       'Overzicht kilometervergoeding',
