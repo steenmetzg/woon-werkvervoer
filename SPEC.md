@@ -1,6 +1,6 @@
 # Specificatie: Woon-werkvervoer registreren
 
-Status: **concept, nog niet live** (Greco voegt eerst meer functionaliteit toe)
+Status: **goedgekeurd door Greco op 21 oktober 2026**
 Versie: 1.13 (21 oktober 2026): in de overzichten thuiswerkvergoeding, treinvergoeding en kilometervergoeding vul je de datum van je laatste declaratie in, en die bepaalt de periode van het overzicht; in alle overzichten zijn de vanaf- en tot en met-datum aan te passen en komen meer dan vier maanden in extra rijen (app-versie WoonWerk 1.8)
 Vorige versie: 1.12.1 (21 oktober 2026): kortere naam voor het backupbestand, met de datum vooraan (`2026-10-21-woonwerk.json`), op verzoek van Greco (app-versie WoonWerk 1.7.1)
 
