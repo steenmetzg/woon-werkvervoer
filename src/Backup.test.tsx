@@ -117,8 +117,8 @@ describe('AC15: backup maken', () => {
     const written = folder.files['woon-werkvervoer-backup-2026-10-20.json']
     expect(JSON.parse(written)).toMatchObject({
       app: 'woon-werkvervoer',
-      versie: 1,
-      registraties: { '2026-10-19': 'trein', '2026-10-20': 'fiets' },
+      versie: 2,
+      registraties: { '2026-10-19': ['trein'], '2026-10-20': ['fiets'] },
     })
     expect(screen.getByRole('status')).toHaveTextContent('opgeslagen als woon-werkvervoer-backup-2026-10-20.json in de map "Woon-werkvervoer"')
   })
@@ -141,7 +141,7 @@ describe('AC15: backup maken', () => {
     await user.click(screen.getByRole('button', { name: 'Backup maken' }))
 
     expect(clicked).toEqual(['woon-werkvervoer-backup-2026-10-20.json'])
-    expect(JSON.parse(await blobs[0].text()).registraties).toEqual({ '2026-10-19': 'thuis' })
+    expect(JSON.parse(await blobs[0].text()).registraties).toEqual({ '2026-10-19': ['thuis'] })
     expect(screen.getByRole('status')).toHaveTextContent('in Downloads')
   })
 })
@@ -160,6 +160,22 @@ describe('AC16: backup inlezen', () => {
     expect(chosenModes('maandag 19 oktober')).toEqual(['Auto'])
     expect(chosenModes('dinsdag 20 oktober')).toEqual([])
     expect(chosenModes('woensdag 21 oktober')).toEqual(['Vrij'])
+  })
+
+  it('leest ook een nieuwe backup met meerdere keuzes per dag', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    render(<App />)
+    await openSettings(user)
+    await user.upload(
+      screen.getByLabelText('Backupbestand'),
+      backupFile({ ...validBackup, versie: 2, registraties: { '2026-10-19': ['fiets', 'trein'], '2026-10-20': ['thuis'] } }),
+    )
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen: 2 dagen'))
+
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(chosenModes('maandag 19 oktober')).toEqual(['Trein', 'Fiets'])
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Thuis'])
   })
 
   it('weigert een ongeldig bestand en laat de keuzes ongemoeid', async () => {

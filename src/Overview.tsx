@@ -29,7 +29,7 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
     const days: Date[] = []
     const first = month < start ? start : month
     for (let d = first; d.getMonth() === month.getMonth() && d <= end; d = addDays(d, 1)) {
-      if (registrations[dateKey(d)] === mode) days.push(d)
+      if (registrations[dateKey(d)]?.includes(mode)) days.push(d)
     }
     return { month, days }
   })

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Car, Check, ChevronLeft, ChevronRight, House, Settings as SettingsIcon, TreePalm } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import { useInstallPrompt } from './installPrompt'
@@ -11,6 +11,7 @@ import {
   loadRegistrations,
   saveEnabledModes,
   saveRegistrations,
+  toggleMode,
   type Mode,
   type Registrations,
 } from './storage'
@@ -53,6 +54,10 @@ export default function App() {
   const days = workdays(monday)
   const todayKey = dateKey(today)
   const isThisWeek = dateKey(monday) === dateKey(thisMonday)
+  // Thuis staat altijd aan; de andere overzichten alleen als hun vervoervorm aan staat.
+  const overviewModes = (Object.keys(OVERVIEWS) as (keyof typeof OVERVIEWS)[]).filter((mode) =>
+    enabledModes.includes(mode),
+  )
 
   // Swipen: naar links = volgende week, naar rechts = vorige week.
   // Alleen een duidelijke, vooral horizontale beweging telt, zodat scrollen en tikken gewoon werken.
@@ -80,8 +85,9 @@ export default function App() {
     const key = dateKey(day)
     setRegistrations((prev) => {
       const next = { ...prev }
-      if (next[key] === mode) delete next[key]
-      else next[key] = mode
+      const modes = toggleMode(prev[key] ?? [], mode)
+      if (modes.length > 0) next[key] = modes
+      else delete next[key]
       return next
     })
   }
@@ -116,38 +122,10 @@ export default function App() {
   }
 
   return (
-    <main className="app" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <main className="app week" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <header className="header">
         <h1>WoonWerk</h1>
         <div className="header-actions">
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="Overzicht thuiswerkvergoeding"
-            onClick={() => setScreen('thuis')}
-          >
-            <BadgeIcon Icon={House} />
-          </button>
-          {enabledModes.includes('auto') && (
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Overzicht kilometervergoeding"
-              onClick={() => setScreen('auto')}
-            >
-              <BadgeIcon Icon={Car} />
-            </button>
-          )}
-          {enabledModes.includes('vrij') && (
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Overzicht vrije dagen"
-              onClick={() => setScreen('vrij')}
-            >
-              <BadgeIcon Icon={TreePalm} Badge={Check} />
-            </button>
-          )}
           <button
             type="button"
             className="icon-button"
@@ -190,7 +168,7 @@ export default function App() {
         {days.map((day) => {
           const key = dateKey(day)
           const isToday = key === todayKey
-          const chosen = registrations[key]
+          const chosen = registrations[key] ?? []
           return (
             <li
               key={key}
@@ -205,7 +183,7 @@ export default function App() {
               <div className="modes" role="group" aria-label={`Vervoer op ${longLabel(day)}`}>
                 {enabledModes.map((mode) => {
                   const { label, Icon } = MODE_INFO[mode]
-                  const selected = chosen === mode
+                  const selected = chosen.includes(mode)
                   return (
                     <button
                       key={mode}
@@ -225,17 +203,29 @@ export default function App() {
         })}
       </ol>
 
-      {installPrompt.show && (
-        <section className="install" aria-label="App installeren">
-          <p>WoonWerk als app installeren?</p>
-          <button type="button" onClick={installPrompt.notNow}>
-            Niet nu
-          </button>
-          <button type="button" className="install-now" onClick={installPrompt.install}>
-            Installeren
-          </button>
-        </section>
-      )}
+      <div className="bottom">
+        {installPrompt.show && (
+          <section className="install" aria-label="App installeren">
+            <p>WoonWerk als app installeren?</p>
+            <button type="button" onClick={installPrompt.notNow}>
+              Niet nu
+            </button>
+            <button type="button" className="install-now" onClick={installPrompt.install}>
+              Installeren
+            </button>
+          </section>
+        )}
+        <nav className="overview-bar" aria-label="Overzichten">
+          {overviewModes.map((mode) => {
+            const { title } = OVERVIEWS[mode]
+            return (
+              <button key={mode} type="button" className="icon-button" aria-label={title} onClick={() => setScreen(mode)}>
+                <BadgeIcon Icon={MODE_INFO[mode].Icon} Badge={mode === 'vrij' ? Check : undefined} />
+              </button>
+            )
+          })}
+        </nav>
+      </div>
     </main>
   )
 }

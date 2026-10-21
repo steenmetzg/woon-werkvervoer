@@ -75,12 +75,12 @@ describe('AC2 en AC3: vervoer kiezen', () => {
 })
 
 describe('AC4 en AC5: keuze wijzigen of wissen', () => {
-  it('wijzigt de keuze bij een klik op een ander vervoermiddel', async () => {
+  it('wijzigt Thuis in Vrij bij een klik op Vrij', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
-    await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
-    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Trein'])
+    await user.click(modeButton('dinsdag 20 oktober', 'Thuis'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Vrij'))
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Vrij'])
   })
 
   it('wist de keuze bij een tweede klik op hetzelfde vervoermiddel', async () => {
@@ -89,6 +89,39 @@ describe('AC4 en AC5: keuze wijzigen of wissen', () => {
     await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
     await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
     expect(chosenModes('dinsdag 20 oktober')).toEqual([])
+  })
+
+  it('wist alleen de aangeklikte keuze als er meer gekozen zijn', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Fiets'])
+  })
+})
+
+describe('AC30 en AC31: meerdere vervoervormen per dag', () => {
+  it('kiest Trein, Fiets en Auto tegelijk (AC30)', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Auto'))
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Trein', 'Fiets', 'Auto'])
+  })
+
+  it('Thuis en Vrij zetten de rest uit, en Trein, Fiets of Auto zetten Thuis en Vrij uit (AC31)', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(modeButton('dinsdag 20 oktober', 'Trein'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
+    await user.click(modeButton('dinsdag 20 oktober', 'Thuis'))
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Thuis'])
+    await user.click(modeButton('dinsdag 20 oktober', 'Vrij'))
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Vrij'])
+    await user.click(modeButton('dinsdag 20 oktober', 'Fiets'))
+    expect(chosenModes('dinsdag 20 oktober')).toEqual(['Fiets'])
   })
 })
 
@@ -174,22 +207,52 @@ describe('AC9: onthouden', () => {
     const user = userEvent.setup()
     const { unmount } = render(<App />)
     await user.click(modeButton('maandag 19 oktober', 'Trein'))
+    await user.click(modeButton('maandag 19 oktober', 'Auto'))
     await user.click(modeButton('vrijdag 23 oktober', 'Thuis'))
     unmount()
 
     render(<App />)
-    expect(chosenModes('maandag 19 oktober')).toEqual(['Trein'])
+    expect(chosenModes('maandag 19 oktober')).toEqual(['Trein', 'Auto'])
     expect(chosenModes('vrijdag 23 oktober')).toEqual(['Thuis'])
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
-      '2026-10-19': 'trein',
-      '2026-10-23': 'thuis',
+      '2026-10-19': ['trein', 'auto'],
+      '2026-10-23': ['thuis'],
     })
+  })
+
+  it('toont dagen uit een eerdere versie (één keuze per dag) precies zoals ze waren (AC33)', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-19': 'trein', '2026-10-21': 'vrij', '2026-10-22': 'onzin' }))
+    render(<App />)
+    expect(chosenModes('maandag 19 oktober')).toEqual(['Trein'])
+    expect(chosenModes('woensdag 21 oktober')).toEqual(['Vrij'])
+    expect(chosenModes('donderdag 22 oktober')).toEqual([])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ '2026-10-19': ['trein'], '2026-10-21': ['vrij'] })
   })
 
   it('negeert beschadigde opgeslagen gegevens', () => {
     localStorage.setItem(STORAGE_KEY, '{kapot')
     render(<App />)
     expect(screen.getAllByRole('listitem')).toHaveLength(5)
+  })
+})
+
+describe('AC32: overzichtsknoppen onderaan', () => {
+  it('toont de knoppen naar de overzichten onderaan en alleen het tandwiel rechtsboven', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const bar = screen.getByRole('navigation', { name: 'Overzichten' })
+    expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['', '', ''])
+    expect(within(bar).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Overzicht thuiswerkvergoeding',
+      'Overzicht kilometervergoeding',
+      'Overzicht vrije dagen',
+    ])
+    expect(within(screen.getByRole('banner')).getAllByRole('button', { name: /Overzicht|Instellingen/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Instellingen en backup',
+    ])
+
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    expect(screen.queryByRole('navigation', { name: 'Overzichten' })).not.toBeInTheDocument()
   })
 })
 
