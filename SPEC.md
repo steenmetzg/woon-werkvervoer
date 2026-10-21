@@ -1,6 +1,6 @@
 # Specificatie: Woon-werkvervoer registreren
 
-Status: **ter goedkeuring bij Greco (21 oktober 2026)**
+Status: **goedgekeurd door Greco op 21 oktober 2026**
 Versie: 1.12 (21 oktober 2026): overzichten voor Trein en Fiets, de overzichtsknoppen in de volgorde Thuis, Trein, Fiets, Auto, Vrij en met een donkerblauwe rand, en een informatiepagina, op verzoek van Greco (app-versie WoonWerk 1.7)
 Vorige versie: 1.11.1 (21 oktober 2026): bugfix, het appscherm valt niet meer over de knoppenbalk van Android (app-versie WoonWerk 1.6.1)
 
