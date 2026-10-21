@@ -43,9 +43,12 @@ export default function Info({ onClose }: Props) {
       <section className="setting info">
         <h2>Overzichten</h2>
         <p>
-          Met de blauwe knoppen onderaan open je per keuze een overzicht van de laatste 3 maanden, met elke maand in een
-          eigen kolom. Een euroteken betekent dat het om een vergoeding gaat (thuiswerk, trein en auto), een vinkje is
-          een gewoon overzicht (fietsdagen en vrije dagen).
+          Met de blauwe knoppen onderaan open je per keuze een overzicht, met elke maand in een eigen kolom. Een
+          euroteken betekent dat het om een vergoeding gaat (thuiswerk, trein en auto), een vinkje is een gewoon
+          overzicht (fietsdagen en vrije dagen). Bij de vergoedingen vul je de datum van je laatste declaratie in; het
+          overzicht begint dan op de werkdag erna en loopt maximaal 3 maanden door. Zonder declaratiedatum, en bij
+          fietsdagen en vrije dagen, zie je de laatste 3 maanden. Met het kalendertje kun je de vanaf- en tot-datum
+          altijd zelf aanpassen.
         </p>
       </section>
 

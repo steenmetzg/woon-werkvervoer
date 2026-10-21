@@ -51,11 +51,6 @@ export function weekLabel(monday: Date, currentYear: number): string {
   return `${start} – ${friday.getDate()} ${MAANDEN_KORT[friday.getMonth()]}${year}`
 }
 
-/** Bijv. "1 augustus 2026". */
-export function fullDate(date: Date): string {
-  return `${date.getDate()} ${MAANDEN_LANG[date.getMonth()]} ${date.getFullYear()}`
-}
-
 /** Bijv. "ma 3". */
 export function compactDay(date: Date): string {
   return `${WEEKDAGEN_KORT[date.getDay()]} ${date.getDate()}`
@@ -66,18 +61,45 @@ export function monthName(date: Date): string {
   return MAANDEN_LANG[date.getMonth()]
 }
 
+/** Leest een sleutel als "2026-10-20" terug als datum (lokale tijd); `null` als het geen geldige datum is. */
+export function parseDateKey(key: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key)
+  if (!match) return null
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  return dateKey(date) === key ? date : null
+}
+
 /**
- * De periode van het thuiswerkoverzicht: van precies `monthsBack` maanden geleden
- * tot en met vandaag, plus de kalendermaanden die daarin vallen. Bestaat de dag
- * niet in die maand (bijv. 31 februari), dan wordt het de laatste dag van die maand.
+ * `months` maanden later (of eerder als het negatief is), op dezelfde dag van de maand.
+ * Bestaat die dag niet in die maand (bijv. 31 februari), dan wordt het de laatste dag van die maand.
  */
-export function overviewPeriod(today: Date, monthsBack = 3): { start: Date; end: Date; months: Date[] } {
-  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const lastDay = new Date(today.getFullYear(), today.getMonth() - monthsBack + 1, 0).getDate()
-  const start = new Date(today.getFullYear(), today.getMonth() - monthsBack, Math.min(today.getDate(), lastDay))
-  const months = Array.from(
-    { length: monthsBack + 1 },
-    (_, i) => new Date(start.getFullYear(), start.getMonth() + i, 1),
-  )
-  return { start, end, months }
+export function addMonths(date: Date, months: number): Date {
+  const lastDay = new Date(date.getFullYear(), date.getMonth() + months + 1, 0).getDate()
+  return new Date(date.getFullYear(), date.getMonth() + months, Math.min(date.getDate(), lastDay))
+}
+
+function isWorkday(date: Date): boolean {
+  return date.getDay() >= 1 && date.getDay() <= 5
+}
+
+/** `date` zelf als dat een werkdag is, anders de eerstvolgende maandag. */
+export function workdayFrom(date: Date): Date {
+  let d = addDays(date, 0)
+  while (!isWorkday(d)) d = addDays(d, 1)
+  return d
+}
+
+/** De eerste werkdag na `date`. */
+export function nextWorkday(date: Date): Date {
+  return workdayFrom(addDays(date, 1))
+}
+
+/** De eerste dag van elke kalendermaand van `start` tot en met `end`; leeg als `start` na `end` ligt. */
+export function monthsBetween(start: Date, end: Date): Date[] {
+  const months: Date[] = []
+  if (start > end) return months
+  for (let m = new Date(start.getFullYear(), start.getMonth(), 1); m <= end; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
+    months.push(m)
+  }
+  return months
 }

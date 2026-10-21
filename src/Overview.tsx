@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { ArrowLeft, type LucideIcon } from 'lucide-react'
 import BadgeIcon from './BadgeIcon'
-import { addDays, compactDay, dateKey, fullDate, monthName, overviewPeriod } from './dates'
+import { addDays, addMonths, compactDay, dateKey, monthName, monthsBetween, nextWorkday, parseDateKey, workdayFrom } from './dates'
 import type { Mode, Registrations } from './storage'
 
 function capitalize(text: string): string {
@@ -17,12 +18,31 @@ interface Props {
   iconLabel: string
   registrations: Registrations
   today: Date
+  /** Alleen bij Thuis, Trein en Auto: de datum van de laatste declaratie (leeg als die nog niet is gekozen). */
+  declared?: { date: string | undefined; onChange: (date: string | undefined) => void }
   onClose: () => void
 }
 
-/** Overzicht van alle dagen met één bepaalde keuze, van 3 maanden geleden tot vandaag, per maand een kolom. */
-export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, today, onClose }: Props) {
-  const { start, end, months } = overviewPeriod(today)
+/**
+ * Overzicht van alle dagen met één bepaalde keuze, per maand een kolom (vier naast elkaar, daarna een
+ * nieuwe rij). De periode is aan te passen; zie F15 en F25 in SPEC.md voor de standaardperiode.
+ */
+export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, today, declared, onClose }: Props) {
+  // Een met de hand gekozen vanaf- of tot-datum; zonder keuze geldt de standaard.
+  const [chosenStart, setChosenStart] = useState<Date | null>(null)
+  const [chosenEnd, setChosenEnd] = useState<Date | null>(null)
+
+  const todayDate = addDays(today, 0)
+  const threeMonthsAgo = addMonths(todayDate, -3)
+  const lastDeclared = declared?.date ? parseDateKey(declared.date) : null
+  const defaultStart = !declared ? threeMonthsAgo : lastDeclared ? nextWorkday(lastDeclared) : workdayFrom(threeMonthsAgo)
+  const start = chosenStart ?? defaultStart
+  const latestEnd = addMonths(start, 3)
+  const defaultEnd = declared && latestEnd < todayDate ? latestEnd : todayDate
+  const end = chosenEnd ?? defaultEnd
+  const months = monthsBetween(start, end)
+  // Bij meer dan een jaar komt dezelfde maand twee keer voor; dan staat het jaartal erbij.
+  const withYear = months.length > 12
 
   // Alle dagen in de periode met deze keuze, gegroepeerd per kalendermaand.
   const columns = months.map((month) => {
@@ -31,8 +51,16 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
     for (let d = first; d.getMonth() === month.getMonth() && d <= end; d = addDays(d, 1)) {
       if (registrations[dateKey(d)]?.includes(mode)) days.push(d)
     }
-    return { month, days }
+    const name = withYear ? `${monthName(month)} ${month.getFullYear()}` : monthName(month)
+    return { month, name, days }
   })
+
+  function changeDeclared(value: string) {
+    declared?.onChange(value || undefined)
+    // Een nieuwe declaratiedatum zet de periode weer op de standaard.
+    setChosenStart(null)
+    setChosenEnd(null)
+  }
 
   return (
     <main className="app">
@@ -45,34 +73,55 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
 
       <div className="period">
         <BadgeIcon Icon={Icon} Badge={Badge} className="period-icon" size={28} label={iconLabel} />
-        <dl>
-          <div>
-            <dt>Vanaf</dt>
-            <dd data-testid="vanaf">{fullDate(start)}</dd>
-          </div>
-          <div>
-            <dt>Tot en met</dt>
-            <dd data-testid="tot">{fullDate(end)}</dd>
-          </div>
-        </dl>
+        <div className="period-fields">
+          {declared && (
+            <>
+              <label htmlFor="laatste-declaratie">Datum laatste declaratie</label>
+              <input
+                id="laatste-declaratie"
+                type="date"
+                value={declared.date ?? ''}
+                onChange={(e) => changeDeclared(e.target.value)}
+              />
+            </>
+          )}
+          <label htmlFor="vanaf">Vanaf</label>
+          <input
+            id="vanaf"
+            type="date"
+            value={dateKey(start)}
+            onChange={(e) => setChosenStart(parseDateKey(e.target.value))}
+          />
+          <label htmlFor="tot">Tot en met</label>
+          <input
+            id="tot"
+            type="date"
+            value={dateKey(end)}
+            onChange={(e) => setChosenEnd(parseDateKey(e.target.value))}
+          />
+        </div>
       </div>
 
-      <div className="months">
-        {columns.map(({ month, days }) => (
-          <section key={dateKey(month)} className="month" aria-label={monthName(month)}>
-            <h2>{capitalize(monthName(month))}</h2>
-            {days.length > 0 ? (
-              <ul>
-                {days.map((d) => (
-                  <li key={dateKey(d)}>{compactDay(d)}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">–</p>
-            )}
-          </section>
-        ))}
-      </div>
+      {columns.length > 0 ? (
+        <div className="months">
+          {columns.map(({ month, name, days }) => (
+            <section key={dateKey(month)} className="month" aria-label={name}>
+              <h2>{capitalize(name)}</h2>
+              {days.length > 0 ? (
+                <ul>
+                  {days.map((d) => (
+                    <li key={dateKey(d)}>{compactDay(d)}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">–</p>
+              )}
+            </section>
+          ))}
+        </div>
+      ) : (
+        <p className="muted empty-period">Geen dagen: de vanaf-datum ligt na de tot en met-datum.</p>
+      )}
     </main>
   )
 }

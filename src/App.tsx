@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
+import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
 import Overview from './Overview'
@@ -34,6 +35,7 @@ export default function App() {
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
+  const [declared, setDeclared] = useState<Declared>(loadDeclared)
   const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
 
@@ -44,6 +46,10 @@ export default function App() {
   useEffect(() => {
     saveEnabledModes(enabledModes)
   }, [enabledModes])
+
+  useEffect(() => {
+    saveDeclared(declared)
+  }, [declared])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
@@ -124,6 +130,20 @@ export default function App() {
         iconLabel={label}
         registrations={registrations}
         today={today}
+        declared={
+          isDeclaredMode(screen)
+            ? {
+                date: declared[screen],
+                onChange: (date) =>
+                  setDeclared((prev) => {
+                    const next = { ...prev }
+                    if (date) next[screen] = date
+                    else delete next[screen]
+                    return next
+                  }),
+              }
+            : undefined
+        }
         onClose={() => setScreen('week')}
       />
     )
