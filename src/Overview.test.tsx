@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -14,7 +14,14 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+  vi.restoreAllMocks()
 })
+
+// De backupmap leeft in de tests niet in IndexedDB.
+vi.mock('./folderStore', () => ({
+  loadStoredFolder: async () => null,
+  storeFolder: async () => {},
+}))
 
 function column(month: string) {
   return within(screen.getByRole('region', { name: month }))
@@ -243,8 +250,46 @@ describe('AC36: datum laatste declaratie', () => {
     }
   })
 
-  it('zet de datum niet in de backup', () => {
-    expect(JSON.parse(createBackup({}, new Date(2026, 9, 20)))).not.toHaveProperty('gedeclareerd')
+})
+
+describe('AC41: laatst gedeclareerde dagen in de backup', () => {
+  it('neemt de dagen mee in de backup en zet ze terug bij inlezen', async () => {
+    localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-09-30', auto: '2026-10-02' }))
+    expect(JSON.parse(createBackup({}, { thuis: '2026-09-30', auto: '2026-10-02' }, new Date(2026, 9, 20))).gedeclareerd).toEqual({
+      thuis: '2026-09-30',
+      auto: '2026-10-02',
+    })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    const backup = { app: 'woon-werkvervoer', versie: 2, gemaakt: '2026-10-01T08:00:00.000Z', registraties: {}, gedeclareerd: { trein: '2026-08-31' } }
+    await user.upload(screen.getByLabelText('Backupbestand'), new File([JSON.stringify(backup)], 'b.json'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen'))
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    for (const [name, value] of [
+      ['Overzicht thuiswerkvergoeding', ''],
+      ['Overzicht treinvergoeding', '2026-08-31'],
+      ['Overzicht kilometervergoeding', ''],
+    ]) {
+      await user.click(screen.getByRole('button', { name }))
+      expect(screen.getByLabelText('Laatst gedeclareerde dag:')).toHaveValue(value)
+      await user.click(screen.getByRole('button', { name: 'Terug' }))
+    }
+  })
+
+  it('laat de dagen staan bij een backup van een oudere versie zonder gedeclareerde dagen', async () => {
+    localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-09-30' }))
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    const old = { app: 'woon-werkvervoer', versie: 2, gemaakt: '2026-10-01T08:00:00.000Z', registraties: {} }
+    await user.upload(screen.getByLabelText('Backupbestand'), new File([JSON.stringify(old)], 'b.json'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen'))
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    await user.click(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' }))
+    expect(screen.getByLabelText('Laatst gedeclareerde dag:')).toHaveValue('2026-09-30')
   })
 })
 
