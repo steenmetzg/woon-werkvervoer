@@ -11,6 +11,7 @@ import {
   pickFileInFolder,
   writeFileToFolder,
 } from './files'
+import type { Declared } from './declared'
 import { loadStoredFolder, storeFolder } from './folderStore'
 import { askAgainFrom, forgetLater, isInstalledApp } from './installPrompt'
 import { MODE_INFO } from './modeInfo'
@@ -18,9 +19,10 @@ import { MODES, type Mode, type Registrations } from './storage'
 
 interface Props {
   registrations: Registrations
+  declared: Declared
   enabledModes: Mode[]
   onChangeEnabledModes: (modes: Mode[]) => void
-  onRestore: (registrations: Registrations) => void
+  onRestore: (registrations: Registrations, declared: Declared | null) => void
   onClose: () => void
 }
 
@@ -31,7 +33,7 @@ function dayCount(registrations: Registrations): string {
   return n === 1 ? '1 dag' : `${n} dagen`
 }
 
-export default function Settings({ registrations, enabledModes, onChangeEnabledModes, onRestore, onClose }: Props) {
+export default function Settings({ registrations, declared, enabledModes, onChangeEnabledModes, onRestore, onClose }: Props) {
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -67,7 +69,7 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
   async function handleBackup() {
     const now = new Date()
     const name = backupFileName(now)
-    const text = createBackup(registrations, now)
+    const text = createBackup(registrations, declared, now)
     if (folder) {
       try {
         if (!(await ensureWriteAccess(folder))) {
@@ -101,7 +103,7 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
       `Backup${when} met ${dayCount(result.registraties)} inlezen? Dit vervangt al je huidige keuzes.`,
     )
     if (!ok) return
-    onRestore(result.registraties)
+    onRestore(result.registraties, result.gedeclareerd)
     setMessage({ kind: 'ok', text: `Backup ingelezen: ${dayCount(result.registraties)}.` })
   }
 

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Euro, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
+import Declarations from './Declarations'
+import { loadDeclared, saveDeclared, type Declared } from './declared'
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
 import Overview from './Overview'
@@ -34,7 +36,8 @@ export default function App() {
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
-  const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
+  const [declared, setDeclared] = useState<Declared>(loadDeclared)
+  const [screen, setScreen] = useState<'week' | 'settings' | 'info' | 'declaraties' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
 
   useEffect(() => {
@@ -44,6 +47,10 @@ export default function App() {
   useEffect(() => {
     saveEnabledModes(enabledModes)
   }, [enabledModes])
+
+  useEffect(() => {
+    saveDeclared(declared)
+  }, [declared])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
@@ -100,9 +107,26 @@ export default function App() {
     return (
       <Settings
         registrations={registrations}
+        declared={declared}
         enabledModes={enabledModes}
         onChangeEnabledModes={setEnabledModes}
-        onRestore={setRegistrations}
+        onRestore={(restored, restoredDeclared) => {
+          setRegistrations(restored)
+          // Een backup van voor WoonWerk 1.8 heeft geen datums; dan blijven de huidige staan.
+          if (restoredDeclared) setDeclared(restoredDeclared)
+        }}
+        onClose={() => setScreen('week')}
+      />
+    )
+  }
+
+  if (screen === 'declaraties') {
+    return (
+      <Declarations
+        declared={declared}
+        enabledModes={enabledModes}
+        today={today}
+        onChange={setDeclared}
         onClose={() => setScreen('week')}
       />
     )
@@ -134,6 +158,9 @@ export default function App() {
       <header className="header">
         <h1>WoonWerk</h1>
         <div className="header-actions">
+          <button type="button" className="icon-button" aria-label="Declaraties" onClick={() => setScreen('declaraties')}>
+            <Euro size={20} strokeWidth={1.75} aria-hidden />
+          </button>
           <button type="button" className="icon-button" aria-label="Informatie" onClick={() => setScreen('info')}>
             <InfoIcon size={20} strokeWidth={1.75} aria-hidden />
           </button>

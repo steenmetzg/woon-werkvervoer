@@ -50,6 +50,15 @@ export default function Info({ onClose }: Props) {
       </section>
 
       <section className="setting info">
+        <h2>Declaraties</h2>
+        <p>
+          Met de euroknop rechtsboven houd je voor Thuis, Trein en Auto bij tot en met welke dag je je declaraties hebt
+          ingediend. Tik op een datum om hem in het kalendertje te kiezen. Zolang je niets kiest, staat de datum op
+          vandaag. Je ziet alleen de vormen die aan staan.
+        </p>
+      </section>
+
+      <section className="setting info">
         <h2>Instellingen</h2>
         <p>
           Via het tandwiel zet je vervoervormen die je niet gebruikt uit. Ze verdwijnen dan uit de app, maar dagen die
