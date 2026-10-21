@@ -229,6 +229,8 @@ export default function Settings({ registrations, enabledModes, onChangeEnabledM
           )}
         </section>
       )}
+
+      <p className="version">Versie: {__APP_VERSION__}</p>
     </main>
   )
 }
