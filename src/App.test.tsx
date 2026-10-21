@@ -249,7 +249,8 @@ describe('AC32: overzichtsknoppen onderaan', () => {
       'Overzicht kilometervergoeding',
       'Overzicht vrije dagen',
     ])
-    expect(within(screen.getByRole('banner')).getAllByRole('button', { name: /Overzicht|Instellingen/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
+    expect(within(screen.getByRole('banner')).getAllByRole('button', { name: /Overzicht|Instellingen|Informatie/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Informatie',
       'Instellingen en backup',
     ])
 
@@ -271,5 +272,30 @@ describe('AC10: op beginscherm', () => {
     expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toEqual(
       expect.arrayContaining(['192x192', '512x512']),
     )
+  })
+})
+
+describe('AC35: informatiepagina', () => {
+  it('opent met de i-knop links van het tandwiel de uitleg en gaat met Terug naar dezelfde week', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    const firstDay = screen.getAllByRole('listitem')[0].getAttribute('aria-label')
+    await user.click(screen.getByRole('button', { name: 'Informatie' }))
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Over WoonWerk' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Wat doet WoonWerk?',
+      'Een dag invullen',
+      'Bladeren',
+      'Overzichten',
+      'Instellingen',
+      'Je gegevens en backups',
+      'Zonder internet',
+    ])
+    expect(screen.queryByRole('navigation', { name: 'Overzichten' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(screen.getAllByRole('listitem')[0]).toHaveAttribute('aria-label', firstDay)
   })
 })

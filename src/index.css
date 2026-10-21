@@ -380,3 +380,8 @@ h1.wrap {
   border-color: var(--accent);
   color: #ffffff;
 }
+
+.info p {
+  margin: 0;
+  line-height: 1.45;
+}

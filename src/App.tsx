@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Settings as SettingsIcon } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import { useInstallPrompt } from './installPrompt'
+import Info from './Info'
 import Overview from './Overview'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
@@ -33,7 +34,7 @@ export default function App() {
   const [monday, setMonday] = useState(thisMonday)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
-  const [screen, setScreen] = useState<'week' | 'settings' | keyof typeof OVERVIEWS>('week')
+  const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
 
   useEffect(() => {
@@ -107,6 +108,10 @@ export default function App() {
     )
   }
 
+  if (screen === 'info') {
+    return <Info onClose={() => setScreen('week')} />
+  }
+
   if (screen !== 'week') {
     const { title, check } = OVERVIEWS[screen]
     const { label, Icon } = MODE_INFO[screen]
@@ -129,6 +134,9 @@ export default function App() {
       <header className="header">
         <h1>WoonWerk</h1>
         <div className="header-actions">
+          <button type="button" className="icon-button" aria-label="Informatie" onClick={() => setScreen('info')}>
+            <InfoIcon size={20} strokeWidth={1.75} aria-hidden />
+          </button>
           <button
             type="button"
             className="icon-button"
