@@ -16,10 +16,13 @@ import {
   type Registrations,
 } from './storage'
 
+// In de vaste volgorde Thuis, Trein, Fiets, Auto, Vrij. Zonder vinkje krijgt het icoon een euroteken.
 const OVERVIEWS = {
-  thuis: { title: 'Overzicht thuiswerkvergoeding' },
-  auto: { title: 'Overzicht kilometervergoeding' },
-  vrij: { title: 'Overzicht vrije dagen' },
+  thuis: { title: 'Overzicht thuiswerkvergoeding', check: false },
+  trein: { title: 'Overzicht treinvergoeding', check: false },
+  fiets: { title: 'Overzicht fietsdagen', check: true },
+  auto: { title: 'Overzicht kilometervergoeding', check: false },
+  vrij: { title: 'Overzicht vrije dagen', check: true },
 } as const
 
 const SWIPE_MIN_DISTANCE = 50
@@ -105,14 +108,14 @@ export default function App() {
   }
 
   if (screen !== 'week') {
-    const { title } = OVERVIEWS[screen]
+    const { title, check } = OVERVIEWS[screen]
     const { label, Icon } = MODE_INFO[screen]
     return (
       <Overview
         mode={screen}
         title={title}
         Icon={Icon}
-        Badge={screen === 'vrij' ? Check : undefined}
+        Badge={check ? Check : undefined}
         iconLabel={label}
         registrations={registrations}
         today={today}
@@ -217,10 +220,10 @@ export default function App() {
         )}
         <nav className="overview-bar" aria-label="Overzichten">
           {overviewModes.map((mode) => {
-            const { title } = OVERVIEWS[mode]
+            const { title, check } = OVERVIEWS[mode]
             return (
               <button key={mode} type="button" className="icon-button" aria-label={title} onClick={() => setScreen(mode)}>
-                <BadgeIcon Icon={MODE_INFO[mode].Icon} Badge={mode === 'vrij' ? Check : undefined} />
+                <BadgeIcon Icon={MODE_INFO[mode].Icon} Badge={check ? Check : undefined} />
               </button>
             )
           })}

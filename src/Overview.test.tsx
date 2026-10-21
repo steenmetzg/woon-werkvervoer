@@ -146,3 +146,47 @@ describe('AC29: overzicht vrije dagen', () => {
     expect(screen.queryByRole('button', { name: 'Overzicht vrije dagen' })).not.toBeInTheDocument()
   })
 })
+
+describe('AC34: overzicht treinvergoeding en overzicht fietsdagen', () => {
+  it.each([
+    ['Overzicht treinvergoeding', 'Trein', 'trein'],
+    ['Overzicht fietsdagen', 'Fiets', 'fiets'],
+  ])('%s toont alleen de dagen met %s, ook in combinatie', async (title, label, mode) => {
+    const other = mode === 'trein' ? 'fiets' : 'trein'
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        '2026-07-17': [mode], // vóór de periode
+        '2026-08-03': [mode],
+        '2026-08-04': [other], // andere keuze
+        '2026-09-15': ['trein', 'fiets'], // samen met een andere keuze
+        '2026-10-23': [mode], // na vandaag
+      }),
+    )
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: title }))
+
+    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+    expect(screen.getByLabelText(label)).toBeInTheDocument()
+    expect(column('juli').queryAllByRole('listitem')).toHaveLength(0)
+    expect(column('augustus').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['ma 3'])
+    expect(column('september').getAllByRole('listitem').map((li) => li.textContent)).toEqual(['di 15'])
+    expect(column('oktober').queryAllByRole('listitem')).toHaveLength(0)
+
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 19 oktober')
+  })
+
+  it('heeft geen knoppen als Trein en Fiets uit staan', () => {
+    localStorage.setItem(ENABLED_KEY, JSON.stringify(['thuis', 'auto', 'vrij']))
+    render(<App />)
+    expect(screen.queryByRole('button', { name: 'Overzicht treinvergoeding' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Overzicht fietsdagen' })).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole('navigation', { name: 'Overzichten' }))
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label')),
+    ).toEqual(['Overzicht thuiswerkvergoeding', 'Overzicht kilometervergoeding', 'Overzicht vrije dagen'])
+  })
+})
