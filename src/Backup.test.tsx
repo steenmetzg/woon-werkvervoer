@@ -76,7 +76,7 @@ describe('AC40: versienummer onderaan de instellingen', () => {
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
-    const version = screen.getByText('Versie: 1.10.0')
+    const version = screen.getByText('Versie: 1.10.1')
     expect(version).toHaveClass('version')
     expect(version.closest('main')?.lastElementChild).toBe(version)
   })

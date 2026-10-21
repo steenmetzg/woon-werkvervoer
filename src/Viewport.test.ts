@@ -1,36 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import html from '../index.html?raw'
-import { fitInstalledAppToSystemBars } from './viewport'
-
-const BROWSER_VIEWPORT = 'width=device-width, initial-scale=1.0'
-
-function setUp(installed: boolean) {
-  document.head.innerHTML = `<meta name="viewport" content="${BROWSER_VIEWPORT}" />`
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: installed && query === '(display-mode: standalone)',
-  }))
-}
-
-function viewport() {
-  return document.querySelector('meta[name="viewport"]')?.getAttribute('content')
-}
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
+import main from './main.tsx?raw'
 
 describe('AC39: de app blijft boven de knoppenbalk van Android', () => {
-  it('in de browser vraagt de app niet om onder de systeembalken door te tekenen', () => {
-    expect(html).toContain(`<meta name="viewport" content="${BROWSER_VIEWPORT}" />`)
-    setUp(false)
-    fitInstalledAppToSystemBars()
-    expect(viewport()).toBe(BROWSER_VIEWPORT)
-  })
-
-  it('in de geïnstalleerde app vraagt de app de hoogte van de systeembalken op', () => {
-    setUp(true)
-    fitInstalledAppToSystemBars()
-    fitInstalledAppToSystemBars()
-    expect(viewport()).toBe(`${BROWSER_VIEWPORT}, viewport-fit=cover`)
+  it('vraagt de browser nooit om onder de systeembalken door te tekenen, ook niet als geïnstalleerde app', () => {
+    expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1.0" />')
+    expect(html).not.toContain('viewport-fit')
+    expect(main).not.toContain('viewport-fit')
   })
 })
