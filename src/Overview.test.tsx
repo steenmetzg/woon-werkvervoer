@@ -372,3 +372,18 @@ describe('AC38: periode van de overzichten', () => {
     expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Juli 2025')
   })
 })
+
+describe('AC43: indeling bovenaan de overzichten', () => {
+  it('toont het icoon in de titelbalk en de vanaf- en tot-datum samen naast elkaar', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Overzicht kilometervergoeding' }))
+
+    const header = screen.getByRole('heading', { name: 'Overzicht kilometervergoeding' }).closest('header')!
+    expect(within(header).getByLabelText('Auto')).toBeInTheDocument()
+
+    const range = screen.getByLabelText('Toon vanaf').closest('.period-range')!
+    expect(range).toContainElement(screen.getByLabelText('Tot en met'))
+    expect(range).not.toContainElement(screen.getByLabelText('Laatst gedeclareerde dag:'))
+  })
+})

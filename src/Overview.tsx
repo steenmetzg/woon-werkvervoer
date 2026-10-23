@@ -69,10 +69,10 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
           <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
         </button>
         <h1 className="wrap">{title}</h1>
+        <BadgeIcon Icon={Icon} Badge={Badge} className="period-icon" size={28} label={iconLabel} />
       </header>
 
       <div className="period">
-        <BadgeIcon Icon={Icon} Badge={Badge} className="period-icon" size={28} label={iconLabel} />
         <div className="period-fields">
           {declared && (
             <>
@@ -98,20 +98,27 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
               </div>
             </>
           )}
-          <label htmlFor="vanaf">Toon vanaf</label>
-          <input
-            id="vanaf"
-            type="date"
-            value={dateKey(start)}
-            onChange={(e) => setChosenStart(parseDateKey(e.target.value))}
-          />
-          <label htmlFor="tot">Tot en met</label>
-          <input
-            id="tot"
-            type="date"
-            value={dateKey(end)}
-            onChange={(e) => setChosenEnd(parseDateKey(e.target.value))}
-          />
+          {/* "Toon vanaf" en "Tot en met" naast elkaar. */}
+          <div className="period-range">
+            <div className="period-field">
+              <label htmlFor="vanaf">Toon vanaf</label>
+              <input
+                id="vanaf"
+                type="date"
+                value={dateKey(start)}
+                onChange={(e) => setChosenStart(parseDateKey(e.target.value))}
+              />
+            </div>
+            <div className="period-field">
+              <label htmlFor="tot">Tot en met</label>
+              <input
+                id="tot"
+                type="date"
+                value={dateKey(end)}
+                onChange={(e) => setChosenEnd(parseDateKey(e.target.value))}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
