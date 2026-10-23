@@ -266,33 +266,39 @@ h1.wrap {
 }
 
 .period {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  align-items: start;
-  column-gap: 12px;
   padding: 4px 0 16px;
   border-bottom: 1px solid var(--line);
 }
 
 .period-icon {
-  justify-self: start;
-  /* Lucide-iconen hebben een kleine witrand; schuif het huisje zodat de lijn precies op de kolomrand staat. */
-  margin-left: -2.9px;
-  /* Bovenaan, op dezelfde hoogte als het eerste label. */
-  margin-top: -4px;
+  /* Helemaal rechts in de titelbalk. */
+  flex-shrink: 0;
+  margin-left: auto;
   color: var(--accent);
 }
 
 .period-fields {
-  /* Elk label boven zijn datumveld, zodat ook "Laatst gedeclareerde dag:" op één regel past. */
+  /* Elk label boven zijn datumveld, links uitgelijnd met de terugknop. */
   display: grid;
+  justify-items: start;
   gap: 2px;
   font-size: 0.875rem;
 }
 
-.period-fields input + label,
-.period-fields .date-with-clear + label {
+.date-with-clear + .period-range {
   margin-top: 8px;
+}
+
+/* "Toon vanaf" en "Tot en met" naast elkaar. */
+.period-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.period-field {
+  display: grid;
+  gap: 2px;
 }
 
 /* Datumveld met rechts ernaast een knop om de datum te wissen. */
