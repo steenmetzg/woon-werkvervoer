@@ -29,11 +29,17 @@ const OVERVIEWS = {
 } as const
 
 const SWIPE_MIN_DISTANCE = 50
+// Pas na zoveel pixels beslissen we of de vinger horizontaal (week volgt de vinger) of verticaal (scrollen) beweegt.
+const SWIPE_LOCK_DISTANCE = 10
 
 export default function App() {
   const [today, setToday] = useState(() => new Date())
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
+  // Van welke kant de nieuwe week binnenschuift; null bij het openen van de app (geen animatie).
+  const [slideFrom, setSlideFrom] = useState<'left' | 'right' | null>(null)
+  // Hoe ver de week tijdens het swipen met de vinger is meegeschoven.
+  const [dragX, setDragX] = useState(0)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
   const [declared, setDeclared] = useState<Declared>(loadDeclared)
@@ -71,26 +77,46 @@ export default function App() {
     enabledModes.includes(mode),
   )
 
-  // Swipen: naar links = volgende week, naar rechts = vorige week.
-  // Alleen een duidelijke, vooral horizontale beweging telt, zodat scrollen en tikken gewoon werken.
-  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  function goToWeek(next: Date) {
+    const diff = next.getTime() - monday.getTime()
+    if (diff !== 0) setSlideFrom(diff > 0 ? 'right' : 'left')
+    setMonday(next)
+  }
+
+  // Swipen: naar links = volgende week, naar rechts = vorige week. Tijdens het swipen schuift de week
+  // met de vinger mee. Alleen een duidelijke, vooral horizontale beweging telt, zodat scrollen en tikken
+  // gewoon werken.
+  const touchStart = useRef<{ x: number; y: number; direction: 'horizontal' | 'vertical' | null } | null>(null)
 
   function handleTouchStart(e: TouchEvent) {
+    setDragX(0)
     if (e.touches.length !== 1) {
       touchStart.current = null
       return
     }
-    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, direction: null }
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    const start = touchStart.current
+    if (!start || e.touches.length !== 1) return
+    const dx = e.touches[0].clientX - start.x
+    const dy = e.touches[0].clientY - start.y
+    if (start.direction === null && Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE_LOCK_DISTANCE) {
+      start.direction = Math.abs(dx) >= Math.abs(dy) * 1.5 ? 'horizontal' : 'vertical'
+    }
+    if (start.direction === 'horizontal') setDragX(dx)
   }
 
   function handleTouchEnd(e: TouchEvent) {
     const start = touchStart.current
     touchStart.current = null
-    if (!start || e.changedTouches.length === 0) return
+    setDragX(0)
+    if (!start || e.changedTouches.length === 0 || start.direction === 'vertical') return
     const dx = e.changedTouches[0].clientX - start.x
     const dy = e.changedTouches[0].clientY - start.y
     if (Math.abs(dx) < SWIPE_MIN_DISTANCE || Math.abs(dx) < Math.abs(dy) * 1.5) return
-    setMonday((m) => addDays(m, dx < 0 ? 7 : -7))
+    goToWeek(addDays(monday, dx < 0 ? 7 : -7))
   }
 
   function choose(day: Date, mode: Mode) {
@@ -157,7 +183,16 @@ export default function App() {
   }
 
   return (
-    <main className="app week" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <main
+      className="app week"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={() => {
+        touchStart.current = null
+        setDragX(0)
+      }}
+    >
       <header className="header">
         <h1>WoonWerk</h1>
         <div className="header-actions">
@@ -178,7 +213,7 @@ export default function App() {
             type="button"
             className="icon-button"
             aria-label="Vorige week"
-            onClick={() => setMonday(addDays(monday, -7))}
+            onClick={() => goToWeek(addDays(monday, -7))}
           >
             <ChevronLeft size={20} strokeWidth={1.75} aria-hidden />
           </button>
@@ -187,7 +222,7 @@ export default function App() {
             type="button"
             className="icon-button"
             aria-label="Volgende week"
-            onClick={() => setMonday(addDays(monday, 7))}
+            onClick={() => goToWeek(addDays(monday, 7))}
           >
             <ChevronRight size={20} strokeWidth={1.75} aria-hidden />
           </button>
@@ -195,14 +230,25 @@ export default function App() {
             type="button"
             className="today-button"
             disabled={isThisWeek}
-            onClick={() => setMonday(thisMonday)}
+            onClick={() => goToWeek(thisMonday)}
           >
             Deze week
           </button>
         </nav>
       </header>
 
-      <ol className="days">
+      {/* Een nieuwe sleutel per week laat de lijst opnieuw verschijnen, zodat de inschuifanimatie start. */}
+      <ol
+        key={dateKey(monday)}
+        className={[
+          'days',
+          slideFrom && `slide-from-${slideFrom}`,
+          dragX !== 0 && 'dragging',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        style={dragX !== 0 ? { transform: `translateX(${dragX}px)` } : undefined}
+      >
         {days.map((day) => {
           const key = dateKey(day)
           const isToday = key === todayKey

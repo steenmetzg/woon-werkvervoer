@@ -127,6 +127,55 @@ h1 {
   padding: 0;
 }
 
+/* Weekwissel (F4): de week volgt de vinger tijdens het swipen, schuift terug als je loslaat zonder te
+   wisselen, en de nieuwe week schuift binnen vanaf de kant waar hij vandaan komt. */
+.app.week {
+  /* Verticaal scrollen doet de browser; horizontaal is voor het swipen. */
+  touch-action: pan-y;
+  overflow-x: clip;
+}
+
+.days {
+  transition: transform 200ms ease-out;
+}
+
+.days.dragging {
+  transition: none;
+}
+
+.days.slide-from-right {
+  animation: week-from-right 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.days.slide-from-left {
+  animation: week-from-left 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes week-from-right {
+  from {
+    transform: translateX(40%);
+    opacity: 0;
+  }
+}
+
+@keyframes week-from-left {
+  from {
+    transform: translateX(-40%);
+    opacity: 0;
+  }
+}
+
+/* Wie in de telefoon minder beweging heeft gekozen, krijgt de week direct, zonder schuiven. */
+@media (prefers-reduced-motion: reduce) {
+  .days,
+  .days.slide-from-right,
+  .days.slide-from-left {
+    transform: none !important;
+    transition: none;
+    animation: none;
+  }
+}
+
 .day {
   padding: 6px 0;
   border-bottom: 1px solid var(--line);

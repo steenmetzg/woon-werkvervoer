@@ -177,6 +177,53 @@ describe('AC6b: swipen', () => {
   })
 })
 
+describe('AC45: vloeiende weekwissel', () => {
+  const days = () => screen.getByRole('list')
+  const main = () => screen.getByRole('main')
+
+  it('laat de week tijdens het swipen met de vinger meeschuiven', () => {
+    render(<App />)
+    fireEvent.touchStart(main(), { touches: [{ clientX: 300, clientY: 400 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 220, clientY: 405 }] })
+    expect(days()).toHaveStyle({ transform: 'translateX(-80px)' })
+    fireEvent.touchEnd(main(), { changedTouches: [{ clientX: 220, clientY: 405 }] })
+    expect(days()).toHaveClass('slide-from-right')
+    expect(days().style.transform).toBe('')
+  })
+
+  it('schuift terug zonder te wisselen bij een te korte swipe', () => {
+    render(<App />)
+    fireEvent.touchStart(main(), { touches: [{ clientX: 200, clientY: 400 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 170, clientY: 400 }] })
+    expect(days()).toHaveStyle({ transform: 'translateX(-30px)' })
+    fireEvent.touchEnd(main(), { changedTouches: [{ clientX: 170, clientY: 400 }] })
+    expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('maandag 19 oktober')
+    expect(days().style.transform).toBe('')
+  })
+
+  it('schuift niet mee bij verticaal scrollen', () => {
+    render(<App />)
+    fireEvent.touchStart(main(), { touches: [{ clientX: 200, clientY: 400 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 195, clientY: 300 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 120, clientY: 250 }] })
+    expect(days().style.transform).toBe('')
+  })
+
+  it('laat de nieuwe week binnenschuiven vanaf de kant van de knop', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    expect(days()).not.toHaveClass('slide-from-right')
+    expect(days()).not.toHaveClass('slide-from-left')
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    expect(days()).toHaveClass('slide-from-right')
+    await user.click(screen.getByRole('button', { name: 'Vorige week' }))
+    await user.click(screen.getByRole('button', { name: 'Vorige week' }))
+    expect(days()).toHaveClass('slide-from-left')
+    await user.click(screen.getByRole('button', { name: 'Deze week' }))
+    expect(days()).toHaveClass('slide-from-right')
+  })
+})
+
 describe('AC7: vandaag herkennen', () => {
   it('markeert vandaag in de huidige week', () => {
     render(<App />)
