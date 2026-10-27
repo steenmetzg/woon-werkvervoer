@@ -127,52 +127,37 @@ h1 {
   padding: 0;
 }
 
-/* Weekwissel (F4): de week volgt de vinger tijdens het swipen, schuift terug als je loslaat zonder te
-   wisselen, en de nieuwe week schuift binnen vanaf de kant waar hij vandaan komt. */
+/* Weekwissel (F4): een strook met drie weken naast elkaar (vorige, deze, volgende). Tijdens het swipen
+   volgt de strook de vinger; daarna schuift hij door naar de nieuwe week of terug. */
 .app.week {
   /* Verticaal scrollen doet de browser; horizontaal is voor het swipen. */
   touch-action: pan-y;
-  overflow-x: clip;
 }
 
-.days {
-  transition: transform 200ms ease-out;
+.week-viewport {
+  /* Tot aan de rand van het scherm, zodat de buurweken buiten beeld liggen; ruimte voor de schaduwen. */
+  margin: -4px -16px;
+  overflow: hidden;
 }
 
-.days.dragging {
-  transition: none;
+.week-track {
+  display: flex;
 }
 
-.days.slide-from-right {
-  animation: week-from-right 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+.week-track > .days {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 4px 16px;
 }
 
-.days.slide-from-left {
-  animation: week-from-left 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@keyframes week-from-right {
-  from {
-    transform: translateX(40%);
-    opacity: 0;
-  }
-}
-
-@keyframes week-from-left {
-  from {
-    transform: translateX(-40%);
-    opacity: 0;
-  }
+.week-track.sliding {
+  transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Wie in de telefoon minder beweging heeft gekozen, krijgt de week direct, zonder schuiven. */
 @media (prefers-reduced-motion: reduce) {
-  .days,
-  .days.slide-from-right,
-  .days.slide-from-left {
-    transform: none !important;
+  .week-track.sliding {
     transition: none;
-    animation: none;
   }
 }
 

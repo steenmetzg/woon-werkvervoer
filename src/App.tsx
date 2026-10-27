@@ -31,15 +31,25 @@ const OVERVIEWS = {
 const SWIPE_MIN_DISTANCE = 50
 // Pas na zoveel pixels beslissen we of de vinger horizontaal (week volgt de vinger) of verticaal (scrollen) beweegt.
 const SWIPE_LOCK_DISTANCE = 10
+// Duur van het schuiven naar een andere week, in milliseconden (zelfde waarde als in index.css).
+const SLIDE_MS = 250
+
+// "Minder beweging" in de telefoon: dan wisselt de week direct, zonder schuiven.
+function prefersReducedMotion() {
+  return typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
 
 export default function App() {
   const [today, setToday] = useState(() => new Date())
   const thisMonday = mondayOf(today)
   const [monday, setMonday] = useState(thisMonday)
-  // Van welke kant de nieuwe week binnenschuift; null bij het openen van de app (geen animatie).
-  const [slideFrom, setSlideFrom] = useState<'left' | 'right' | null>(null)
-  // Hoe ver de week tijdens het swipen met de vinger is meegeschoven.
+  // Weekwissel als een strook met drie weken naast elkaar (vorige, deze, volgende).
+  // dragX: hoe ver de strook tijdens het swipen met de vinger is meegeschoven.
+  // slide: de week waar de strook naartoe schuift; als hij er is, wordt dat de getoonde week.
+  // settling: de strook schuift terug na een te korte swipe.
   const [dragX, setDragX] = useState(0)
+  const [slide, setSlide] = useState<{ target: Date; dir: 1 | -1 } | null>(null)
+  const [settling, setSettling] = useState(false)
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
   const [declared, setDeclared] = useState<Declared>(loadDeclared)
@@ -68,20 +78,42 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', refreshToday)
   }, [])
 
-  const days = workdays(monday)
   const todayKey = dateKey(today)
-  const isThisWeek = dateKey(monday) === dateKey(thisMonday)
+  const isThisWeek = dateKey(slide ? slide.target : monday) === dateKey(thisMonday)
   // Thuis staat altijd aan; de andere overzichten alleen als hun vervoervorm aan staat.
   const reminders = dueReminders(declared, enabledModes, today)
   const overviewModes = (Object.keys(OVERVIEWS) as (keyof typeof OVERVIEWS)[]).filter((mode) =>
     enabledModes.includes(mode),
   )
 
+  // De week die getoond wordt of waar de strook al naartoe schuift.
+  const shownMonday = slide ? slide.target : monday
+
   function goToWeek(next: Date) {
-    const diff = next.getTime() - monday.getTime()
-    if (diff !== 0) setSlideFrom(diff > 0 ? 'right' : 'left')
-    setMonday(next)
+    // Tik je snel nog een keer, dan is de vorige wissel meteen klaar.
+    const from = shownMonday
+    if (slide) setMonday(slide.target)
+    setSettling(false)
+    if (next.getTime() === from.getTime() || prefersReducedMotion()) {
+      setSlide(null)
+      setMonday(next)
+      return
+    }
+    setSlide({ target: next, dir: next.getTime() > from.getTime() ? 1 : -1 })
   }
+
+  function finishSlide() {
+    if (slide) setMonday(slide.target)
+    setSlide(null)
+    setSettling(false)
+  }
+
+  // Vangnet als de browser het einde van het schuiven niet meldt (bijv. als de app op de achtergrond gaat).
+  useEffect(() => {
+    if (!slide) return
+    const timer = setTimeout(finishSlide, SLIDE_MS + 750)
+    return () => clearTimeout(timer)
+  })
 
   // Swipen: naar links = volgende week, naar rechts = vorige week. Tijdens het swipen schuift de week
   // met de vinger mee. Alleen een duidelijke, vooral horizontale beweging telt, zodat scrollen en tikken
@@ -89,6 +121,7 @@ export default function App() {
   const touchStart = useRef<{ x: number; y: number; direction: 'horizontal' | 'vertical' | null } | null>(null)
 
   function handleTouchStart(e: TouchEvent) {
+    if (slide) finishSlide()
     setDragX(0)
     if (e.touches.length !== 1) {
       touchStart.current = null
@@ -111,12 +144,52 @@ export default function App() {
   function handleTouchEnd(e: TouchEvent) {
     const start = touchStart.current
     touchStart.current = null
-    setDragX(0)
+    if (dragX !== 0) {
+      setDragX(0)
+      setSettling(!prefersReducedMotion())
+    }
     if (!start || e.changedTouches.length === 0 || start.direction === 'vertical') return
     const dx = e.changedTouches[0].clientX - start.x
     const dy = e.changedTouches[0].clientY - start.y
     if (Math.abs(dx) < SWIPE_MIN_DISTANCE || Math.abs(dx) < Math.abs(dy) * 1.5) return
-    goToWeek(addDays(monday, dx < 0 ? 7 : -7))
+    goToWeek(addDays(shownMonday, dx < 0 ? 7 : -7))
+  }
+
+  function renderDay(day: Date) {
+    const key = dateKey(day)
+    const isToday = key === todayKey
+    const chosen = registrations[key] ?? []
+    return (
+      <li
+        key={key}
+        className={isToday ? 'day today' : 'day'}
+        aria-label={longLabel(day)}
+        aria-current={isToday ? 'date' : undefined}
+      >
+        <div className="day-label">
+          {shortLabel(day)}
+          {isToday && <span className="today-tag">vandaag</span>}
+        </div>
+        <div className="modes" role="group" aria-label={`Vervoer op ${longLabel(day)}`}>
+          {enabledModes.map((mode) => {
+            const { label, Icon } = MODE_INFO[mode]
+            const selected = chosen.includes(mode)
+            return (
+              <button
+                key={mode}
+                type="button"
+                className={selected ? 'mode selected' : 'mode'}
+                aria-pressed={selected}
+                onClick={() => choose(day, mode)}
+              >
+                <Icon size={20} strokeWidth={1.75} aria-hidden />
+                <span>{label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </li>
+    )
   }
 
   function choose(day: Date, mode: Mode) {
@@ -213,16 +286,16 @@ export default function App() {
             type="button"
             className="icon-button"
             aria-label="Vorige week"
-            onClick={() => goToWeek(addDays(monday, -7))}
+            onClick={() => goToWeek(addDays(shownMonday, -7))}
           >
             <ChevronLeft size={20} strokeWidth={1.75} aria-hidden />
           </button>
-          <span className="week-label">{weekLabel(monday, today.getFullYear())}</span>
+          <span className="week-label">{weekLabel(shownMonday, today.getFullYear())}</span>
           <button
             type="button"
             className="icon-button"
             aria-label="Volgende week"
-            onClick={() => goToWeek(addDays(monday, 7))}
+            onClick={() => goToWeek(addDays(shownMonday, 7))}
           >
             <ChevronRight size={20} strokeWidth={1.75} aria-hidden />
           </button>
@@ -237,55 +310,33 @@ export default function App() {
         </nav>
       </header>
 
-      {/* Een nieuwe sleutel per week laat de lijst opnieuw verschijnen, zodat de inschuifanimatie start. */}
-      <ol
-        key={dateKey(monday)}
-        className={[
-          'days',
-          slideFrom && `slide-from-${slideFrom}`,
-          dragX !== 0 && 'dragging',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        style={dragX !== 0 ? { transform: `translateX(${dragX}px)` } : undefined}
-      >
-        {days.map((day) => {
-          const key = dateKey(day)
-          const isToday = key === todayKey
-          const chosen = registrations[key] ?? []
-          return (
-            <li
-              key={key}
-              className={isToday ? 'day today' : 'day'}
-              aria-label={longLabel(day)}
-              aria-current={isToday ? 'date' : undefined}
-            >
-              <div className="day-label">
-                {shortLabel(day)}
-                {isToday && <span className="today-tag">vandaag</span>}
-              </div>
-              <div className="modes" role="group" aria-label={`Vervoer op ${longLabel(day)}`}>
-                {enabledModes.map((mode) => {
-                  const { label, Icon } = MODE_INFO[mode]
-                  const selected = chosen.includes(mode)
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      className={selected ? 'mode selected' : 'mode'}
-                      aria-pressed={selected}
-                      onClick={() => choose(day, mode)}
-                    >
-                      <Icon size={20} strokeWidth={1.75} aria-hidden />
-                      <span>{label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </li>
-          )
-        })}
-      </ol>
+      <div className="week-viewport">
+        <div
+          className={slide || settling ? 'week-track sliding' : 'week-track'}
+          style={{
+            transform: slide
+              ? `translateX(${slide.dir === 1 ? -200 : 0}%)`
+              : `translateX(calc(-100% + ${dragX}px))`,
+          }}
+          onTransitionEnd={(e) => {
+            if (e.target === e.currentTarget) finishSlide()
+          }}
+        >
+          {[
+            slide?.dir === -1 ? slide.target : addDays(monday, -7),
+            monday,
+            slide?.dir === 1 ? slide.target : addDays(monday, 7),
+          ].map((weekStart) => {
+            const current = weekStart === monday
+            return (
+              // Vaste sleutel per week, zodat de binnengeschoven week na het schuiven gewoon blijft staan.
+              <ol key={dateKey(weekStart)} className="days" aria-hidden={current ? undefined : true} inert={!current}>
+                {workdays(weekStart).map(renderDay)}
+              </ol>
+            )
+          })}
+        </div>
+      </div>
 
       <div className="bottom">
         {installPrompt.show && (
