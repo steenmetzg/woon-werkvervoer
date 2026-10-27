@@ -177,6 +177,102 @@ describe('AC6b: swipen', () => {
   })
 })
 
+describe('AC45: vloeiende weekwissel', () => {
+  // Een telefoon zonder "minder beweging": de week schuift.
+  beforeEach(() => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }))
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const main = () => screen.getByRole('main')
+  const track = () => main().querySelector<HTMLElement>('.week-track')!
+  const firstDay = () => screen.getAllByRole('listitem')[0]
+
+  it('laat de week tijdens het swipen met de vinger meeschuiven en schuift dan door', () => {
+    render(<App />)
+    fireEvent.touchStart(main(), { touches: [{ clientX: 300, clientY: 400 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 220, clientY: 405 }] })
+    expect(track().style.transform).toBe('translateX(calc(-100% + -80px))')
+    expect(track()).not.toHaveClass('sliding')
+    fireEvent.touchEnd(main(), { changedTouches: [{ clientX: 220, clientY: 405 }] })
+    // De strook schuift door naar de volgende week, die er rechts al klaar staat.
+    expect(track()).toHaveClass('sliding')
+    expect(track().style.transform).toBe('translateX(-200%)')
+    fireEvent.transitionEnd(track())
+    expect(firstDay()).toHaveAccessibleName('maandag 26 oktober')
+    expect(track()).not.toHaveClass('sliding')
+    expect(track().style.transform).toBe('translateX(calc(-100% + 0px))')
+  })
+
+  it('schuift terug zonder te wisselen bij een te korte swipe', () => {
+    render(<App />)
+    fireEvent.touchStart(main(), { touches: [{ clientX: 200, clientY: 400 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 170, clientY: 400 }] })
+    expect(track().style.transform).toBe('translateX(calc(-100% + -30px))')
+    fireEvent.touchEnd(main(), { changedTouches: [{ clientX: 170, clientY: 400 }] })
+    expect(track()).toHaveClass('sliding')
+    expect(track().style.transform).toBe('translateX(calc(-100% + 0px))')
+    fireEvent.transitionEnd(track())
+    expect(firstDay()).toHaveAccessibleName('maandag 19 oktober')
+  })
+
+  it('schuift niet mee bij verticaal scrollen', () => {
+    render(<App />)
+    fireEvent.touchStart(main(), { touches: [{ clientX: 200, clientY: 400 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 195, clientY: 300 }] })
+    fireEvent.touchMove(main(), { touches: [{ clientX: 120, clientY: 250 }] })
+    expect(track().style.transform).toBe('translateX(calc(-100% + 0px))')
+  })
+
+  it('schuift met de knoppen naar de goede kant', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    expect(track()).not.toHaveClass('sliding')
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    expect(track().style.transform).toBe('translateX(-200%)')
+    fireEvent.transitionEnd(track())
+    expect(firstDay()).toHaveAccessibleName('maandag 26 oktober')
+    await user.click(screen.getByRole('button', { name: 'Vorige week' }))
+    expect(track().style.transform).toBe('translateX(0%)')
+    fireEvent.transitionEnd(track())
+    expect(firstDay()).toHaveAccessibleName('maandag 19 oktober')
+  })
+
+  it('schuift bij "Deze week" van ver weg direct naar deze week', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    // Twee keer snel achter elkaar: de eerste wissel is dan meteen klaar.
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    fireEvent.transitionEnd(track())
+    expect(firstDay()).toHaveAccessibleName('maandag 2 november')
+    await user.click(screen.getByRole('button', { name: 'Deze week' }))
+    expect(track().style.transform).toBe('translateX(0%)')
+    // De week links in de strook is deze week, niet de week ervoor.
+    const left = track().querySelector('ol')!
+    expect(left.querySelector('li')).toHaveAttribute('aria-label', 'maandag 19 oktober')
+    fireEvent.transitionEnd(track())
+    expect(firstDay()).toHaveAccessibleName('maandag 19 oktober')
+  })
+
+  it('toont alleen de huidige week aan schermlezers', () => {
+    render(<App />)
+    expect(screen.getAllByRole('list')).toHaveLength(1)
+    expect(screen.getAllByRole('listitem')).toHaveLength(5)
+  })
+
+  it('wisselt direct met minder beweging ingesteld in de telefoon', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: true, media: query }))
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Volgende week' }))
+    expect(track()).not.toHaveClass('sliding')
+    expect(firstDay()).toHaveAccessibleName('maandag 26 oktober')
+  })
+})
+
 describe('AC7: vandaag herkennen', () => {
   it('markeert vandaag in de huidige week', () => {
     render(<App />)

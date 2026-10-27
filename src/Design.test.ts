@@ -30,3 +30,13 @@ describe('AC44: moderne uitstraling', () => {
     expect(rule('.reminder')).toContain('border-left: 5px solid var(--accent);')
   })
 })
+
+describe('AC45: vloeiende weekwissel', () => {
+  it('schuift de week niet bij minder beweging in de telefooninstellingen', () => {
+    const start = css.indexOf('@media (prefers-reduced-motion: reduce)')
+    expect(start).toBeGreaterThan(-1)
+    const block = css.slice(start, css.indexOf('\n}\n', start))
+    expect(block).toContain('.week-track.sliding')
+    expect(block).toContain('transition: none;')
+  })
+})

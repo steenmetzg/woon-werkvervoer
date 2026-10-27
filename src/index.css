@@ -127,6 +127,40 @@ h1 {
   padding: 0;
 }
 
+/* Weekwissel (F4): een strook met drie weken naast elkaar (vorige, deze, volgende). Tijdens het swipen
+   volgt de strook de vinger; daarna schuift hij door naar de nieuwe week of terug. */
+.app.week {
+  /* Verticaal scrollen doet de browser; horizontaal is voor het swipen. */
+  touch-action: pan-y;
+}
+
+.week-viewport {
+  /* Tot aan de rand van het scherm, zodat de buurweken buiten beeld liggen; ruimte voor de schaduwen. */
+  margin: -4px -16px;
+  overflow: hidden;
+}
+
+.week-track {
+  display: flex;
+}
+
+.week-track > .days {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 4px 16px;
+}
+
+.week-track.sliding {
+  transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Wie in de telefoon minder beweging heeft gekozen, krijgt de week direct, zonder schuiven. */
+@media (prefers-reduced-motion: reduce) {
+  .week-track.sliding {
+    transition: none;
+  }
+}
+
 .day {
   padding: 6px 0;
   border-bottom: 1px solid var(--line);
