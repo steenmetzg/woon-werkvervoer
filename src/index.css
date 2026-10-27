@@ -1,5 +1,9 @@
 :root {
-  --bg: #ffffff;
+  /* Lichtgrijze achtergrond met witte knoppen die met een smalle schaduw iets boven de pagina liggen. */
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --shadow: 0 1px 1.5px rgba(16, 24, 40, 0.12);
+  --shadow-accent: 0 1px 3px rgba(29, 78, 216, 0.35);
   --text: #1f2328;
   --muted: #6b7280;
   --line: #e5e7eb;
@@ -93,22 +97,28 @@ h1 {
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .today-button {
   white-space: nowrap;
   height: 44px;
   padding: 0 14px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .today-button:disabled {
   color: var(--muted);
   cursor: default;
   opacity: 0.5;
+  background: transparent;
+  box-shadow: none;
 }
 
 .days {
@@ -160,15 +170,17 @@ h1 {
   gap: 2px;
   min-height: 46px;
   padding: 4px 2px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
   font-size: 0.75rem;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
 .mode.selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(180deg, #2f5fe0, var(--accent));
+  box-shadow: var(--shadow-accent);
   color: #ffffff;
 }
 
@@ -183,7 +195,7 @@ h1 {
   .icon-button:hover,
   .today-button:not(:disabled):hover,
   .wide-button:hover {
-    border-color: #c7cbd1;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.18);
   }
 }
 
@@ -246,8 +258,10 @@ h2 {
   width: 100%;
   min-height: 48px;
   padding: 0 16px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .message {
@@ -319,9 +333,10 @@ h1.wrap {
   padding: 0 8px;
   font: inherit;
   color: inherit;
-  background: var(--bg);
-  border: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid transparent;
   border-radius: 10px;
+  box-shadow: var(--shadow);
 }
 
 .period-fields input[type='date']:focus-visible {
@@ -374,9 +389,9 @@ h1.wrap {
   gap: 8px;
 }
 
-/* Een donkerblauwe rand laat de overzichtsknoppen meer opvallen dan het tandwiel. */
+/* Donkerblauwe iconen laten de overzichtsknoppen meer opvallen dan het tandwiel. */
 .overview-bar .icon-button {
-  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Vraag om de app te installeren, net boven de knoppen naar de overzichten. */
@@ -385,9 +400,9 @@ h1.wrap {
   align-items: center;
   gap: 8px;
   padding: 8px 8px 8px 12px;
-  border: 1px solid var(--accent);
   border-radius: 12px;
-  background: var(--bg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .install p {
@@ -401,27 +416,32 @@ h1.wrap {
   flex-shrink: 0;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
   white-space: nowrap;
 }
 
 .install .install-now {
   background: var(--accent);
-  border-color: var(--accent);
+  box-shadow: var(--shadow-accent);
   color: #ffffff;
 }
 
-/* Herinnering om te declareren, boven de knoppen naar de overzichten. Tikken opent het overzicht. */
+/* Herinnering om te declareren, boven de knoppen naar de overzichten. Tikken opent het overzicht.
+   Een dikke blauwe streep links en een blauwe titel laten hem opvallen. */
 .reminder {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--accent);
+  padding: 8px 12px 8px 10px;
+  border: none;
+  border-left: 5px solid var(--accent);
   border-radius: 12px;
-  background: var(--bg);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.15);
   text-align: left;
   font-size: 0.875rem;
   line-height: 1.3;
@@ -430,6 +450,10 @@ h1.wrap {
 .reminder svg {
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+.reminder strong {
+  color: var(--accent);
 }
 
 .reminder > span {
