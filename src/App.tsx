@@ -9,7 +9,7 @@ import Overview from './Overview'
 import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
-import { confirmation, loadSpeechEnabled, parseVoiceCommand, saveSpeechEnabled, speechSupported, useSpeech } from './speech'
+import { confirmation, gotoConfirmation, loadSpeechEnabled, parseVoiceCommand, saveSpeechEnabled, speechSupported, useSpeech } from './speech'
 import {
   loadEnabledModes,
   loadRegistrations,
@@ -223,6 +223,12 @@ export default function App() {
     const command = results.find((r) => r.ok) ?? results[0]
     if (!command.ok) {
       setVoiceMessage({ kind: 'error', text: command.error })
+      return
+    }
+    // Alleen naar een week gaan (F31), er verandert niets aan de keuzes.
+    if ('goto' in command) {
+      setVoiceMessage({ kind: 'ok', text: gotoConfirmation(command.goto, new Date()) })
+      if (command.goto.getTime() !== shownMonday.getTime()) goToWeek(command.goto)
       return
     }
     const key = dateKey(command.date)

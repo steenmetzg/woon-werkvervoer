@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { addDays, longLabel } from './dates'
+import { addDays, longLabel, mondayOf, weekLabel } from './dates'
 import { MODE_INFO } from './modeInfo'
 import { MODES, type Mode } from './storage'
 
@@ -30,7 +30,14 @@ const MODE_WORDS: Record<Mode, RegExp> = {
   vrij: /\b(vrij|vrije|vakantie\w*|feestdag)\b/,
 }
 
-export type VoiceCommand = { ok: true; modes: Mode[]; date: Date } | { ok: false; error: string }
+export type VoiceCommand =
+  | { ok: true; modes: Mode[]; date: Date }
+  | { ok: true; goto: Date }
+  | { ok: false; error: string }
+
+// Woorden waarmee je naar een week gaat zonder iets in te vullen (F31): "ga naar 1 oktober", "toon de week van
+// 1 oktober", "laat 1 oktober zien".
+const GOTO_WORDS = /\b(ga|gaan|naar|toon|tonen|laat|zien|open|bekijk|spring|week)\b/
 
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -115,6 +122,14 @@ export function parseVoiceCommand(
   // "vrijdag" en "vrije dag" niet verwarren: haal eerst de weekdagen weg voordat we keuzes zoeken.
   const withoutDays = WEEKDAGEN.reduce((t, name) => t.replace(new RegExp(`\\b${name}\\b`, 'g'), ' '), text)
   const modes = MODES.filter((mode) => MODE_WORDS[mode].test(withoutDays))
+  if (modes.length === 0 && GOTO_WORDS.test(text)) {
+    const date = findDate(text, today, shownMonday)
+    if (date === null) return { ok: false, error: `Ik hoorde "${spoken}", maar die datum bestaat niet.` }
+    if (date) return { ok: true, goto: mondayOf(date) }
+    if (/\bdeze week\b/.test(text)) return { ok: true, goto: mondayOf(today) }
+    if (/\b(vorige|afgelopen) week\b/.test(text)) return { ok: true, goto: addDays(shownMonday, -7) }
+    if (/\b(volgende|komende) week\b/.test(text)) return { ok: true, goto: addDays(shownMonday, 7) }
+  }
   if (modes.length === 0) {
     return { ok: false, error: `Ik hoorde "${spoken}", maar geen Thuis, Trein, Fiets, Auto of Vrij.` }
   }
@@ -136,6 +151,11 @@ export function parseVoiceCommand(
 
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/** Bijv. "Week van 28 sep – 2 okt." */
+export function gotoConfirmation(monday: Date, today: Date): string {
+  return `Week van ${weekLabel(monday, today.getFullYear())}.`
 }
 
 /** Bijv. "Fiets en Trein vastgelegd op woensdag 1 oktober." */

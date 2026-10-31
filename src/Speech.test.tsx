@@ -189,6 +189,32 @@ describe('AC48: ongedaan maken', () => {
   })
 })
 
+describe('AC50: met spraak naar een week gaan', () => {
+  it('begrijpt ga naar, toon de week van en laat zien', () => {
+    const monday = new Date(2026, 8, 28)
+    expect(parse('ga naar 1 oktober')).toEqual({ ok: true, goto: monday })
+    expect(parse('Toon de week van 1 oktober')).toEqual({ ok: true, goto: monday })
+    expect(parse('laat 1 oktober zien')).toEqual({ ok: true, goto: monday })
+    expect(parse('ga naar zaterdag 3 oktober')).toEqual({ ok: true, goto: monday })
+    expect(parse('ga naar vorige week')).toEqual({ ok: true, goto: new Date(2026, 9, 12) })
+    expect(parse('toon volgende week')).toEqual({ ok: true, goto: new Date(2026, 9, 26) })
+    expect(parse('ga naar deze week')).toEqual({ ok: true, goto: new Date(2026, 9, 19) })
+    expect(parse('ga naar 31 februari')).toMatchObject({ ok: false, error: expect.stringContaining('bestaat niet') })
+    // Met een keuze erbij wordt het gewoon ingevuld.
+    expect(parse('fiets naar 1 oktober')).toMatchObject({ ok: true, modes: ['fiets'] })
+  })
+
+  it('springt naar die week en verandert niets', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-01': ['trein'] }))
+    render(<App />)
+    await speak('ga naar 1 oktober')
+    expect(screen.getByRole('status')).toHaveTextContent('Week van 28 sep – 2 okt.')
+    expect(screen.queryByRole('button', { name: 'Ongedaan maken' })).toBeNull()
+    expect(pressed(/^donderdag 1 oktober$/)).toEqual(['Trein'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ '2026-10-01': ['trein'] })
+  })
+})
+
 describe('AC49: microfoonknop aan en uit', () => {
   it('kan uit in de instellingen en blijft dan uit', async () => {
     const { unmount } = render(<App />)
