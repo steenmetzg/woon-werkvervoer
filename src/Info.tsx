@@ -40,7 +40,7 @@ export default function Info({ onClose }: Props) {
             Tik op de blauwe microfoon linksonder en zeg bijvoorbeeld "fiets op 1 oktober", "gisteren thuis" of "fiets
             en trein vandaag". Je kunt ook een weekdag noemen, zoals "maandag auto"; zonder datum geldt vandaag. De dag
             krijgt dan precies wat je zei en onderaan zie je wat er is vastgelegd. Klopt het niet, tik dan in die melding op het
-            knopje "Ongedaan maken". Met "ga naar 1 oktober", "toon de week
+            knopje "Ongedaan maken"; de melding verdwijnt na een paar seconden vanzelf. Met "ga naar 1 oktober", "toon de week
             van 1 oktober" of "laat 1 oktober zien" spring je alleen naar die week. Inspreken werkt alleen met
             internet. Via het tandwiel kun je de microfoon uitzetten.
           </p>

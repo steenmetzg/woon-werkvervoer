@@ -34,6 +34,8 @@ const SWIPE_MIN_DISTANCE = 50
 const SWIPE_LOCK_DISTANCE = 10
 // Duur van het schuiven naar een andere week, in milliseconden (zelfde waarde als in index.css).
 const SLIDE_MS = 250
+// Zo lang blijft een melding van de spraakbediening staan, in milliseconden.
+const VOICE_MESSAGE_MS = 6000
 
 // "Minder beweging" in de telefoon: dan wisselt de week direct, zonder schuiven.
 function prefersReducedMotion() {
@@ -81,6 +83,13 @@ export default function App() {
   useEffect(() => {
     saveSpeechEnabled(speechEnabled)
   }, [speechEnabled])
+
+  // De melding van de spraakbediening verdwijnt vanzelf na een paar seconden.
+  useEffect(() => {
+    if (!voiceMessage) return
+    const timer = setTimeout(() => setVoiceMessage(null), VOICE_MESSAGE_MS)
+    return () => clearTimeout(timer)
+  }, [voiceMessage])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.

@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -212,6 +212,23 @@ describe('AC50: met spraak naar een week gaan', () => {
     expect(screen.queryByRole('button', { name: 'Ongedaan maken' })).toBeNull()
     expect(pressed(/^donderdag 1 oktober$/)).toEqual(['Trein'])
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ '2026-10-01': ['trein'] })
+  })
+})
+
+describe('AC51: melding verdwijnt vanzelf', () => {
+  it('sluit na 6 seconden, met en zonder Ongedaan maken', () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    vi.setSystemTime(TODAY)
+    render(<App />)
+    for (const zin of ['gisteren auto', 'ga naar 1 oktober', 'hallo']) {
+      fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
+      FakeRecognition.last!.hear(zin)
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(5900))
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(200))
+      expect(screen.queryByRole('status')).toBeNull()
+    }
   })
 })
 
