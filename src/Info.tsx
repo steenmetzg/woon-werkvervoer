@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import { speechSupported } from './speech'
 
 interface Props {
   onClose: () => void
@@ -31,6 +32,18 @@ export default function Info({ onClose }: Props) {
           een gekozen knop om hem te wissen.
         </p>
       </section>
+
+      {speechSupported() && (
+        <section className="setting info">
+          <h2>Inspreken</h2>
+          <p>
+            Tik op de blauwe microfoon linksonder en zeg bijvoorbeeld "fiets op 1 oktober", "gisteren thuis" of "fiets
+            en trein vandaag". Je kunt ook een weekdag noemen, zoals "maandag auto"; zonder datum geldt vandaag. De dag
+            krijgt dan precies wat je zei. Klopt het niet, tik dan op "Ongedaan maken". Inspreken werkt alleen met
+            internet. Via het tandwiel kun je de microfoon uitzetten.
+          </p>
+        </section>
+      )}
 
       <section className="setting info">
         <h2>Bladeren</h2>

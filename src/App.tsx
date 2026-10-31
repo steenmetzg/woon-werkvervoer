@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Settings as SettingsIcon } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Mic, Settings as SettingsIcon, X } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
@@ -9,6 +9,7 @@ import Overview from './Overview'
 import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
+import { confirmation, loadSpeechEnabled, parseVoiceCommand, saveSpeechEnabled, speechSupported, useSpeech } from './speech'
 import {
   loadEnabledModes,
   loadRegistrations,
@@ -55,6 +56,15 @@ export default function App() {
   const [declared, setDeclared] = useState<Declared>(loadDeclared)
   const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
   const installPrompt = useInstallPrompt()
+  // Spraakbediening (F29, F30).
+  const [speechEnabled, setSpeechEnabled] = useState(loadSpeechEnabled)
+  const [voiceMessage, setVoiceMessage] = useState<{
+    kind: 'ok' | 'error'
+    text: string
+    undo?: { key: string; before: Mode[] | undefined }
+  } | null>(null)
+  const speech = useSpeech(handleHeard, (text) => setVoiceMessage({ kind: 'error', text }))
+  const showMic = speechEnabled && speechSupported()
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -67,6 +77,10 @@ export default function App() {
   useEffect(() => {
     saveDeclared(declared)
   }, [declared])
+
+  useEffect(() => {
+    saveSpeechEnabled(speechEnabled)
+  }, [speechEnabled])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
@@ -203,6 +217,43 @@ export default function App() {
     })
   }
 
+  // De spraakherkenning geeft soms een paar mogelijke zinnen; de eerste die klopt, telt.
+  function handleHeard(alternatives: string[]) {
+    const results = alternatives.map((text) => parseVoiceCommand(text, new Date(), shownMonday, enabledModes))
+    const command = results.find((r) => r.ok) ?? results[0]
+    if (!command.ok) {
+      setVoiceMessage({ kind: 'error', text: command.error })
+      return
+    }
+    const key = dateKey(command.date)
+    const before = registrations[key]
+    setRegistrations((prev) => ({ ...prev, [key]: command.modes }))
+    setVoiceMessage({ kind: 'ok', text: confirmation(command.modes, command.date), undo: { key, before } })
+    const week = mondayOf(command.date)
+    if (week.getTime() !== shownMonday.getTime()) goToWeek(week)
+  }
+
+  function undoVoice() {
+    const undo = voiceMessage?.undo
+    if (!undo) return
+    setRegistrations((prev) => {
+      const next = { ...prev }
+      if (undo.before) next[undo.key] = undo.before
+      else delete next[undo.key]
+      return next
+    })
+    setVoiceMessage(null)
+  }
+
+  function toggleListening() {
+    if (speech.listening) {
+      speech.stop()
+      return
+    }
+    setVoiceMessage(null)
+    speech.start()
+  }
+
   if (screen === 'settings') {
     return (
       <Settings
@@ -210,6 +261,8 @@ export default function App() {
         enabledModes={enabledModes}
         onChangeEnabledModes={setEnabledModes}
         declared={declared}
+        speechEnabled={speechEnabled}
+        onChangeSpeechEnabled={setSpeechEnabled}
         onRestore={(restored, restoredDeclared) => {
           setRegistrations(restored)
           // Een backup van voor WoonWerk 1.10 heeft geen gedeclareerde dagen; dan blijven de huidige staan.
@@ -359,7 +412,38 @@ export default function App() {
             </span>
           </button>
         ))}
+        {showMic && speech.listening && (
+          <section className="voice" aria-live="polite">
+            <p>
+              <strong>Luisteren…</strong> Zeg bijvoorbeeld: "fiets op 1 oktober".
+            </p>
+          </section>
+        )}
+        {showMic && !speech.listening && voiceMessage && (
+          <section className={voiceMessage.kind === 'error' ? 'voice error' : 'voice'} aria-live="polite">
+            <p role="status">{voiceMessage.text}</p>
+            {voiceMessage.undo && (
+              <button type="button" onClick={undoVoice}>
+                Ongedaan maken
+              </button>
+            )}
+            <button type="button" className="voice-close" aria-label="Melding sluiten" onClick={() => setVoiceMessage(null)}>
+              <X size={18} strokeWidth={1.75} aria-hidden />
+            </button>
+          </section>
+        )}
         <nav className="overview-bar" aria-label="Overzichten">
+          {showMic && (
+            <button
+              type="button"
+              className={speech.listening ? 'icon-button mic listening' : 'icon-button mic'}
+              aria-label={speech.listening ? 'Stoppen met luisteren' : 'Inspreken'}
+              aria-pressed={speech.listening}
+              onClick={toggleListening}
+            >
+              <Mic size={18} strokeWidth={2} aria-hidden />
+            </button>
+          )}
           {overviewModes.map((mode) => {
             const { title, check } = OVERVIEWS[mode]
             return (
