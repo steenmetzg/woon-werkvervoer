@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -186,6 +186,49 @@ describe('AC48: ongedaan maken', () => {
     await speak('vandaag trein')
     await userEvent.click(screen.getByRole('button', { name: 'Ongedaan maken' }))
     expect(pressed(/^woensdag 21 oktober$/)).toEqual([])
+  })
+})
+
+describe('AC50: met spraak naar een week gaan', () => {
+  it('begrijpt ga naar, toon de week van en laat zien', () => {
+    const monday = new Date(2026, 8, 28)
+    expect(parse('ga naar 1 oktober')).toEqual({ ok: true, goto: monday })
+    expect(parse('Toon de week van 1 oktober')).toEqual({ ok: true, goto: monday })
+    expect(parse('laat 1 oktober zien')).toEqual({ ok: true, goto: monday })
+    expect(parse('ga naar zaterdag 3 oktober')).toEqual({ ok: true, goto: monday })
+    expect(parse('ga naar vorige week')).toEqual({ ok: true, goto: new Date(2026, 9, 12) })
+    expect(parse('toon volgende week')).toEqual({ ok: true, goto: new Date(2026, 9, 26) })
+    expect(parse('ga naar deze week')).toEqual({ ok: true, goto: new Date(2026, 9, 19) })
+    expect(parse('ga naar 31 februari')).toMatchObject({ ok: false, error: expect.stringContaining('bestaat niet') })
+    // Met een keuze erbij wordt het gewoon ingevuld.
+    expect(parse('fiets naar 1 oktober')).toMatchObject({ ok: true, modes: ['fiets'] })
+  })
+
+  it('springt naar die week en verandert niets', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-01': ['trein'] }))
+    render(<App />)
+    await speak('ga naar 1 oktober')
+    expect(screen.getByRole('status')).toHaveTextContent('Week van 28 sep – 2 okt.')
+    expect(screen.queryByRole('button', { name: 'Ongedaan maken' })).toBeNull()
+    expect(pressed(/^donderdag 1 oktober$/)).toEqual(['Trein'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ '2026-10-01': ['trein'] })
+  })
+})
+
+describe('AC51: melding verdwijnt vanzelf', () => {
+  it('sluit na 6 seconden, met en zonder Ongedaan maken', () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    vi.setSystemTime(TODAY)
+    render(<App />)
+    for (const zin of ['gisteren auto', 'ga naar 1 oktober', 'hallo']) {
+      fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
+      FakeRecognition.last!.hear(zin)
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(5900))
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(200))
+      expect(screen.queryByRole('status')).toBeNull()
+    }
   })
 })
 

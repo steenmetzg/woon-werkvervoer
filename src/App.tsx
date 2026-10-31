@@ -9,7 +9,7 @@ import Overview from './Overview'
 import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
-import { confirmation, loadSpeechEnabled, parseVoiceCommand, saveSpeechEnabled, speechSupported, useSpeech } from './speech'
+import { confirmation, gotoConfirmation, loadSpeechEnabled, parseVoiceCommand, saveSpeechEnabled, speechSupported, useSpeech } from './speech'
 import {
   loadEnabledModes,
   loadRegistrations,
@@ -34,6 +34,8 @@ const SWIPE_MIN_DISTANCE = 50
 const SWIPE_LOCK_DISTANCE = 10
 // Duur van het schuiven naar een andere week, in milliseconden (zelfde waarde als in index.css).
 const SLIDE_MS = 250
+// Zo lang blijft een melding van de spraakbediening staan, in milliseconden.
+const VOICE_MESSAGE_MS = 6000
 
 // "Minder beweging" in de telefoon: dan wisselt de week direct, zonder schuiven.
 function prefersReducedMotion() {
@@ -81,6 +83,13 @@ export default function App() {
   useEffect(() => {
     saveSpeechEnabled(speechEnabled)
   }, [speechEnabled])
+
+  // De melding van de spraakbediening verdwijnt vanzelf na een paar seconden.
+  useEffect(() => {
+    if (!voiceMessage) return
+    const timer = setTimeout(() => setVoiceMessage(null), VOICE_MESSAGE_MS)
+    return () => clearTimeout(timer)
+  }, [voiceMessage])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
@@ -223,6 +232,12 @@ export default function App() {
     const command = results.find((r) => r.ok) ?? results[0]
     if (!command.ok) {
       setVoiceMessage({ kind: 'error', text: command.error })
+      return
+    }
+    // Alleen naar een week gaan (F31), er verandert niets aan de keuzes.
+    if ('goto' in command) {
+      setVoiceMessage({ kind: 'ok', text: gotoConfirmation(command.goto, new Date()) })
+      if (command.goto.getTime() !== shownMonday.getTime()) goToWeek(command.goto)
       return
     }
     const key = dateKey(command.date)
@@ -423,7 +438,7 @@ export default function App() {
           <section className={voiceMessage.kind === 'error' ? 'voice error' : 'voice'} aria-live="polite">
             <p role="status">{voiceMessage.text}</p>
             {voiceMessage.undo && (
-              <button type="button" onClick={undoVoice}>
+              <button type="button" className="voice-undo" onClick={undoVoice}>
                 Ongedaan maken
               </button>
             )}
