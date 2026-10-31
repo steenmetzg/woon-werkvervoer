@@ -429,7 +429,7 @@ export default function App() {
           <section className={voiceMessage.kind === 'error' ? 'voice error' : 'voice'} aria-live="polite">
             <p role="status">{voiceMessage.text}</p>
             {voiceMessage.undo && (
-              <button type="button" onClick={undoVoice}>
+              <button type="button" className="voice-undo" onClick={undoVoice}>
                 Ongedaan maken
               </button>
             )}

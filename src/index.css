@@ -532,8 +532,8 @@ h1.wrap {
 .voice {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 6px 6px 12px;
+  gap: 6px;
+  padding: 6px 4px 6px 12px;
   border-left: 5px solid var(--accent);
   border-radius: 12px;
   background: var(--surface);
@@ -567,8 +567,17 @@ h1.wrap {
   white-space: nowrap;
 }
 
+/* "Ongedaan maken" klein, zodat de tekst van de melding meer ruimte heeft. */
+.voice .voice-undo {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  border-radius: 8px;
+}
+
 .voice .voice-close {
-  width: 44px;
+  width: 36px;
+  min-height: 36px;
   padding: 0;
   display: grid;
   place-items: center;
