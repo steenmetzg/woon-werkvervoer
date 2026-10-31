@@ -441,7 +441,7 @@ export default function App() {
               aria-pressed={speech.listening}
               onClick={toggleListening}
             >
-              <Mic size={20} strokeWidth={1.75} aria-hidden />
+              <Mic size={18} strokeWidth={2} aria-hidden />
             </button>
           )}
           {overviewModes.map((mode) => {

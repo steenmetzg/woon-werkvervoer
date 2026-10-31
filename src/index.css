@@ -508,8 +508,13 @@ h1.wrap {
   color: var(--muted);
 }
 
-/* Spraakbediening (F29): de microfoonknop links in de balk onderaan, gevuld blauw zodat hij opvalt. */
+/* Spraakbediening (F29): de microfoonknop links in de balk onderaan, rond en gevuld blauw zodat hij opvalt. */
 .overview-bar .mic {
+  /* Een ronde knop, iets kleiner dan de andere knoppen, zodat hij er anders uitziet. */
+  width: 38px;
+  height: 38px;
+  align-self: center;
+  border-radius: 50%;
   margin-right: auto;
   background: var(--accent);
   box-shadow: var(--shadow-accent);
