@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { ArrowLeft, Download, FolderOpen, RotateCcw, Upload } from 'lucide-react'
+import { ArrowLeft, Download, FolderOpen, Mic, RotateCcw, Upload } from 'lucide-react'
 import { backupFileName, createBackup, parseBackup } from './backup'
 import {
   canChooseFolder,
@@ -15,6 +15,7 @@ import type { Declared } from './declared'
 import { loadStoredFolder, storeFolder } from './folderStore'
 import { askAgainFrom, forgetLater, isInstalledApp } from './installPrompt'
 import { MODE_INFO } from './modeInfo'
+import { speechSupported } from './speech'
 import { MODES, type Mode, type Registrations } from './storage'
 
 interface Props {
@@ -22,6 +23,8 @@ interface Props {
   declared: Declared
   enabledModes: Mode[]
   onChangeEnabledModes: (modes: Mode[]) => void
+  speechEnabled: boolean
+  onChangeSpeechEnabled: (on: boolean) => void
   onRestore: (registrations: Registrations, declared: Declared | null) => void
   onClose: () => void
 }
@@ -33,7 +36,16 @@ function dayCount(registrations: Registrations): string {
   return n === 1 ? '1 dag' : `${n} dagen`
 }
 
-export default function Settings({ registrations, declared, enabledModes, onChangeEnabledModes, onRestore, onClose }: Props) {
+export default function Settings({
+  registrations,
+  declared,
+  enabledModes,
+  onChangeEnabledModes,
+  speechEnabled,
+  onChangeSpeechEnabled,
+  onRestore,
+  onClose,
+}: Props) {
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -163,6 +175,24 @@ export default function Settings({ registrations, declared, enabledModes, onChan
           })}
         </div>
       </section>
+
+      {speechSupported() && (
+        <section className="setting">
+          <h2>Spraak</h2>
+          <p className="muted">Met de microfoonknop onderaan het weekscherm spreek je een dag in. Werkt alleen met internet.</p>
+          <div className="modes single" role="group" aria-label="Spraak">
+            <button
+              type="button"
+              className={speechEnabled ? 'mode selected' : 'mode'}
+              aria-pressed={speechEnabled}
+              onClick={() => onChangeSpeechEnabled(!speechEnabled)}
+            >
+              <Mic size={20} strokeWidth={1.75} aria-hidden />
+              <span>Microfoon</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="setting">
         <h2>Backupmap</h2>
