@@ -4,6 +4,7 @@ import Amount from './Amount'
 import MicPlus from './MicPlus'
 import { addDays, dateKey, shortLabel } from './dates'
 import {
+  DEFAULT_OMSCHRIJVING,
   hoursText,
   MAX_OMSCHRIJVING,
   MAX_UREN_PER_REGEL,
@@ -173,7 +174,7 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
                       type="button"
                       className="icon-button add-line"
                       aria-label={`Regel toevoegen bij ${group.naam}`}
-                      onClick={() => onChange([...lines, { rubriek: group.id, uren: 1, omschrijving: '' }])}
+                      onClick={() => onChange([...lines, { rubriek: group.id, uren: 1, omschrijving: DEFAULT_OMSCHRIJVING }])}
                     >
                       <ClockPlus size={20} strokeWidth={1.75} aria-hidden />
                     </button>

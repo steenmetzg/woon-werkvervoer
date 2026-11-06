@@ -225,8 +225,10 @@ describe('AC53: uren per dag', () => {
     // Per rubriek een blok met een knop om een regel toe te voegen; aantal uur en omschrijving op één regel.
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['NVWA', 'ILT'])
     await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij NVWA' }))
-    expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '1 uur', omschrijving: '' }])
+    // Een nieuwe regel heeft standaard de omschrijving "Diversen" (vanaf 1.20.1).
+    expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '1 uur', omschrijving: 'Diversen' }])
     await user.selectOptions(screen.getByRole('combobox', { name: 'Aantal uur' }), '2.5')
+    await user.clear(screen.getByRole('textbox', { name: 'Omschrijving' }))
     await user.type(screen.getByRole('textbox', { name: 'Omschrijving' }), 'Overleg')
     await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij ILT' }))
     expect(within(screen.getByRole('region', { name: 'NVWA' })).getByText((_, el) => el?.className === 'amount-sum' && el.textContent === '2,5')).toBeInTheDocument()
@@ -236,7 +238,7 @@ describe('AC53: uren per dag', () => {
     expect(nvwa.querySelector('ul + .hour-group-total')).toHaveTextContent('2,5')
     expect(lines()).toEqual([
       { rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Overleg' },
-      { rubriek: 'ILT', uren: '1 uur', omschrijving: '' },
+      { rubriek: 'ILT', uren: '1 uur', omschrijving: 'Diversen' },
     ])
     expect(dayTotal()).toHaveTextContent(/^Totaal3,5$/)
 
@@ -348,7 +350,7 @@ describe('AC55: uren inspreken', () => {
       hours: { rubriek: 'i1', uren: 0.75, omschrijving: 'Intake' },
       date: new Date(2026, 9, 1),
     })
-    expect(parse('n v w a 2,5 uur')).toMatchObject({ hours: { rubriek: 'n1', uren: 2.5, omschrijving: '' } })
+    expect(parse('n v w a 2,5 uur')).toMatchObject({ hours: { rubriek: 'n1', uren: 2.5, omschrijving: 'Diversen' } })
     expect(parse('tweeënhalf uur NVWA')).toMatchObject({ hours: { uren: 2.5 } })
     expect(parse('2 uur en een kwartier NVWA')).toMatchObject({ hours: { uren: 2.25 } })
     expect(parse('NVWA 50 minuten')).toMatchObject({ hours: { uren: 0.75 } })
@@ -421,6 +423,8 @@ describe('AC58: regel inspreken bij een rubriek', () => {
       ok: true,
       line: { rubriek: 'n1', uren: 0.75, omschrijving: 'Overleg' },
     })
+    // Alleen een aantal uur: omschrijving "Diversen" (vanaf 1.20.1).
+    expect(parseHoursLine('2 uur', 'n1')).toEqual({ ok: true, line: { rubriek: 'n1', uren: 2, omschrijving: 'Diversen' } })
     expect(parseHoursLine('overleg', 'n1').ok).toBe(false)
   })
 })
