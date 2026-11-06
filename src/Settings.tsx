@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { ArrowLeft, Clock, Download, FolderOpen, Mic, Plus, RotateCcw, Trash2, Upload } from 'lucide-react'
 import { backupFileName, createBackup, parseBackup } from './backup'
+import ConfirmDialog from './ConfirmDialog'
 import {
   canChooseFolder,
   canPickFileInFolder,
@@ -113,6 +114,10 @@ export default function Settings({
   onClose,
 }: Props) {
   const [rubriekMessage, setRubriekMessage] = useState<Message | null>(null)
+  // Een rubriek met uren die na bevestiging verwijderd wordt.
+  // Een gekozen backup die na bevestiging wordt ingelezen.
+  const [pendingRestore, setPendingRestore] = useState<{ result: ReturnType<typeof parseBackup>; when: string } | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ rubriek: Rubriek; used: number } | null>(null)
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -154,15 +159,15 @@ export default function Settings({
     const used = linesWithRubriek(hours, rubriek.id)
     // Heeft de rubriek uren, dan eerst vragen of die ook weg mogen (F32).
     if (used > 0) {
-      const ok = window.confirm(
-        `${rubriek.naam} heeft ${used === 1 ? '1 regel' : `${used} regels`} met uren. Rubriek en uren verwijderen? Dit kan niet ongedaan worden gemaakt.`,
-      )
-      if (!ok) return
+      setConfirmDelete({ rubriek, used })
+      return
     }
     onDeleteRubriek(rubriek.id)
-    setRubriekMessage(
-      used > 0 ? { kind: 'ok', text: `${rubriek.naam} en ${used === 1 ? '1 regel' : `${used} regels`} met uren verwijderd.` } : null,
-    )
+    setRubriekMessage(null)
+  }
+
+  function regels(n: number): string {
+    return n === 1 ? '1 regel' : `${n} regels`
   }
 
   function addRubriek() {
@@ -218,12 +223,16 @@ export default function Settings({
     const when = result.gemaakt
       ? ` van ${result.gemaakt.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
       : ''
-    const ok = window.confirm(
-      `Backup${when} met ${contentCount(result.registraties, result.uren?.uren ?? null)} inlezen? Dit vervangt al je huidige keuzes${result.uren ? ' en uren' : ''}.`,
-    )
-    if (!ok) return
+    setMessage(null)
+    setPendingRestore({ result, when })
+  }
+
+  function confirmRestore() {
+    if (!pendingRestore) return
+    const { result } = pendingRestore
     onRestore(result.registraties, result.gedeclareerd, result.uren)
     setMessage({ kind: 'ok', text: `Backup ingelezen: ${contentCount(result.registraties, result.uren?.uren ?? null)}.` })
+    setPendingRestore(null)
   }
 
   async function handleRestore() {
@@ -321,6 +330,20 @@ export default function Settings({
             ) : (
               <p className="muted">Je hebt het maximum van {MAX_RUBRIEKEN} rubrieken.</p>
             )}
+            {confirmDelete && (
+              <ConfirmDialog
+                title="Deze rubriek bevat gegevens"
+                text={`${confirmDelete.rubriek.naam} heeft ${regels(confirmDelete.used)} met uren. Rubriek en uren verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+                confirmLabel="Verwijderen"
+                onCancel={() => setConfirmDelete(null)}
+                onConfirm={() => {
+                  const { rubriek, used } = confirmDelete
+                  onDeleteRubriek(rubriek.id)
+                  setRubriekMessage({ kind: 'ok', text: `${rubriek.naam} en ${regels(used)} met uren verwijderd.` })
+                  setConfirmDelete(null)
+                }}
+              />
+            )}
             {rubriekMessage && (
               <p className={rubriekMessage.kind === 'error' ? 'message error' : 'message'} role="status">
                 {rubriekMessage.text}
@@ -387,6 +410,15 @@ export default function Settings({
           hidden
           onChange={handleFileInput}
         />
+        {pendingRestore && (
+          <ConfirmDialog
+            title="Backup inlezen?"
+            text={`Backup${pendingRestore.when} met ${contentCount(pendingRestore.result.registraties, pendingRestore.result.uren?.uren ?? null)} inlezen? Dit vervangt al je huidige keuzes${pendingRestore.result.uren ? ' en uren' : ''}.`}
+            confirmLabel="Inlezen"
+            onCancel={() => setPendingRestore(null)}
+            onConfirm={confirmRestore}
+          />
+        )}
         {message && (
           <p className={message.kind === 'error' ? 'message error' : 'message'} role="status">
             {message.text}
@@ -417,6 +449,7 @@ export default function Settings({
       )}
 
       <p className="version">Versie: {__APP_VERSION__}</p>
+
     </main>
   )
 }

@@ -902,3 +902,47 @@ h1.wrap {
 .hour-group-head .amount-sum {
   color: var(--accent);
 }
+
+/* Eigen bevestigingsvraag, opgemaakt als de andere meldingen: wit met een blauwe streep links. */
+.confirm {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 10px 12px 10px 12px;
+  border-left: 5px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.15);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.confirm strong {
+  color: var(--accent);
+}
+
+.confirm p {
+  margin: 0;
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.confirm-buttons button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.confirm-buttons .confirm-yes {
+  background: var(--accent);
+  box-shadow: var(--shadow-accent);
+  color: #ffffff;
+}

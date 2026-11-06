@@ -6,6 +6,12 @@ import { createBackup } from './backup'
 import { DECLARED_KEY } from './declared'
 import { ENABLED_KEY, STORAGE_KEY } from './storage'
 
+/** Bevestigt de vraag "Backup inlezen?" met de knop Inlezen. */
+async function confirmRestore() {
+  await userEvent.click(within(await screen.findByRole('alertdialog', { name: 'Backup inlezen?' })).getByRole('button', { name: 'Inlezen' }))
+}
+
+
 // "Vandaag" is dinsdag 20 oktober 2026.
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -260,12 +266,12 @@ describe('AC41: laatst gedeclareerde dagen in de backup', () => {
       thuis: '2026-09-30',
       auto: '2026-10-02',
     })
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
     const backup = { app: 'woon-werkvervoer', versie: 2, gemaakt: '2026-10-01T08:00:00.000Z', registraties: {}, gedeclareerd: { trein: '2026-08-31' } }
     await user.upload(screen.getByLabelText('Backupbestand'), new File([JSON.stringify(backup)], 'b.json'))
+    await confirmRestore()
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen'))
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     for (const [name, value] of [
@@ -281,12 +287,12 @@ describe('AC41: laatst gedeclareerde dagen in de backup', () => {
 
   it('laat de dagen staan bij een backup van een oudere versie zonder gedeclareerde dagen', async () => {
     localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-09-30' }))
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
     const old = { app: 'woon-werkvervoer', versie: 2, gemaakt: '2026-10-01T08:00:00.000Z', registraties: {} }
     await user.upload(screen.getByLabelText('Backupbestand'), new File([JSON.stringify(old)], 'b.json'))
+    await confirmRestore()
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen'))
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     await user.click(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' }))

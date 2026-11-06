@@ -4,6 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { STORAGE_KEY } from './storage'
 
+/** Bevestigt de vraag "Backup inlezen?" met de knop Inlezen. */
+async function confirmRestore() {
+  await userEvent.click(within(await screen.findByRole('alertdialog', { name: 'Backup inlezen?' })).getByRole('button', { name: 'Inlezen' }))
+}
+
+
 // Een opgeslagen backupmap leeft in de tests in het geheugen in plaats van IndexedDB.
 const folderMemory = vi.hoisted(() => ({ handle: null as unknown }))
 vi.mock('./folderStore', () => ({
@@ -76,7 +82,7 @@ describe('AC40: versienummer onderaan de instellingen', () => {
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
-    const version = screen.getByText('Versie: 1.17.1')
+    const version = screen.getByText('Versie: 1.17.2')
     expect(version).toHaveClass('version')
     expect(version.closest('main')?.lastElementChild).toBe(version)
   })
@@ -159,12 +165,12 @@ describe('AC15: backup maken', () => {
 
 describe('AC16: backup inlezen', () => {
   it('vervangt alle keuzes door die uit de backup', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-20': 'fiets' }))
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
     await user.upload(screen.getByLabelText('Backupbestand'), backupFile(validBackup))
+    await confirmRestore()
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen: 2 dagen'))
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
@@ -174,18 +180,17 @@ describe('AC16: backup inlezen', () => {
   })
 
   it('leest backups met de oude en de nieuwe bestandsnaam', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
     for (const name of ['woon-werkvervoer-backup-2026-10-01.json', '2026-10-01-woonwerk.json']) {
       await user.upload(screen.getByLabelText('Backupbestand'), backupFile(validBackup, name))
+      await confirmRestore()
       await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen: 2 dagen'))
     }
   })
 
   it('leest ook een nieuwe backup met meerdere keuzes per dag', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
@@ -193,6 +198,7 @@ describe('AC16: backup inlezen', () => {
       screen.getByLabelText('Backupbestand'),
       backupFile({ ...validBackup, versie: 2, registraties: { '2026-10-19': ['fiets', 'trein'], '2026-10-20': ['thuis'] } }),
     )
+    await confirmRestore()
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Backup ingelezen: 2 dagen'))
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
@@ -201,27 +207,28 @@ describe('AC16: backup inlezen', () => {
   })
 
   it('weigert een ongeldig bestand en laat de keuzes ongemoeid', async () => {
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-20': 'fiets' }))
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
     await user.upload(screen.getByLabelText('Backupbestand'), backupFile('{"iets": "anders"}', 'boodschappen.json'))
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('geen backup van WoonWerk'))
-    expect(confirm).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(chosenModes('dinsdag 20 oktober')).toEqual(['Fiets'])
   })
 
   it('verandert niets als ik de bevestiging annuleer', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-20': 'fiets' }))
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
     await user.upload(screen.getByLabelText('Backupbestand'), backupFile(validBackup))
-    await waitFor(() => expect(window.confirm).toHaveBeenCalled())
+    const question = await screen.findByRole('alertdialog', { name: 'Backup inlezen?' })
+    expect(question).toHaveTextContent('Backup van 1 oktober 2026 met 2 dagen inlezen? Dit vervangt al je huidige keuzes.')
+    await user.click(within(question).getByRole('button', { name: 'Annuleren' }))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(chosenModes('dinsdag 20 oktober')).toEqual(['Fiets'])
