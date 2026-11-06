@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { ArrowLeft, Download, FolderOpen, Mic, RotateCcw, Upload } from 'lucide-react'
+import { ArrowLeft, Clock, Download, FolderOpen, Mic, Plus, RotateCcw, Trash2, Upload } from 'lucide-react'
 import { backupFileName, createBackup, parseBackup } from './backup'
 import {
   canChooseFolder,
@@ -13,6 +13,15 @@ import {
 } from './files'
 import type { Declared } from './declared'
 import { loadStoredFolder, storeFolder } from './folderStore'
+import {
+  lineCount,
+  linesWithRubriek,
+  MAX_NAAM,
+  MAX_RUBRIEKEN,
+  newRubriekId,
+  type Hours,
+  type Rubriek,
+} from './hours'
 import { askAgainFrom, forgetLater, isInstalledApp } from './installPrompt'
 import { MODE_INFO } from './modeInfo'
 import { speechSupported } from './speech'
@@ -25,7 +34,16 @@ interface Props {
   onChangeEnabledModes: (modes: Mode[]) => void
   speechEnabled: boolean
   onChangeSpeechEnabled: (on: boolean) => void
-  onRestore: (registrations: Registrations, declared: Declared | null) => void
+  hoursEnabled: boolean
+  onChangeHoursEnabled: (on: boolean) => void
+  hours: Hours
+  rubrieken: Rubriek[]
+  onChangeRubrieken: (rubrieken: Rubriek[]) => void
+  onRestore: (
+    registrations: Registrations,
+    declared: Declared | null,
+    hours: { uren: Hours; rubrieken: Rubriek[] } | null,
+  ) => void
   onClose: () => void
 }
 
@@ -36,6 +54,46 @@ function dayCount(registrations: Registrations): string {
   return n === 1 ? '1 dag' : `${n} dagen`
 }
 
+/** Bijv. "120 dagen" of "120 dagen en 35 urenregels". */
+function contentCount(registrations: Registrations, hours: Hours | null): string {
+  const n = hours ? lineCount(hours) : 0
+  if (n === 0) return dayCount(registrations)
+  return `${dayCount(registrations)} en ${n === 1 ? '1 urenregel' : `${n} urenregels`}`
+}
+
+/** Naam van een rubriek, aan te passen; pas bij het verlaten van het veld wordt de nieuwe naam gecontroleerd. */
+function RubriekRow({
+  rubriek,
+  onRename,
+  onDelete,
+}: {
+  rubriek: Rubriek
+  onRename: (naam: string) => boolean
+  onDelete: () => void
+}) {
+  const [draft, setDraft] = useState(rubriek.naam)
+  return (
+    <li className="rubriek">
+      <input
+        type="text"
+        aria-label={`Naam van rubriek ${rubriek.naam}`}
+        value={draft}
+        maxLength={MAX_NAAM}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          if (!onRename(draft.trim())) setDraft(rubriek.naam)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+        }}
+      />
+      <button type="button" className="icon-button" aria-label={`Rubriek ${rubriek.naam} verwijderen`} onClick={onDelete}>
+        <Trash2 size={18} strokeWidth={1.75} aria-hidden />
+      </button>
+    </li>
+  )
+}
+
 export default function Settings({
   registrations,
   declared,
@@ -43,9 +101,15 @@ export default function Settings({
   onChangeEnabledModes,
   speechEnabled,
   onChangeSpeechEnabled,
+  hoursEnabled,
+  onChangeHoursEnabled,
+  hours,
+  rubrieken,
+  onChangeRubrieken,
   onRestore,
   onClose,
 }: Props) {
+  const [rubriekMessage, setRubriekMessage] = useState<Message | null>(null)
   const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -67,6 +131,44 @@ export default function Settings({
     onChangeEnabledModes(MODES.filter((m) => (m === mode ? on : enabledModes.includes(m))))
   }
 
+  function renameRubriek(id: string, naam: string): boolean {
+    const current = rubrieken.find((r) => r.id === id)
+    if (!current || naam === current.naam) return true
+    if (!naam) {
+      setRubriekMessage({ kind: 'error', text: 'Een rubriek moet een naam hebben.' })
+      return false
+    }
+    if (rubrieken.some((r) => r.id !== id && r.naam.toLowerCase() === naam.toLowerCase())) {
+      setRubriekMessage({ kind: 'error', text: `Er is al een rubriek ${naam}.` })
+      return false
+    }
+    onChangeRubrieken(rubrieken.map((r) => (r.id === id ? { ...r, naam } : r)))
+    setRubriekMessage(null)
+    return true
+  }
+
+  function deleteRubriek(rubriek: Rubriek) {
+    const used = linesWithRubriek(hours, rubriek.id)
+    if (used > 0) {
+      setRubriekMessage({
+        kind: 'error',
+        text: `${rubriek.naam} heeft nog ${used === 1 ? '1 regel' : `${used} regels`} met uren en kan niet worden verwijderd. De naam kun je wel aanpassen.`,
+      })
+      return
+    }
+    onChangeRubrieken(rubrieken.filter((r) => r.id !== rubriek.id))
+    setRubriekMessage(null)
+  }
+
+  function addRubriek() {
+    if (rubrieken.length >= MAX_RUBRIEKEN) return
+    // Een nieuwe naam die nog niet bestaat: "Nieuwe rubriek", "Nieuwe rubriek 2", ...
+    let naam = 'Nieuwe rubriek'
+    for (let n = 2; rubrieken.some((r) => r.naam.toLowerCase() === naam.toLowerCase()); n++) naam = `Nieuwe rubriek ${n}`
+    onChangeRubrieken([...rubrieken, { id: newRubriekId(), naam }])
+    setRubriekMessage(null)
+  }
+
   async function handleChooseFolder() {
     try {
       const chosen = await chooseFolder()
@@ -81,7 +183,7 @@ export default function Settings({
   async function handleBackup() {
     const now = new Date()
     const name = backupFileName(now)
-    const text = createBackup(registrations, declared, now)
+    const text = createBackup(registrations, declared, { uren: hours, rubrieken }, now)
     if (folder) {
       try {
         if (!(await ensureWriteAccess(folder))) {
@@ -89,7 +191,7 @@ export default function Settings({
           return
         }
         await writeFileToFolder(folder, name, text)
-        setMessage({ kind: 'ok', text: `Backup van ${dayCount(registrations)} opgeslagen als ${name} in de map "${folder.name}".` })
+        setMessage({ kind: 'ok', text: `Backup van ${contentCount(registrations, hours)} opgeslagen als ${name} in de map "${folder.name}".` })
         return
       } catch {
         setMessage({ kind: 'error', text: `Opslaan in de map "${folder.name}" is mislukt. Kies de map opnieuw.` })
@@ -97,7 +199,7 @@ export default function Settings({
       }
     }
     downloadFile(name, text)
-    setMessage({ kind: 'ok', text: `Backup van ${dayCount(registrations)} opgeslagen als ${name} in Downloads.` })
+    setMessage({ kind: 'ok', text: `Backup van ${contentCount(registrations, hours)} opgeslagen als ${name} in Downloads.` })
   }
 
   async function restoreFrom(file: File) {
@@ -112,11 +214,11 @@ export default function Settings({
       ? ` van ${result.gemaakt.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
       : ''
     const ok = window.confirm(
-      `Backup${when} met ${dayCount(result.registraties)} inlezen? Dit vervangt al je huidige keuzes.`,
+      `Backup${when} met ${contentCount(result.registraties, result.uren?.uren ?? null)} inlezen? Dit vervangt al je huidige keuzes${result.uren ? ' en uren' : ''}.`,
     )
     if (!ok) return
-    onRestore(result.registraties, result.gedeclareerd)
-    setMessage({ kind: 'ok', text: `Backup ingelezen: ${dayCount(result.registraties)}.` })
+    onRestore(result.registraties, result.gedeclareerd, result.uren)
+    setMessage({ kind: 'ok', text: `Backup ingelezen: ${contentCount(result.registraties, result.uren?.uren ?? null)}.` })
   }
 
   async function handleRestore() {
@@ -174,6 +276,53 @@ export default function Settings({
             )
           })}
         </div>
+      </section>
+
+      <section className="setting">
+        <h2>Uren</h2>
+        <p className="muted">Houd per dag je gewerkte uren per rubriek bij. Tik in de week op het klokje bij een dag.</p>
+        <div className="modes single" role="group" aria-label="Uren">
+          <button
+            type="button"
+            className={hoursEnabled ? 'mode selected' : 'mode'}
+            aria-pressed={hoursEnabled}
+            onClick={() => onChangeHoursEnabled(!hoursEnabled)}
+          >
+            <Clock size={20} strokeWidth={1.75} aria-hidden />
+            <span>Uren</span>
+          </button>
+        </div>
+        {hoursEnabled && (
+          <>
+            <h3 className="sub-heading">Rubrieken</h3>
+            {rubrieken.length > 0 && (
+              <ul className="rubrieken" aria-label="Rubrieken">
+                {rubrieken.map((r) => (
+                  <RubriekRow
+                    // Met de naam in de sleutel begint het veld opnieuw als de naam van buitenaf verandert (bijv. backup).
+                    key={`${r.id}-${r.naam}`}
+                    rubriek={r}
+                    onRename={(naam) => renameRubriek(r.id, naam)}
+                    onDelete={() => deleteRubriek(r)}
+                  />
+                ))}
+              </ul>
+            )}
+            {rubrieken.length < MAX_RUBRIEKEN ? (
+              <button type="button" className="wide-button" onClick={addRubriek}>
+                <Plus size={20} strokeWidth={1.75} aria-hidden />
+                Rubriek toevoegen
+              </button>
+            ) : (
+              <p className="muted">Je hebt het maximum van {MAX_RUBRIEKEN} rubrieken.</p>
+            )}
+            {rubriekMessage && (
+              <p className={rubriekMessage.kind === 'error' ? 'message error' : 'message'} role="status">
+                {rubriekMessage.text}
+              </p>
+            )}
+          </>
+        )}
       </section>
 
       {speechSupported() && (

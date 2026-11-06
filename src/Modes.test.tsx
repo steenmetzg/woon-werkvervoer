@@ -20,7 +20,7 @@ afterEach(() => {
 })
 
 function dayButtons(dayName: string) {
-  return within(screen.getByRole('listitem', { name: dayName })).getAllByRole('button')
+  return within(within(screen.getByRole('listitem', { name: dayName })).getByRole('group')).getAllByRole('button')
 }
 
 function settingButton(mode: string) {
@@ -45,7 +45,7 @@ describe('AC22: vervoervormen aan- en uitzetten', () => {
     await user.click(screen.getByRole('button', { name: 'Terug' }))
 
     for (const d of screen.getAllByRole('listitem')) {
-      expect(within(d).getAllByRole('button').map((b) => b.textContent)).toEqual(['Thuis', 'Fiets', 'Vrij'])
+      expect(within(within(d).getByRole('group')).getAllByRole('button').map((b) => b.textContent)).toEqual(['Thuis', 'Fiets', 'Vrij'])
     }
     expect(screen.queryByRole('button', { name: 'Overzicht kilometervergoeding' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Overzicht thuiswerkvergoeding' })).toBeInTheDocument()

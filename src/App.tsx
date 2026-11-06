@@ -1,7 +1,23 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Info as InfoIcon, Mic, Settings as SettingsIcon, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, Settings as SettingsIcon, X } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
+import DayHours from './DayHours'
+import {
+  formatHours,
+  loadHours,
+  loadHoursEnabled,
+  loadRubrieken,
+  rubriekNaam,
+  saveHours,
+  saveHoursEnabled,
+  saveRubrieken,
+  sumHours,
+  type HourLine,
+  type Hours,
+  type Rubriek,
+} from './hours'
+import HoursOverview from './HoursOverview'
 import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
@@ -9,7 +25,16 @@ import Overview from './Overview'
 import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
 import Settings from './Settings'
-import { confirmation, gotoConfirmation, loadSpeechEnabled, parseVoiceCommand, saveSpeechEnabled, speechSupported, useSpeech } from './speech'
+import {
+  confirmation,
+  gotoConfirmation,
+  hoursConfirmation,
+  loadSpeechEnabled,
+  parseVoiceCommand,
+  saveSpeechEnabled,
+  speechSupported,
+  useSpeech,
+} from './speech'
 import {
   loadEnabledModes,
   loadRegistrations,
@@ -56,14 +81,20 @@ export default function App() {
   const [registrations, setRegistrations] = useState<Registrations>(loadRegistrations)
   const [enabledModes, setEnabledModes] = useState<Mode[]>(loadEnabledModes)
   const [declared, setDeclared] = useState<Declared>(loadDeclared)
-  const [screen, setScreen] = useState<'week' | 'settings' | 'info' | keyof typeof OVERVIEWS>('week')
+  const [screen, setScreen] = useState<'week' | 'settings' | 'info' | 'uren' | 'dag' | keyof typeof OVERVIEWS>('week')
+  // Urenregistratie (F32 t/m F35).
+  const [hours, setHours] = useState<Hours>(loadHours)
+  const [rubrieken, setRubrieken] = useState<Rubriek[]>(loadRubrieken)
+  const [hoursEnabled, setHoursEnabled] = useState(loadHoursEnabled)
+  // De dag waarvan het scherm Uren open staat.
+  const [hoursDay, setHoursDay] = useState<Date>(today)
   const installPrompt = useInstallPrompt()
   // Spraakbediening (F29, F30).
   const [speechEnabled, setSpeechEnabled] = useState(loadSpeechEnabled)
   const [voiceMessage, setVoiceMessage] = useState<{
     kind: 'ok' | 'error'
     text: string
-    undo?: { key: string; before: Mode[] | undefined }
+    undo?: () => void
   } | null>(null)
   const speech = useSpeech(handleHeard, (text) => setVoiceMessage({ kind: 'error', text }))
   const showMic = speechEnabled && speechSupported()
@@ -83,6 +114,18 @@ export default function App() {
   useEffect(() => {
     saveSpeechEnabled(speechEnabled)
   }, [speechEnabled])
+
+  useEffect(() => {
+    saveHours(hours)
+  }, [hours])
+
+  useEffect(() => {
+    saveRubrieken(rubrieken)
+  }, [rubrieken])
+
+  useEffect(() => {
+    saveHoursEnabled(hoursEnabled)
+  }, [hoursEnabled])
 
   // De melding van de spraakbediening verdwijnt vanzelf na een paar seconden.
   useEffect(() => {
@@ -192,6 +235,7 @@ export default function App() {
         <div className="day-label">
           {shortLabel(day)}
           {isToday && <span className="today-tag">vandaag</span>}
+          {hoursEnabled && renderHoursChip(day)}
         </div>
         <div className="modes" role="group" aria-label={`Vervoer op ${longLabel(day)}`}>
           {enabledModes.map((mode) => {
@@ -215,6 +259,35 @@ export default function App() {
     )
   }
 
+  // Klokje rechts naast de datum (F33): met het totaal als er uren zijn, anders alleen het klokje.
+  function renderHoursChip(day: Date) {
+    const total = sumHours(hours[dateKey(day)] ?? [])
+    return (
+      <button
+        type="button"
+        className={total > 0 ? 'hours-chip filled' : 'hours-chip'}
+        aria-label={total > 0 ? `Uren op ${longLabel(day)}: ${formatHours(total)} uur` : `Uren op ${longLabel(day)}`}
+        onClick={() => {
+          setHoursDay(day)
+          setScreen('dag')
+        }}
+      >
+        <Clock size={14} strokeWidth={2} aria-hidden />
+        {total > 0 && <span>{formatHours(total)} u</span>}
+      </button>
+    )
+  }
+
+  function setDayHours(day: Date, lines: HourLine[] | undefined) {
+    const key = dateKey(day)
+    setHours((prev) => {
+      const next = { ...prev }
+      if (lines && lines.length > 0) next[key] = lines
+      else delete next[key]
+      return next
+    })
+  }
+
   function choose(day: Date, mode: Mode) {
     const key = dateKey(day)
     setRegistrations((prev) => {
@@ -228,7 +301,9 @@ export default function App() {
 
   // De spraakherkenning geeft soms een paar mogelijke zinnen; de eerste die klopt, telt.
   function handleHeard(alternatives: string[]) {
-    const results = alternatives.map((text) => parseVoiceCommand(text, new Date(), shownMonday, enabledModes))
+    const results = alternatives.map((text) =>
+      parseVoiceCommand(text, new Date(), shownMonday, enabledModes, hoursEnabled ? rubrieken : null),
+    )
     const command = results.find((r) => r.ok) ?? results[0]
     if (!command.ok) {
       setVoiceMessage({ kind: 'error', text: command.error })
@@ -241,22 +316,36 @@ export default function App() {
       return
     }
     const key = dateKey(command.date)
-    const before = registrations[key]
-    setRegistrations((prev) => ({ ...prev, [key]: command.modes }))
-    setVoiceMessage({ kind: 'ok', text: confirmation(command.modes, command.date), undo: { key, before } })
+    if ('hours' in command) {
+      // Uren inspreken (F35): er komt een regel bij; "Ongedaan maken" haalt hem weer weg.
+      const before = hours[key]
+      setDayHours(command.date, [...(before ?? []), command.hours])
+      setVoiceMessage({
+        kind: 'ok',
+        text: hoursConfirmation(command.hours, rubriekNaam(rubrieken, command.hours.rubriek), command.date),
+        undo: () => setDayHours(command.date, before),
+      })
+    } else {
+      const before = registrations[key]
+      setRegistrations((prev) => ({ ...prev, [key]: command.modes }))
+      setVoiceMessage({
+        kind: 'ok',
+        text: confirmation(command.modes, command.date),
+        undo: () =>
+          setRegistrations((prev) => {
+            const next = { ...prev }
+            if (before) next[key] = before
+            else delete next[key]
+            return next
+          }),
+      })
+    }
     const week = mondayOf(command.date)
     if (week.getTime() !== shownMonday.getTime()) goToWeek(week)
   }
 
   function undoVoice() {
-    const undo = voiceMessage?.undo
-    if (!undo) return
-    setRegistrations((prev) => {
-      const next = { ...prev }
-      if (undo.before) next[undo.key] = undo.before
-      else delete next[undo.key]
-      return next
-    })
+    voiceMessage?.undo?.()
     setVoiceMessage(null)
   }
 
@@ -278,10 +367,20 @@ export default function App() {
         declared={declared}
         speechEnabled={speechEnabled}
         onChangeSpeechEnabled={setSpeechEnabled}
-        onRestore={(restored, restoredDeclared) => {
+        hoursEnabled={hoursEnabled}
+        onChangeHoursEnabled={setHoursEnabled}
+        hours={hours}
+        rubrieken={rubrieken}
+        onChangeRubrieken={setRubrieken}
+        onRestore={(restored, restoredDeclared, restoredHours) => {
           setRegistrations(restored)
           // Een backup van voor WoonWerk 1.10 heeft geen gedeclareerde dagen; dan blijven de huidige staan.
           if (restoredDeclared) setDeclared(restoredDeclared)
+          // Een backup van voor WoonWerk 1.17 heeft geen uren; dan blijven de huidige uren en rubrieken staan.
+          if (restoredHours) {
+            setHours(restoredHours.uren)
+            setRubrieken(restoredHours.rubrieken)
+          }
         }}
         onClose={() => setScreen('week')}
       />
@@ -290,6 +389,28 @@ export default function App() {
 
   if (screen === 'info') {
     return <Info onClose={() => setScreen('week')} />
+  }
+
+  if (screen === 'uren') {
+    return <HoursOverview hours={hours} rubrieken={rubrieken} onClose={() => setScreen('week')} />
+  }
+
+  if (screen === 'dag') {
+    return (
+      <DayHours
+        day={hoursDay}
+        lines={hours[dateKey(hoursDay)] ?? []}
+        rubrieken={rubrieken}
+        onChange={(lines) => setDayHours(hoursDay, lines)}
+        onChangeDay={setHoursDay}
+        onClose={() => {
+          // Terug naar de week van de dag die als laatste open stond.
+          setSlide(null)
+          setMonday(mondayOf(hoursDay))
+          setScreen('week')
+        }}
+      />
+    )
   }
 
   if (screen !== 'week') {
@@ -447,7 +568,10 @@ export default function App() {
             </button>
           </section>
         )}
-        <nav className="overview-bar" aria-label="Overzichten">
+        <nav
+          className={overviewModes.length + (hoursEnabled ? 1 : 0) >= 6 ? 'overview-bar crowded' : 'overview-bar'}
+          aria-label="Overzichten"
+        >
           {showMic && (
             <button
               type="button"
@@ -467,6 +591,11 @@ export default function App() {
               </button>
             )
           })}
+          {hoursEnabled && (
+            <button type="button" className="icon-button" aria-label="Overzicht uren" onClick={() => setScreen('uren')}>
+              <BadgeIcon Icon={Clock} Badge={Check} />
+            </button>
+          )}
         </nav>
       </div>
     </main>

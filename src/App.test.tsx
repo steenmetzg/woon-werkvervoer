@@ -58,7 +58,7 @@ describe('AC2 en AC3: vervoer kiezen', () => {
   it('toont de knoppen in de volgorde Thuis, Trein, Fiets, Auto, Vrij (AC2b)', () => {
     render(<App />)
     for (const d of screen.getAllByRole('listitem')) {
-      expect(within(d).getAllByRole('button').map((b) => b.textContent)).toEqual([
+      expect(within(within(d).getByRole('group')).getAllByRole('button').map((b) => b.textContent)).toEqual([
         'Thuis', 'Trein', 'Fiets', 'Auto', 'Vrij',
       ])
     }
@@ -337,13 +337,14 @@ describe('AC32: overzichtsknoppen onderaan', () => {
     const user = userEvent.setup()
     render(<App />)
     const bar = screen.getByRole('navigation', { name: 'Overzichten' })
-    expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['', '', '', '', ''])
+    expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['', '', '', '', '', ''])
     expect(within(bar).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
       'Overzicht thuiswerkvergoeding',
       'Overzicht treinvergoeding',
       'Overzicht fietsdagen',
       'Overzicht kilometervergoeding',
       'Overzicht vrije dagen',
+      'Overzicht uren',
     ])
     expect(within(screen.getByRole('banner')).getAllByRole('button', { name: /Overzicht|Instellingen|Informatie/ }).map((b) => b.getAttribute('aria-label'))).toEqual([
       'Informatie',
@@ -383,6 +384,7 @@ describe('AC35: informatiepagina', () => {
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
       'Wat doet WoonWerk?',
       'Een dag invullen',
+      'Uren',
       'Bladeren',
       'Overzichten',
       'Instellingen',

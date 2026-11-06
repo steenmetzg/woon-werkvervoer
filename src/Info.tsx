@@ -20,7 +20,8 @@ export default function Info({ onClose }: Props) {
         <h2>Wat doet WoonWerk?</h2>
         <p>
           Met WoonWerk houd je per werkdag bij hoe je naar je werk bent gegaan. Zo heb je altijd een overzicht bij de
-          hand voor je thuiswerkvergoeding, je reiskosten en je vrije dagen.
+          hand voor je thuiswerkvergoeding, je reiskosten en je vrije dagen. Daarnaast kun je per dag je gewerkte uren
+          per rubriek bijhouden.
         </p>
       </section>
 
@@ -33,6 +34,18 @@ export default function Info({ onClose }: Props) {
         </p>
       </section>
 
+      <section className="setting info">
+        <h2>Uren</h2>
+        <p>
+          Tik in de week op het klokje rechts naast een datum. Daar voeg je regels toe met een rubriek, het aantal uur
+          (per kwartier) en een korte omschrijving; met het x-je haal je een regel weer weg. Met de pijltjes ga je naar de
+          vorige of volgende werkdag. Bij de dag zie je daarna het totaal, bijvoorbeeld "7,5 u". Met de knop met het klokje
+          onderaan open je het overzicht van al je uren, per maand en daarbinnen per rubriek. De rubrieken (eerst NVWA en
+          ILT) maak, hernoem en verwijder je via het tandwiel, bij Uren; daar zet je de urenregistratie ook uit als je
+          hem niet gebruikt.
+        </p>
+      </section>
+
       {speechSupported() && (
         <section className="setting info">
           <h2>Inspreken</h2>
@@ -41,7 +54,9 @@ export default function Info({ onClose }: Props) {
             en trein vandaag". Je kunt ook een weekdag noemen, zoals "maandag auto"; zonder datum geldt vandaag. De dag
             krijgt dan precies wat je zei en onderaan zie je wat er is vastgelegd. Klopt het niet, tik dan in die melding op het
             knopje "Ongedaan maken"; de melding verdwijnt na een paar seconden vanzelf. Met "ga naar 1 oktober", "toon de week
-            van 1 oktober" of "laat 1 oktober zien" spring je alleen naar die week. Inspreken werkt alleen met
+            van 1 oktober" of "laat 1 oktober zien" spring je alleen naar die week. Uren spreek je in met de rubriek, het
+            aantal uur en een omschrijving, bijvoorbeeld "2 uur NVWA overleg met de inspectie" of "gisteren anderhalf uur
+            ILT rapport schrijven"; er komt dan een regel bij die dag. Inspreken werkt alleen met
             internet. Via het tandwiel kun je de microfoon uitzetten.
           </p>
         </section>

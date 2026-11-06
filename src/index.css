@@ -589,3 +589,210 @@ h1.wrap {
 .modes.single {
   grid-auto-columns: calc((100% - 24px) / 5);
 }
+
+/* ---- Urenregistratie (F32 t/m F35) ---- */
+
+/* Klokje rechts naast de datum van een dag. Klein, zodat de week niet hoger wordt; het aanraakgebied is
+   met een onzichtbare rand wel 44 pixels hoog. */
+.hours-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  height: 22px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.hours-chip::after {
+  content: '';
+  position: absolute;
+  inset: -11px -4px;
+}
+
+.hours-chip.filled {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Met zes overzichtsknoppen en de microfoon past de balk net op 360 pixels als de knoppen dichter op elkaar staan. */
+.overview-bar.crowded {
+  gap: 4px;
+}
+
+.day-nav {
+  margin-bottom: 12px;
+}
+
+.day-nav .week-label {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.hour-lines {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.hour-line {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hour-line-top {
+  display: flex;
+  gap: 8px;
+}
+
+.hour-line select,
+.hour-line input,
+.rubriek input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 10px;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+.hour-line select:first-child {
+  flex: 1;
+}
+
+.hour-line .hour-amount {
+  width: 104px;
+  flex-shrink: 0;
+}
+
+.hour-line .line-delete {
+  box-shadow: none;
+  background: transparent;
+  color: var(--muted);
+}
+
+.hour-line select:focus-visible,
+.hour-line input:focus-visible,
+.rubriek input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.hours-total {
+  margin: 16px 0 0;
+  color: var(--muted);
+}
+
+.hours-total strong {
+  color: var(--text);
+}
+
+.sub-heading {
+  margin: 16px 0 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.rubrieken {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.rubriek {
+  display: flex;
+  gap: 8px;
+}
+
+.rubriek input {
+  flex: 1;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.rubriek .icon-button {
+  color: var(--muted);
+}
+
+/* Overzicht uren (F34): per maand, daarbinnen per rubriek. */
+.hours-month {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.hours-month h2,
+.hours-group h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hours-month h2 {
+  margin: 0 0 8px;
+}
+
+.hours-group {
+  margin-bottom: 10px;
+}
+
+.hours-group h3 {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.hours-sum {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hours-month > h2 .hours-sum {
+  font-weight: 600;
+}
+
+.hours-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.hours-group li {
+  display: grid;
+  grid-template-columns: 52px 40px minmax(0, 1fr);
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hours-date {
+  color: var(--muted);
+}
+
+.hours-amount {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.hours-text {
+  overflow-wrap: anywhere;
+}
