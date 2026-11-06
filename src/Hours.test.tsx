@@ -76,6 +76,21 @@ function lines() {
   }))
 }
 
+/** Het totaal van de dag die open staat (de buurdagen staan verborgen klaar om in beeld te schuiven). */
+function dayTotal() {
+  return screen
+    .getAllByText('Totaal')
+    .map((el) => el.closest('p')!)
+    .find((p) => !p.closest('[aria-hidden="true"]'))!
+}
+
+function swipeDay(from: { x: number; y: number }, to: { x: number; y: number }) {
+  const target = screen.getByRole('main')
+  fireEvent.touchStart(target, { touches: [{ clientX: from.x, clientY: from.y }] })
+  fireEvent.touchMove(target, { touches: [{ clientX: to.x, clientY: to.y }] })
+  fireEvent.touchEnd(target, { changedTouches: [{ clientX: to.x, clientY: to.y }] })
+}
+
 async function openSettings(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
 }
@@ -204,8 +219,8 @@ describe('AC53: uren per dag', () => {
     const { unmount } = render(<App />)
     await user.click(hoursChip('dinsdag 20 oktober'))
     expect(screen.getByRole('heading', { name: 'Uren' })).toBeInTheDocument()
-    expect(screen.getByText('Dinsdag 20 oktober')).toBeInTheDocument()
-    expect(screen.getByText('Totaal').closest('p')).toHaveTextContent(/^Totaal0$/)
+    expect(screen.getByText('di 20 okt')).toBeInTheDocument()
+    expect(dayTotal()).toHaveTextContent(/^Totaal0$/)
 
     // Per rubriek een blok met een knop om een regel toe te voegen; aantal uur en omschrijving op één regel.
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['NVWA', 'ILT'])
@@ -219,7 +234,7 @@ describe('AC53: uren per dag', () => {
       { rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Overleg' },
       { rubriek: 'ILT', uren: '1 uur', omschrijving: '' },
     ])
-    expect(screen.getByText('Totaal').closest('p')).toHaveTextContent(/^Totaal3,5$/)
+    expect(dayTotal()).toHaveTextContent(/^Totaal3,5$/)
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(hoursChip('dinsdag 20 oktober')).toHaveTextContent('3,5 u')
@@ -230,7 +245,7 @@ describe('AC53: uren per dag', () => {
     expect(hoursChip('dinsdag 20 oktober')).toHaveTextContent('3,5 u')
     await user.click(hoursChip('dinsdag 20 oktober'))
     await user.click(screen.getAllByRole('button', { name: 'Regel verwijderen' })[1])
-    expect(screen.getByText('Totaal').closest('p')).toHaveTextContent(/^Totaal2,5$/)
+    expect(dayTotal()).toHaveTextContent(/^Totaal2,5$/)
   })
 
   it('gaat met de pijltjes naar de vorige en volgende werkdag en terug naar die week', async () => {
@@ -238,12 +253,31 @@ describe('AC53: uren per dag', () => {
     render(<App />)
     await user.click(hoursChip('vrijdag 23 oktober'))
     await user.click(screen.getByRole('button', { name: 'Volgende dag' }))
-    expect(screen.getByText('Maandag 26 oktober')).toBeInTheDocument()
+    expect(screen.getByText('ma 26 okt')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Vorige dag' }))
-    expect(screen.getByText('Vrijdag 23 oktober')).toBeInTheDocument()
+    expect(screen.getByText('vr 23 okt')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Volgende dag' }))
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(screen.getAllByRole('listitem')[0]).toHaveAttribute('aria-label', 'maandag 26 oktober')
+  })
+
+  it('AC59: swipet naar de volgende en vorige werkdag en gaat met Vandaag naar vandaag', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(hoursChip('vrijdag 23 oktober'))
+    const vandaag = screen.getByRole('button', { name: 'Vandaag' })
+    expect(vandaag).toBeEnabled()
+    swipeDay({ x: 300, y: 300 }, { x: 100, y: 310 })
+    expect(screen.getByText('ma 26 okt')).toBeInTheDocument()
+    swipeDay({ x: 100, y: 300 }, { x: 300, y: 290 })
+    expect(screen.getByText('vr 23 okt')).toBeInTheDocument()
+    // Te kort of vooral verticaal: de dag blijft staan.
+    swipeDay({ x: 200, y: 300 }, { x: 170, y: 300 })
+    swipeDay({ x: 200, y: 300 }, { x: 120, y: 100 })
+    expect(screen.getByText('vr 23 okt')).toBeInTheDocument()
+    await user.click(vandaag)
+    expect(screen.getByText('wo 21 okt')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Vandaag' })).toBeDisabled()
   })
 
   it('vraagt om eerst een rubriek te maken als er geen zijn', async () => {
@@ -267,15 +301,15 @@ describe('AC54: overzicht uren', () => {
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Overzicht uren' }))
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Oktober 20263,5 uur',
-      'September 20263 uur',
+      'Oktober 20263,5',
+      'September 20263',
     ])
     const october = screen.getByRole('region', { name: 'Oktober 2026' })
-    expect(within(october).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['NVWA2 uur', 'ILT1,5 uur'])
+    expect(within(october).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['NVWA2', 'ILT1,5'])
     const nvwa = within(october).getByRole('region', { name: 'NVWA in Oktober 2026' })
-    expect(within(nvwa).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 12Overleg'])
+    expect(within(nvwa).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['do 1Overleg2'])
     const september = screen.getByRole('region', { name: 'September 2026' })
-    expect(within(september).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['NVWA3 uur'])
+    expect(within(september).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['NVWA3'])
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(screen.getAllByRole('listitem')[0]).toHaveAttribute('aria-label', 'maandag 19 oktober')
@@ -355,7 +389,7 @@ describe('AC58: uren inspreken op het scherm Uren', () => {
 
     await user.click(screen.getByRole('button', { name: 'Inspreken' }))
     FakeRecognition.last!.hear('ILT een uur gisteren')
-    expect(screen.getByText('Dinsdag 20 oktober')).toBeInTheDocument()
+    expect(screen.getByText('di 20 okt')).toBeInTheDocument()
     expect(lines()).toEqual([{ rubriek: 'ILT', uren: '1 uur', omschrijving: '' }])
     await user.click(screen.getByRole('button', { name: 'Ongedaan maken' }))
     expect(lines()).toEqual([])

@@ -457,7 +457,8 @@ export default function App() {
     return (
       <DayHours
         day={hoursDay}
-        lines={hours[dateKey(hoursDay)] ?? []}
+        today={today}
+        hours={hours}
         rubrieken={rubrieken}
         onChange={(lines) => setDayHours(hoursDay, lines)}
         onChangeDay={setHoursDay}

@@ -144,7 +144,8 @@ h1 {
   display: flex;
 }
 
-.week-track > .days {
+.week-track > .days,
+.week-track > .day-page {
   flex: 0 0 100%;
   box-sizing: border-box;
   padding: 4px 16px;
@@ -643,6 +644,8 @@ h1.wrap {
 
 /* Scherm Uren: de balk met de microfoon staat onderaan, net als op het weekscherm. */
 .app.day-hours {
+  /* Verticaal scrollen doet de browser; horizontaal is voor het swipen naar een andere dag. */
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
@@ -843,7 +846,16 @@ h1.wrap {
 .hours-group h3 {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 8px;
+}
+
+/* In het overzicht staan alle aantallen rechts in één kolom, op de komma uitgelijnd (F34). De kolom
+   voor de hele uren is breder dan op het scherm Uren, want een maand kan meer dan 99 uur hebben. */
+.hours-overview .amount-cells {
+  flex-shrink: 0;
+  grid-template-columns: 32px 26px;
+  font-size: inherit;
 }
 
 .hours-month h2 {
@@ -861,14 +873,6 @@ h1.wrap {
   color: var(--accent);
 }
 
-.hours-sum {
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.hours-month > h2 .hours-sum {
-  font-weight: 600;
-}
 
 .hours-group ul {
   list-style: none;
@@ -880,18 +884,15 @@ h1.wrap {
 
 .hours-group li {
   display: grid;
-  grid-template-columns: 52px 40px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   gap: 4px;
+  align-items: baseline;
   font-variant-numeric: tabular-nums;
 }
 
 .hours-date {
   color: var(--muted);
-}
-
-.hours-amount {
-  text-align: right;
-  padding-right: 8px;
+  white-space: nowrap;
 }
 
 .hours-text {
