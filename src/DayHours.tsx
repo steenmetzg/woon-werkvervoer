@@ -30,6 +30,17 @@ function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
+/** Een aantal uur zonder "uur", in twee kolommen zodat de komma's onder elkaar staan (bijv. "2" en ",5"). */
+function Amount({ value, className }: { value: number; className: string }) {
+  const [whole, decimals] = formatHours(value).split(',')
+  return (
+    <span className={className}>
+      <span className="amount-int">{whole}</span>
+      <span className="amount-dec">{decimals ? `,${decimals}` : ''}</span>
+    </span>
+  )
+}
+
 /** De werkdag ervoor of erna (het weekend slaan we over). */
 function otherWorkday(day: Date, step: 1 | -1): Date {
   let d = addDays(day, step)
@@ -84,7 +95,7 @@ export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay,
             <section key={group.id} className="hour-group" aria-label={group.naam}>
               <div className="hour-group-head">
                 <h2>{group.naam}</h2>
-                {total > 0 && <span className="hours-sum">{formatHours(total)} uur</span>}
+                {total > 0 && <Amount value={total} className="amount-sum" />}
                 {group.known && (
                   <button
                     type="button"
@@ -111,12 +122,7 @@ export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay,
                       {/* Het getal staat zelf in beeld, op de komma uitgelijnd; de onzichtbare keuzelijst erover
                           opent bij een tik de keuzelijst van de telefoon. */}
                       <span className="hour-amount">
-                        <span className="amount-int" aria-hidden>
-                          {formatHours(line.uren).split(',')[0]}
-                        </span>
-                        <span className="amount-dec" aria-hidden>
-                          {formatHours(line.uren).includes(',') ? `,${formatHours(line.uren).split(',')[1]}` : ''}
-                        </span>
+                        <Amount value={line.uren} className="amount-cells" />
                         <select
                           aria-label="Aantal uur"
                           value={String(line.uren)}
@@ -147,8 +153,10 @@ export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay,
         })}
       </div>
 
+      {/* Het eindtotaal in dezelfde kolom als de uren van de regels. */}
       <p className="hours-total">
-        Totaal: <strong>{formatHours(sumHours(lines))} uur</strong>
+        <span>Totaal</span>
+        <Amount value={sumHours(lines)} className="amount-sum" />
       </p>
 
       {bottom && <div className="bottom">{bottom}</div>}

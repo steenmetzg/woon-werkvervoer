@@ -164,7 +164,7 @@ describe('AC53: uren per dag', () => {
     await user.click(hoursChip('dinsdag 20 oktober'))
     expect(screen.getByRole('heading', { name: 'Uren' })).toBeInTheDocument()
     expect(screen.getByText('Dinsdag 20 oktober')).toBeInTheDocument()
-    expect(screen.getByText(/Totaal:/)).toHaveTextContent('Totaal: 0 uur')
+    expect(screen.getByText('Totaal').closest('p')).toHaveTextContent(/^Totaal0$/)
 
     // Per rubriek een blok met een knop om een regel toe te voegen; aantal uur en omschrijving op één regel.
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['NVWA', 'ILT'])
@@ -173,12 +173,12 @@ describe('AC53: uren per dag', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Aantal uur' }), '2.5')
     await user.type(screen.getByRole('textbox', { name: 'Omschrijving' }), 'Overleg')
     await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij ILT' }))
-    expect(within(screen.getByRole('region', { name: 'NVWA' })).getByText('2,5 uur', { selector: '.hours-sum' })).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'NVWA' })).getByText((_, el) => el?.className === 'amount-sum' && el.textContent === '2,5')).toBeInTheDocument()
     expect(lines()).toEqual([
       { rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Overleg' },
       { rubriek: 'ILT', uren: '1 uur', omschrijving: '' },
     ])
-    expect(screen.getByText(/Totaal:/)).toHaveTextContent('Totaal: 3,5 uur')
+    expect(screen.getByText('Totaal').closest('p')).toHaveTextContent(/^Totaal3,5$/)
 
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(hoursChip('dinsdag 20 oktober')).toHaveTextContent('3,5 u')
@@ -189,7 +189,7 @@ describe('AC53: uren per dag', () => {
     expect(hoursChip('dinsdag 20 oktober')).toHaveTextContent('3,5 u')
     await user.click(hoursChip('dinsdag 20 oktober'))
     await user.click(screen.getAllByRole('button', { name: 'Regel verwijderen' })[1])
-    expect(screen.getByText(/Totaal:/)).toHaveTextContent('Totaal: 2,5 uur')
+    expect(screen.getByText('Totaal').closest('p')).toHaveTextContent(/^Totaal2,5$/)
   })
 
   it('gaat met de pijltjes naar de vorige en volgende werkdag en terug naar die week', async () => {

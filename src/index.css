@@ -671,7 +671,7 @@ h1.wrap {
 .hour-group-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   min-height: 48px;
 }
 
@@ -682,6 +682,9 @@ h1.wrap {
 }
 
 .hour-group-head .add-line {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   box-shadow: none;
   background: var(--accent-soft);
   color: var(--accent);
@@ -729,13 +732,28 @@ h1.wrap {
   position: relative;
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: 2ch 3ch;
   align-items: center;
   min-height: 34px;
   padding: 0 6px;
   border-radius: 8px;
   background: var(--bg);
   font-variant-numeric: tabular-nums;
+}
+
+/* De uren van de regels, de totalen per rubriek en het eindtotaal staan in één kolom, op de komma uitgelijnd. */
+.amount-cells,
+.amount-sum {
+  display: grid;
+  /* Vaste breedtes (niet in ch), zodat vette en gewone cijfers precies in dezelfde kolom vallen. */
+  grid-template-columns: 18px 26px;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.amount-sum {
+  flex-shrink: 0;
+  padding: 0 6px;
+  font-weight: 600;
 }
 
 .amount-int {
@@ -757,7 +775,7 @@ h1.wrap {
 }
 
 .hour-line .line-delete {
-  width: 30px;
+  width: 36px;
   height: 34px;
   box-shadow: none;
   background: transparent;
@@ -771,12 +789,18 @@ h1.wrap {
 }
 
 .hours-total {
-  margin: 16px 0 0;
-  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* Even ver van de rand als de regels in de witte vlakken, met rechts de ruimte van de knoppen. */
+  margin: 12px 0 0;
+  padding: 0 50px 0 10px;
+  font-size: 0.875rem;
 }
 
-.hours-total strong {
-  color: var(--text);
+.hours-total > span:first-child {
+  flex: 1;
+  color: var(--muted);
 }
 
 .sub-heading {
