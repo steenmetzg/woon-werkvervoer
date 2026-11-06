@@ -897,3 +897,8 @@ h1.wrap {
 .hours-text {
   overflow-wrap: anywhere;
 }
+
+/* Het totaal van een rubriek in de accentkleur, net als de naam van de rubriek. */
+.hour-group-head .amount-sum {
+  color: var(--accent);
+}
