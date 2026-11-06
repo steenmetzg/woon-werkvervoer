@@ -4,6 +4,7 @@ import Amount from './Amount'
 import MicPlus from './MicPlus'
 import { addDays, dateKey, shortLabel } from './dates'
 import {
+  DEFAULT_OMSCHRIJVING,
   hoursText,
   MAX_OMSCHRIJVING,
   MAX_UREN_PER_REGEL,
@@ -155,7 +156,6 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
               <section key={group.id} className="hour-group" aria-label={group.naam}>
                 <div className="hour-group-head">
                   <h2>{group.naam}</h2>
-                  {total > 0 && <Amount value={total} className="amount-sum" />}
                   {group.known && speakLine && (
                     <button
                       type="button"
@@ -174,7 +174,7 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
                       type="button"
                       className="icon-button add-line"
                       aria-label={`Regel toevoegen bij ${group.naam}`}
-                      onClick={() => onChange([...lines, { rubriek: group.id, uren: 1, omschrijving: '' }])}
+                      onClick={() => onChange([...lines, { rubriek: group.id, uren: 1, omschrijving: DEFAULT_OMSCHRIJVING }])}
                     >
                       <ClockPlus size={20} strokeWidth={1.75} aria-hidden />
                     </button>
@@ -220,6 +220,12 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
                       </li>
                     ))}
                   </ul>
+                )}
+                {/* Het totaal van de rubriek onder de regels, in dezelfde kolom als de uren (F33). */}
+                {total > 0 && (
+                  <p className="hour-group-total">
+                    <Amount value={total} className="amount-sum" />
+                  </p>
                 )}
               </section>
             )

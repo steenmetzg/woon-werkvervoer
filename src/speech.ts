@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { addDays, longLabel, mondayOf, weekLabel } from './dates'
-import { hoursText, MAX_OMSCHRIJVING, roundQuarter, type HourLine, type Rubriek } from './hours'
+import { DEFAULT_OMSCHRIJVING, hoursText, MAX_OMSCHRIJVING, roundQuarter, type HourLine, type Rubriek } from './hours'
 import { MODE_INFO } from './modeInfo'
 import { MODES, type Mode } from './storage'
 
@@ -228,7 +228,7 @@ function parseHoursCommand(
   if (day.getDay() === 0 || day.getDay() === 6) return { ok: false, error: `${capitalize(longLabel(day))} is geen werkdag.` }
 
   // De omschrijving is wat overblijft als de rubriek, het aantal uur en de datum eruit zijn.
-  const omschrijving = description(text, cased, [duration, rubriek, match])
+  const omschrijving = description(text, cased, [duration, rubriek, match]) || DEFAULT_OMSCHRIJVING
   return { ok: true, hours: { rubriek: rubriek.rubriek.id, uren, omschrijving }, date: day }
 }
 
@@ -272,7 +272,7 @@ export function parseHoursLine(
   if (!duration) return { ok: false, error: `Ik hoorde "${spoken}", maar geen aantal uur. Zeg bijvoorbeeld "2 uur overleg".` }
   return {
     ok: true,
-    line: { rubriek, uren: roundQuarter(duration.uren), omschrijving: description(text, cased, [duration]) },
+    line: { rubriek, uren: roundQuarter(duration.uren), omschrijving: description(text, cased, [duration]) || DEFAULT_OMSCHRIJVING },
   }
 }
 

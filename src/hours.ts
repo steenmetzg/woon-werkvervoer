@@ -26,6 +26,9 @@ export const MAX_UREN_PER_REGEL = 12
 /** Waarmee je begint: één rubriek die je zelf een naam geeft (vanaf WoonWerk 1.17.1). */
 export const DEFAULT_RUBRIEKEN: Rubriek[] = [{ id: 'r1', naam: 'Mijn 1e rubriek' }]
 
+/** De omschrijving van een nieuwe regel als je zelf niets invult of inspreekt (vanaf WoonWerk 1.20.1). */
+export const DEFAULT_OMSCHRIJVING = 'Diversen'
+
 export const HOURS_KEY = 'uren-registraties'
 export const RUBRIEKEN_KEY = 'uren-rubrieken'
 export const HOURS_ENABLED_KEY = 'uren-aan'
