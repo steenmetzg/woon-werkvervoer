@@ -5,7 +5,7 @@ interface Props {
   onClose: () => void
 }
 
-/** Informatiepagina met uitleg over de werking van de app. */
+/** Informatiepagina met een korte uitleg van wat je met de app kunt. */
 export default function Info({ onClose }: Props) {
   return (
     <main className="app">
@@ -19,32 +19,25 @@ export default function Info({ onClose }: Props) {
       <section className="setting info">
         <h2>Wat doet WoonWerk?</h2>
         <p>
-          Met WoonWerk houd je per werkdag bij hoe je naar je werk bent gegaan. Zo heb je altijd een overzicht bij de
-          hand voor je thuiswerkvergoeding, je reiskosten en je vrije dagen. Daarnaast kun je per dag je gewerkte uren
-          per rubriek bijhouden.
+          Met WoonWerk houd je per werkdag bij hoe je naar je werk bent gegaan, en desgewenst hoeveel uur je hebt
+          gewerkt. Zo heb je altijd een overzicht bij de hand voor je thuiswerkvergoeding, reiskosten, vrije dagen en
+          urenregistratie.
         </p>
       </section>
 
       <section className="setting info">
-        <h2>Een dag invullen</h2>
+        <h2>Vervoer of thuiswerken registreren</h2>
         <p>
-          Tik bij een dag op Thuis, Trein, Fiets, Auto of Vrij. Trein, Fiets en Auto kun je combineren, bijvoorbeeld
-          met de fiets naar het station en dan de trein. Thuis en Vrij gaan niet samen met iets anders. Tik nog eens op
-          een gekozen knop om hem te wissen.
+          Kies per dag Thuis, Trein, Fiets, Auto of Vrij. Trein, Fiets en Auto kun je combineren; Thuis en Vrij staan
+          altijd alleen.
         </p>
       </section>
 
       <section className="setting info">
-        <h2>Uren</h2>
+        <h2>Uren bijhouden</h2>
         <p>
-          Tik in de week op het klokje rechts naast een datum. Je ziet dan een blok per rubriek. Met het klokje met
-          plusje voeg je in dat blok een regel toe met het aantal uur (per kwartier) en een korte omschrijving; met het
-          x-je haal je een regel weer weg. Met de microfoon met plusje bij een rubriek spreek je een regel in voor die rubriek en deze dag: zeg alleen het aantal uur en de omschrijving, bijvoorbeeld "2 uur overleg". Met de pijltjes of door te
-          swipen ga je naar de vorige of volgende werkdag, met "Vandaag" naar vandaag. Bij de dag zie je daarna het totaal, bijvoorbeeld "7,5 u". Met de knop met het klokje
-          onderaan open je het overzicht van al je uren, per maand en daarbinnen per rubriek. De rubrieken (eerst alleen
-          "Mijn 1e rubriek") maak, hernoem en verwijder je via het tandwiel, bij Uren; verwijder je een rubriek met uren,
-          dan gaan na een bevestiging ook die uren weg; daar zet je de urenregistratie ook uit als je
-          hem niet gebruikt.
+          Per dag kun je je uren per rubriek vastleggen, met een korte omschrijving. Ga naar een werkdag en registreer
+          een nieuwe regel in een rubriek. Je rubrieken beheer je zelf bij de instellingen.
         </p>
       </section>
 
@@ -52,14 +45,9 @@ export default function Info({ onClose }: Props) {
         <section className="setting info">
           <h2>Inspreken</h2>
           <p>
-            Tik op de blauwe microfoon linksonder en zeg bijvoorbeeld "fiets op 1 oktober", "gisteren thuis" of "fiets
-            en trein vandaag". Je kunt ook een weekdag noemen, zoals "maandag auto"; zonder datum geldt vandaag. De dag
-            krijgt dan precies wat je zei en onderaan zie je wat er is vastgelegd. Klopt het niet, tik dan in die melding op het
-            blauwe knopje met de pijl terug (ongedaan maken); de melding verdwijnt na een paar seconden vanzelf. Met "ga naar 1 oktober", "toon de week
-            van 1 oktober" of "laat 1 oktober zien" spring je alleen naar die week. Uren spreek je in met de rubriek, het
-            aantal uur en een omschrijving, bijvoorbeeld "2 uur NVWA overleg met de inspectie" of "gisteren anderhalf uur
-            ILT rapport schrijven" (als je rubrieken NVWA en ILT heten); er komt dan een regel bij die dag. Op het scherm Uren gebruik je de microfoon met plusje bij de rubriek. Inspreken werkt alleen met
-            internet. Via het tandwiel kun je de microfoon uitzetten.
+            Je kunt een dag ook inspreken, bijvoorbeeld "fiets op 1 oktober", "gisteren thuis" of "2 uur overleg". Met
+            "ga naar 1 oktober" spring je naar die week. Is er iets verkeerd vastgelegd, dan maak je het meteen
+            ongedaan. Inspreken werkt alleen met internet.
           </p>
         </section>
       )}
@@ -67,48 +55,41 @@ export default function Info({ onClose }: Props) {
       <section className="setting info">
         <h2>Bladeren</h2>
         <p>
-          Swipe naar links of rechts, of gebruik de pijltjes, om naar een andere week te gaan. Met "Deze week" ben je
-          meteen terug. De dag van vandaag is blauw gemarkeerd.
+          Je bladert door de weken door te swipen of met de pijltjes, en bent met één tik terug in deze week. Vandaag
+          is blauw gemarkeerd.
         </p>
       </section>
 
       <section className="setting info">
         <h2>Overzichten</h2>
         <p>
-          Met de blauwe knoppen onderaan open je per keuze een overzicht, met elke maand in een eigen kolom. Een
-          euroteken betekent dat het om een vergoeding gaat (thuiswerk, trein en auto), een vinkje is een gewoon
-          overzicht (fietsdagen en vrije dagen). Bij de vergoedingen vul je de datum van je laatste declaratie in; het
-          overzicht begint dan op de werkdag erna en loopt maximaal 3 maanden door. Met het x-je naast die datum maak
-          je hem weer leeg. Zonder declaratiedatum, en bij
-          fietsdagen en vrije dagen, zie je de laatste 3 maanden. Met het kalendertje kun je de vanaf- en tot-datum
-          altijd zelf aanpassen. Is je laatste declaratie bijna 3 maanden geleden (een week ervoor), dan
-          staat onderaan het weekscherm een herinnering om tijdig te declareren. Tik erop om het overzicht te openen; de
-          herinnering verdwijnt als je de datum van je laatste declaratie aanpast of leegmaakt.
+          Je kan verschillende overzichten per maand zien. Bij thuiswerk, trein en auto (de vergoedingen) hou je in de
+          app bij tot wanneer je hebt gedeclareerd en laat het overzicht zien wat daarna nog open staat. Je krijgt
+          vanzelf een herinnering als het tijd is om weer te declareren. Het urenoverzicht toont al je uren per maand
+          en per rubriek.
         </p>
       </section>
 
       <section className="setting info">
         <h2>Instellingen</h2>
         <p>
-          Via het tandwiel zet je vervoervormen die je niet gebruikt uit. Ze verdwijnen dan uit de app, maar dagen die
-          je al hebt ingevuld blijven bewaard.
+          Stel hier je gebruikte vervoervormen in en of je ook uren wilt registreren. Wat je al had ingevuld blijft
+          bewaard. Wil je niet inspreken, zet dit dan uit.
         </p>
       </section>
 
       <section className="setting info">
         <h2>Je gegevens en backups</h2>
         <p>
-          Alles wat je invult staat alleen op deze telefoon, niet op internet. Wis je de gegevens van Chrome of van de
-          app, dan ben je alles kwijt. Maak daarom regelmatig een backup via het tandwiel en bewaar die in een eigen map.
-          Met "Backup inlezen" zet je een backup terug; die vervangt dan alles wat er nu staat.
+          Alles wat je invult staat <strong>alleen</strong> op deze telefoon. Maak daarom regelmatig een backup;
+          daarmee zet je je gegevens later terug. Bijvoorbeeld als je een andere telefoon gaat gebruiken.
         </p>
       </section>
 
       <section className="setting info">
         <h2>Zonder internet</h2>
         <p>
-          Na de eerste keer openen werkt de app ook zonder internet. Een nieuwe versie wordt vanzelf op de achtergrond
-          opgehaald en is actief de volgende keer dat je de app opent.
+          De app werkt ook zonder internet en houdt zichzelf vanzelf up-to-date.
         </p>
       </section>
     </main>
