@@ -100,19 +100,6 @@ export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay,
                 <ul>
                   {own.map(({ line, index }) => (
                     <li key={index} className="hour-line">
-                      <select
-                        aria-label="Aantal uur"
-                        className="hour-amount"
-                        value={String(line.uren)}
-                        onChange={(e) => update(index, { uren: Number(e.target.value) })}
-                      >
-                        {/* Een ingesproken regel kan meer dan 12 uur hebben; die waarde moet er dan ook bij staan. */}
-                        {(UREN_KEUZES.includes(line.uren) ? UREN_KEUZES : [...UREN_KEUZES, line.uren]).map((value) => (
-                          <option key={value} value={String(value)}>
-                            {hoursText(value)}
-                          </option>
-                        ))}
-                      </select>
                       <input
                         type="text"
                         aria-label="Omschrijving"
@@ -121,13 +108,35 @@ export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay,
                         value={line.omschrijving}
                         onChange={(e) => update(index, { omschrijving: e.target.value })}
                       />
+                      {/* Het getal staat zelf in beeld, op de komma uitgelijnd; de onzichtbare keuzelijst erover
+                          opent bij een tik de keuzelijst van de telefoon. */}
+                      <span className="hour-amount">
+                        <span className="amount-int" aria-hidden>
+                          {formatHours(line.uren).split(',')[0]}
+                        </span>
+                        <span className="amount-dec" aria-hidden>
+                          {formatHours(line.uren).includes(',') ? `,${formatHours(line.uren).split(',')[1]}` : ''}
+                        </span>
+                        <select
+                          aria-label="Aantal uur"
+                          value={String(line.uren)}
+                          onChange={(e) => update(index, { uren: Number(e.target.value) })}
+                        >
+                          {/* Een ingesproken regel kan meer dan 12 uur hebben; die waarde moet er dan ook bij staan. */}
+                          {(UREN_KEUZES.includes(line.uren) ? UREN_KEUZES : [...UREN_KEUZES, line.uren]).map((value) => (
+                            <option key={value} value={String(value)}>
+                              {hoursText(value)}
+                            </option>
+                          ))}
+                        </select>
+                      </span>
                       <button
                         type="button"
                         className="icon-button line-delete"
                         aria-label="Regel verwijderen"
                         onClick={() => onChange(lines.filter((_, i) => i !== index))}
                       >
-                        <X size={18} strokeWidth={1.75} aria-hidden />
+                        <X size={16} strokeWidth={1.75} aria-hidden />
                       </button>
                     </li>
                   ))}

@@ -684,21 +684,21 @@ h1.wrap {
 
 .hour-group ul {
   list-style: none;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
+  gap: 4px;
 }
 
-/* Aantal uur en omschrijving op één regel. */
+/* Omschrijving en aantal uur op één compacte regel, iets kleiner dan de naam van de rubriek. */
 .hour-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  font-size: 0.875rem;
 }
 
-.hour-line select,
 .hour-line input,
 .rubriek input {
   min-width: 0;
@@ -711,25 +711,54 @@ h1.wrap {
   border-radius: 10px;
 }
 
-.hour-line .hour-amount {
-  width: 104px;
-  flex-shrink: 0;
-  padding: 0 6px;
-}
-
 .hour-line input {
   flex: 1;
   width: 0;
+  min-height: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+}
+
+/* Het aantal uur rechts, op de komma uitgelijnd: hele uren rechts in de eerste kolom, ",25" enz. erachter. */
+.hour-amount {
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 2ch 3ch;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--bg);
+  font-variant-numeric: tabular-nums;
+}
+
+.amount-int {
+  text-align: right;
+}
+
+/* De keuzelijst ligt onzichtbaar over het getal; een tik opent de keuzelijst van de telefoon. */
+.hour-amount select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font: inherit;
+}
+
+.hour-amount:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .hour-line .line-delete {
-  width: 36px;
+  width: 30px;
+  height: 34px;
   box-shadow: none;
   background: transparent;
   color: var(--muted);
 }
 
-.hour-line select:focus-visible,
 .hour-line input:focus-visible,
 .rubriek input:focus-visible {
   outline: 2px solid var(--accent);
