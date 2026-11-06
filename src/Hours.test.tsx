@@ -5,7 +5,7 @@ import App from './App'
 import { createBackup, parseBackup } from './backup'
 import { mondayOf } from './dates'
 import { HOURS_KEY, RUBRIEKEN_KEY, type Rubriek } from './hours'
-import { parseVoiceCommand } from './speech'
+import { parseHoursLine, parseVoiceCommand } from './speech'
 import { MODES } from './storage'
 
 /** Bevestigt de vraag "Backup inlezen?" met de knop Inlezen. */
@@ -376,27 +376,48 @@ describe('AC55: uren inspreken', () => {
   })
 })
 
-describe('AC58: uren inspreken op het scherm Uren', () => {
-  it('legt de regel vast op de dag die open staat, of op de genoemde dag', async () => {
+describe('AC58: regel inspreken bij een rubriek', () => {
+  it('legt alleen uren en omschrijving vast bij die rubriek op de dag die open staat', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(hoursChip('maandag 19 oktober'))
-    await user.click(screen.getByRole('button', { name: 'Inspreken' }))
-    expect(screen.getByText(/Luisteren/).closest('section')).toHaveTextContent('"2 uur NVWA overleg"')
-    FakeRecognition.last!.hear('2 uur NVWA overleg')
-    expect(screen.getByRole('status')).toHaveTextContent('2 uur NVWA vastgelegd op maandag 19 oktober: Overleg.')
-    expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '2 uur', omschrijving: 'Overleg' }])
+    expect(screen.queryByRole('button', { name: 'Inspreken' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Inspreken' }))
-    FakeRecognition.last!.hear('ILT een uur gisteren')
-    expect(screen.getByText('di 20 okt')).toBeInTheDocument()
-    expect(lines()).toEqual([{ rubriek: 'ILT', uren: '1 uur', omschrijving: '' }])
+    await user.click(screen.getByRole('button', { name: 'Regel inspreken bij NVWA' }))
+    expect(screen.getByRole('button', { name: 'Stoppen met luisteren' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText(/Luisteren voor NVWA/).closest('section')).toHaveTextContent('"2 uur overleg"')
+    FakeRecognition.last!.hear('2 uur overleg met de inspectie')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '2 uur NVWA vastgelegd op maandag 19 oktober: Overleg met de inspectie.',
+    )
+    expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '2 uur', omschrijving: 'Overleg met de inspectie' }])
+
+    await user.click(screen.getByRole('button', { name: 'Regel inspreken bij ILT' }))
+    FakeRecognition.last!.hear('een kwartier mail')
+    expect(screen.getByText('ma 19 okt')).toBeInTheDocument()
+    expect(lines()).toEqual([
+      { rubriek: 'NVWA', uren: '2 uur', omschrijving: 'Overleg met de inspectie' },
+      { rubriek: 'ILT', uren: '0,25 uur', omschrijving: 'Mail' },
+    ])
     await user.click(screen.getByRole('button', { name: 'Ongedaan maken' }))
-    expect(lines()).toEqual([])
+    expect(lines()).toHaveLength(1)
 
-    await user.click(screen.getByRole('button', { name: 'Inspreken' }))
+    await user.click(screen.getByRole('button', { name: 'Regel inspreken bij ILT' }))
     FakeRecognition.last!.hear('fiets vandaag')
-    expect(screen.getByRole('status')).toHaveTextContent('Hier spreek je uren in, bijvoorbeeld "2 uur NVWA overleg".')
+    expect(screen.getByRole('status')).toHaveTextContent('Ik hoorde "fiets vandaag", maar geen aantal uur.')
+    expect(lines()).toHaveLength(1)
+  })
+
+  it('begrijpt aantal uur en omschrijving zonder rubriek', () => {
+    expect(parseHoursLine('anderhalf uur rapport schrijven', 'i1')).toEqual({
+      ok: true,
+      line: { rubriek: 'i1', uren: 1.5, omschrijving: 'Rapport schrijven' },
+    })
+    expect(parseHoursLine('overleg 45 minuten', 'n1')).toEqual({
+      ok: true,
+      line: { rubriek: 'n1', uren: 0.75, omschrijving: 'Overleg' },
+    })
+    expect(parseHoursLine('overleg', 'n1').ok).toBe(false)
   })
 })
 
