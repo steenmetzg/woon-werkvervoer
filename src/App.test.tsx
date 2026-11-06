@@ -383,8 +383,8 @@ describe('AC35: informatiepagina', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Over WoonWerk' })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
       'Wat doet WoonWerk?',
-      'Een dag invullen',
-      'Uren',
+      'Vervoer of thuiswerken registreren',
+      'Uren bijhouden',
       'Bladeren',
       'Overzichten',
       'Instellingen',
