@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react'
 import { ArrowLeft, ChevronLeft, ChevronRight, Clock, ClockPlus, X } from 'lucide-react'
 import Amount from './Amount'
-import { addDays, dateKey, longLabel } from './dates'
+import { addDays, dateKey, shortLabel } from './dates'
 import {
   hoursText,
   MAX_OMSCHRIJVING,
@@ -29,10 +29,6 @@ interface Props {
 
 // Keuzes voor het aantal uur: 0,25 tot en met 12, per kwartier.
 const UREN_KEUZES = Array.from({ length: MAX_UREN_PER_REGEL * 4 }, (_, i) => (i + 1) / 4)
-
-function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1)
-}
 
 /** De werkdag ervoor of erna (het weekend slaan we over). */
 function otherWorkday(day: Date, step: 1 | -1): Date {
@@ -243,7 +239,7 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
         <button type="button" className="icon-button" aria-label="Vorige dag" onClick={() => goToDay(otherWorkday(shownDay, -1))}>
           <ChevronLeft size={20} strokeWidth={1.75} aria-hidden />
         </button>
-        <span className="week-label">{capitalize(longLabel(shownDay))}</span>
+        <span className="week-label">{shortLabel(shownDay)}</span>
         <button type="button" className="icon-button" aria-label="Volgende dag" onClick={() => goToDay(otherWorkday(shownDay, 1))}>
           <ChevronRight size={20} strokeWidth={1.75} aria-hidden />
         </button>
