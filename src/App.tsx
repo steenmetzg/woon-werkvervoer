@@ -16,6 +16,7 @@ import {
   type HourLine,
   type Hours,
   type Rubriek,
+  withoutRubriek,
 } from './hours'
 import HoursOverview from './HoursOverview'
 import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
@@ -98,6 +99,8 @@ export default function App() {
   } | null>(null)
   const speech = useSpeech(handleHeard, (text) => setVoiceMessage({ kind: 'error', text }))
   const showMic = speechEnabled && speechSupported()
+  // Voorbeeldzin voor uren inspreken, met de naam van de eerste rubriek.
+  const hoursExample = `"2 uur ${rubrieken[0]?.naam ?? 'rubriek'} overleg"`
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -314,7 +317,7 @@ export default function App() {
       return
     }
     if (onDayScreen && !('hours' in command)) {
-      setVoiceMessage({ kind: 'error', text: 'Hier spreek je uren in, bijvoorbeeld "2 uur NVWA overleg".' })
+      setVoiceMessage({ kind: 'error', text: `Hier spreek je uren in, bijvoorbeeld ${hoursExample}.` })
       return
     }
     // Alleen naar een week gaan (F31), er verandert niets aan de keuzes.
@@ -376,7 +379,7 @@ export default function App() {
       {showMic && speech.listening && (
         <section className="voice" aria-live="polite">
           <p>
-            <strong>Luisteren…</strong> Zeg bijvoorbeeld: {screen === 'dag' ? '"2 uur NVWA overleg".' : '"fiets op 1 oktober".'}
+            <strong>Luisteren…</strong> Zeg bijvoorbeeld: {screen === 'dag' ? `${hoursExample}.` : '"fiets op 1 oktober".'}
           </p>
         </section>
       )}
@@ -423,6 +426,10 @@ export default function App() {
         hours={hours}
         rubrieken={rubrieken}
         onChangeRubrieken={setRubrieken}
+        onDeleteRubriek={(id) => {
+          setRubrieken((prev) => prev.filter((r) => r.id !== id))
+          setHours((prev) => withoutRubriek(prev, id))
+        }}
         onRestore={(restored, restoredDeclared, restoredHours) => {
           setRegistrations(restored)
           // Een backup van voor WoonWerk 1.10 heeft geen gedeclareerde dagen; dan blijven de huidige staan.
