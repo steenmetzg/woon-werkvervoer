@@ -39,7 +39,7 @@ export default function Info({ onClose }: Props) {
         <p>
           Tik in de week op het klokje rechts naast een datum. Je ziet dan een blok per rubriek. Met het klokje met
           plusje voeg je in dat blok een regel toe met het aantal uur (per kwartier) en een korte omschrijving; met het
-          x-je haal je een regel weer weg. Met de microfoon onderaan kun je hier ook uren inspreken voor deze dag. Met de pijltjes of door te
+          x-je haal je een regel weer weg. Met de microfoon met plusje bij een rubriek spreek je een regel in voor die rubriek en deze dag: zeg alleen het aantal uur en de omschrijving, bijvoorbeeld "2 uur overleg". Met de pijltjes of door te
           swipen ga je naar de vorige of volgende werkdag, met "Vandaag" naar vandaag. Bij de dag zie je daarna het totaal, bijvoorbeeld "7,5 u". Met de knop met het klokje
           onderaan open je het overzicht van al je uren, per maand en daarbinnen per rubriek. De rubrieken (eerst alleen
           "Mijn 1e rubriek") maak, hernoem en verwijder je via het tandwiel, bij Uren; verwijder je een rubriek met uren,
@@ -58,7 +58,7 @@ export default function Info({ onClose }: Props) {
             blauwe knopje met de pijl terug (ongedaan maken); de melding verdwijnt na een paar seconden vanzelf. Met "ga naar 1 oktober", "toon de week
             van 1 oktober" of "laat 1 oktober zien" spring je alleen naar die week. Uren spreek je in met de rubriek, het
             aantal uur en een omschrijving, bijvoorbeeld "2 uur NVWA overleg met de inspectie" of "gisteren anderhalf uur
-            ILT rapport schrijven" (als je rubrieken NVWA en ILT heten); er komt dan een regel bij die dag. Inspreken werkt alleen met
+            ILT rapport schrijven" (als je rubrieken NVWA en ILT heten); er komt dan een regel bij die dag. Op het scherm Uren gebruik je de microfoon met plusje bij de rubriek. Inspreken werkt alleen met
             internet. Via het tandwiel kun je de microfoon uitzetten.
           </p>
         </section>

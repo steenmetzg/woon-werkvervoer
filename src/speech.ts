@@ -228,10 +228,20 @@ function parseHoursCommand(
   if (day.getDay() === 0 || day.getDay() === 6) return { ok: false, error: `${capitalize(longLabel(day))} is geen werkdag.` }
 
   // De omschrijving is wat overblijft als de rubriek, het aantal uur en de datum eruit zijn.
+  const omschrijving = description(text, cased, [duration, rubriek, match])
+  return { ok: true, hours: { rubriek: rubriek.rubriek.id, uren, omschrijving }, date: day }
+}
+
+/** Wat er van de zin overblijft zonder de herkende delen, met een hoofdletter en zonder losse vulwoordjes. */
+function description(
+  text: string,
+  cased: string,
+  parts: readonly ({ start: number; count: number } | null | undefined)[],
+): string {
   const words = text.split(' ')
   const casedWords = cased.split(' ')
   const used = new Set<number>()
-  for (const part of [duration, rubriek, match]) {
+  for (const part of parts) {
     if (!part) continue
     for (let i = part.start; i < part.start + part.count; i++) used.add(i)
     // "op 1 oktober", "op de 1e": die woordjes ervoor horen bij de datum.
@@ -240,13 +250,30 @@ function parseHoursCommand(
   let rest = words.map((_, i) => (used.has(i) ? null : i)).filter((i): i is number => i !== null)
   while (rest.length > 0 && VULWOORDEN.has(words[rest[0]])) rest = rest.slice(1)
   while (rest.length > 0 && VULWOORDEN.has(words[rest[rest.length - 1]])) rest = rest.slice(0, -1)
-  const omschrijving = capitalize(
+  return capitalize(
     rest
       .map((i) => casedWords[i] ?? words[i])
       .join(' ')
       .replace(/(\d)_(\d)/g, '$1,$2'),
   ).slice(0, MAX_OMSCHRIJVING)
-  return { ok: true, hours: { rubriek: rubriek.rubriek.id, uren, omschrijving }, date: day }
+}
+
+/**
+ * Eén regel voor een vaste rubriek (de microfoon-met-plusje bij een rubriek op het scherm Uren, F36): alleen
+ * het aantal uur en de omschrijving, bijvoorbeeld "2 uur overleg met de inspectie". Rubriek en dag liggen vast.
+ */
+export function parseHoursLine(
+  spoken: string,
+  rubriek: string,
+): { ok: true; line: HourLine } | { ok: false; error: string } {
+  const cased = normalizeSpoken(spoken)
+  const text = cased.toLowerCase()
+  const duration = findDuration(text)
+  if (!duration) return { ok: false, error: `Ik hoorde "${spoken}", maar geen aantal uur. Zeg bijvoorbeeld "2 uur overleg".` }
+  return {
+    ok: true,
+    line: { rubriek, uren: roundQuarter(duration.uren), omschrijving: description(text, cased, [duration]) },
+  }
 }
 
 function joinLabels(modes: Mode[]): string {

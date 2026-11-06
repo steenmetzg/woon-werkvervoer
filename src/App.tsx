@@ -31,6 +31,7 @@ import {
   gotoConfirmation,
   hoursConfirmation,
   loadSpeechEnabled,
+  parseHoursLine,
   parseVoiceCommand,
   saveSpeechEnabled,
   speechSupported,
@@ -97,10 +98,10 @@ export default function App() {
     text: string
     undo?: () => void
   } | null>(null)
+  // De rubriek waarvoor op het scherm Uren wordt ingesproken (F36).
+  const [voiceRubriek, setVoiceRubriek] = useState<string | null>(null)
   const speech = useSpeech(handleHeard, (text) => setVoiceMessage({ kind: 'error', text }))
   const showMic = speechEnabled && speechSupported()
-  // Voorbeeldzin voor uren inspreken, met de naam van de eerste rubriek.
-  const hoursExample = `"2 uur ${rubrieken[0]?.naam ?? 'rubriek'} overleg"`
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -304,20 +305,32 @@ export default function App() {
 
   // De spraakherkenning geeft soms een paar mogelijke zinnen; de eerste die klopt, telt.
   function handleHeard(alternatives: string[]) {
-    // Op het scherm Uren geldt zonder datum de dag die open staat, en zijn alleen uren mogelijk (F35).
-    const onDayScreen = screen === 'dag'
-    const results = alternatives.map((text) =>
-      onDayScreen
-        ? parseVoiceCommand(text, new Date(), mondayOf(hoursDay), enabledModes, rubrieken, hoursDay)
-        : parseVoiceCommand(text, new Date(), shownMonday, enabledModes, hoursEnabled ? rubrieken : null),
-    )
-    const command = (onDayScreen ? results.find((r) => r.ok && 'hours' in r) : undefined) ?? results.find((r) => r.ok) ?? results[0]
-    if (!command.ok) {
-      setVoiceMessage({ kind: 'error', text: command.error })
+    // Op het scherm Uren spreek je per rubriek één regel in: alleen uren en omschrijving (F36).
+    if (screen === 'dag') {
+      if (!voiceRubriek) return
+      const results = alternatives.map((text) => parseHoursLine(text, voiceRubriek))
+      const result = results.find((r) => r.ok) ?? results[0]
+      if (!result.ok) {
+        setVoiceMessage({ kind: 'error', text: result.error })
+        return
+      }
+      const key = dateKey(hoursDay)
+      const before = hours[key]
+      const day = hoursDay
+      setDayHours(day, [...(before ?? []), result.line])
+      setVoiceMessage({
+        kind: 'ok',
+        text: hoursConfirmation(result.line, rubriekNaam(rubrieken, result.line.rubriek), day),
+        undo: () => setDayHours(day, before),
+      })
       return
     }
-    if (onDayScreen && !('hours' in command)) {
-      setVoiceMessage({ kind: 'error', text: `Hier spreek je uren in, bijvoorbeeld ${hoursExample}.` })
+    const results = alternatives.map((text) =>
+      parseVoiceCommand(text, new Date(), shownMonday, enabledModes, hoursEnabled ? rubrieken : null),
+    )
+    const command = results.find((r) => r.ok) ?? results[0]
+    if (!command.ok) {
+      setVoiceMessage({ kind: 'error', text: command.error })
       return
     }
     // Alleen naar een week gaan (F31), er verandert niets aan de keuzes.
@@ -351,10 +364,6 @@ export default function App() {
           }),
       })
     }
-    if (onDayScreen) {
-      setHoursDay(command.date)
-      return
-    }
     const week = mondayOf(command.date)
     if (week.getTime() !== shownMonday.getTime()) goToWeek(week)
   }
@@ -373,13 +382,32 @@ export default function App() {
     speech.start()
   }
 
+  // Microfoon met plusje bij een rubriek op het scherm Uren (F36).
+  function toggleListeningFor(rubriek: string) {
+    if (speech.listening) {
+      speech.stop()
+      if (voiceRubriek === rubriek) return
+    }
+    setVoiceRubriek(rubriek)
+    setVoiceMessage(null)
+    speech.start()
+  }
+
   // Meldingen en microfoonknop van de spraakbediening, op het weekscherm en op het scherm Uren.
   const voiceMessages = (
     <>
       {showMic && speech.listening && (
         <section className="voice" aria-live="polite">
           <p>
-            <strong>Luisteren…</strong> Zeg bijvoorbeeld: {screen === 'dag' ? `${hoursExample}.` : '"fiets op 1 oktober".'}
+            {screen === 'dag' ? (
+              <>
+                <strong>Luisteren voor {rubriekNaam(rubrieken, voiceRubriek ?? '')}…</strong> Zeg bijvoorbeeld: "2 uur overleg".
+              </>
+            ) : (
+              <>
+                <strong>Luisteren…</strong> Zeg bijvoorbeeld: "fiets op 1 oktober".
+              </>
+            )}
           </p>
         </section>
       )}
@@ -462,16 +490,10 @@ export default function App() {
         rubrieken={rubrieken}
         onChange={(lines) => setDayHours(hoursDay, lines)}
         onChangeDay={setHoursDay}
-        bottom={
-          showMic ? (
-            <>
-              {voiceMessages}
-              <nav className="overview-bar" aria-label="Spraak">
-                {micButton}
-              </nav>
-            </>
-          ) : undefined
+        speakLine={
+          showMic ? { listening: speech.listening ? voiceRubriek : null, onToggle: toggleListeningFor } : undefined
         }
+        bottom={showMic && (speech.listening || voiceMessage) ? voiceMessages : undefined}
         onClose={() => {
           // Terug naar de week van de dag die als laatste open stond.
           setSlide(null)

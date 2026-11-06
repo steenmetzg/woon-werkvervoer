@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react'
 import { ArrowLeft, ChevronLeft, ChevronRight, Clock, ClockPlus, X } from 'lucide-react'
 import Amount from './Amount'
+import MicPlus from './MicPlus'
 import { addDays, dateKey, shortLabel } from './dates'
 import {
   hoursText,
@@ -23,7 +24,12 @@ interface Props {
   onChange: (lines: HourLine[]) => void
   onChangeDay: (day: Date) => void
   onClose: () => void
-  /** Onderaan: de meldingen en de microfoonknop van de spraakbediening (als die aan staat). */
+  /**
+   * Inspreken per rubriek (F36), als de spraakbediening aan staat: bij elke rubriek een microfoon met plusje.
+   * `listening` is de rubriek waarvoor nu geluisterd wordt.
+   */
+  speakLine?: { listening: string | null; onToggle: (rubriek: string) => void }
+  /** Onderaan: de meldingen van de spraakbediening. */
   bottom?: ReactNode
 }
 
@@ -53,7 +59,7 @@ function prefersReducedMotion() {
  * daarin de regels met het aantal uur en een korte omschrijving op één regel. Bladeren gaat zoals de weken
  * op het hoofdscherm: een strook met de vorige, deze en de volgende werkdag die met de vinger meeschuift.
  */
-export default function DayHours({ day, today, hours, rubrieken, onChange, onChangeDay, onClose, bottom }: Props) {
+export default function DayHours({ day, today, hours, rubrieken, onChange, onChangeDay, onClose, speakLine, bottom }: Props) {
   // dragX: hoe ver de strook tijdens het swipen met de vinger is meegeschoven.
   // slide: de dag waar de strook naartoe schuift; als hij er is, wordt dat de getoonde dag.
   // settling: de strook schuift terug na een te korte swipe.
@@ -150,6 +156,19 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
                 <div className="hour-group-head">
                   <h2>{group.naam}</h2>
                   {total > 0 && <Amount value={total} className="amount-sum" />}
+                  {group.known && speakLine && (
+                    <button
+                      type="button"
+                      className={speakLine.listening === group.id ? 'icon-button add-line listening' : 'icon-button add-line'}
+                      aria-label={
+                        speakLine.listening === group.id ? 'Stoppen met luisteren' : `Regel inspreken bij ${group.naam}`
+                      }
+                      aria-pressed={speakLine.listening === group.id}
+                      onClick={() => speakLine.onToggle(group.id)}
+                    >
+                      <MicPlus size={20} strokeWidth={1.75} aria-hidden />
+                    </button>
+                  )}
                   {group.known && (
                     <button
                       type="button"
