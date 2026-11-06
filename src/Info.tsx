@@ -41,8 +41,9 @@ export default function Info({ onClose }: Props) {
           plusje voeg je in dat blok een regel toe met het aantal uur (per kwartier) en een korte omschrijving; met het
           x-je haal je een regel weer weg. Met de microfoon onderaan kun je hier ook uren inspreken voor deze dag. Met de pijltjes ga je naar de
           vorige of volgende werkdag. Bij de dag zie je daarna het totaal, bijvoorbeeld "7,5 u". Met de knop met het klokje
-          onderaan open je het overzicht van al je uren, per maand en daarbinnen per rubriek. De rubrieken (eerst NVWA en
-          ILT) maak, hernoem en verwijder je via het tandwiel, bij Uren; daar zet je de urenregistratie ook uit als je
+          onderaan open je het overzicht van al je uren, per maand en daarbinnen per rubriek. De rubrieken (eerst alleen
+          "Mijn 1e rubriek") maak, hernoem en verwijder je via het tandwiel, bij Uren; verwijder je een rubriek met uren,
+          dan gaan na een bevestiging ook die uren weg; daar zet je de urenregistratie ook uit als je
           hem niet gebruikt.
         </p>
       </section>
@@ -57,7 +58,7 @@ export default function Info({ onClose }: Props) {
             blauwe knopje met de pijl terug (ongedaan maken); de melding verdwijnt na een paar seconden vanzelf. Met "ga naar 1 oktober", "toon de week
             van 1 oktober" of "laat 1 oktober zien" spring je alleen naar die week. Uren spreek je in met de rubriek, het
             aantal uur en een omschrijving, bijvoorbeeld "2 uur NVWA overleg met de inspectie" of "gisteren anderhalf uur
-            ILT rapport schrijven"; er komt dan een regel bij die dag. Inspreken werkt alleen met
+            ILT rapport schrijven" (als je rubrieken NVWA en ILT heten); er komt dan een regel bij die dag. Inspreken werkt alleen met
             internet. Via het tandwiel kun je de microfoon uitzetten.
           </p>
         </section>

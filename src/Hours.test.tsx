@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { createBackup, parseBackup } from './backup'
 import { mondayOf } from './dates'
-import { DEFAULT_RUBRIEKEN, HOURS_KEY, RUBRIEKEN_KEY, type Rubriek } from './hours'
+import { HOURS_KEY, RUBRIEKEN_KEY, type Rubriek } from './hours'
 import { parseVoiceCommand } from './speech'
 import { MODES } from './storage'
 
@@ -39,7 +39,14 @@ class FakeRecognition {
   }
 }
 
+// In deze tests heten de rubrieken NVWA en ILT (de app zelf begint met "Mijn 1e rubriek").
+const NVWA_ILT: Rubriek[] = [
+  { id: 'n1', naam: 'NVWA' },
+  { id: 'i1', naam: 'ILT' },
+]
+
 beforeEach(() => {
+  localStorage.setItem(RUBRIEKEN_KEY, JSON.stringify(NVWA_ILT))
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(TODAY)
   ;(window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition = FakeRecognition
@@ -67,14 +74,14 @@ async function openSettings(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
 }
 
-function storeHours(hours: unknown, rubrieken: Rubriek[] = DEFAULT_RUBRIEKEN) {
+function storeHours(hours: unknown, rubrieken: Rubriek[] = NVWA_ILT) {
   localStorage.setItem(HOURS_KEY, JSON.stringify(hours))
   localStorage.setItem(RUBRIEKEN_KEY, JSON.stringify(rubrieken))
 }
 
 describe('AC52: uren en rubrieken in de instellingen', () => {
   it('begint met NVWA en ILT en hernoemt een rubriek ook voor bestaande uren', async () => {
-    storeHours({ '2026-10-20': [{ rubriek: 'nvwa', uren: 2, omschrijving: 'Overleg' }] })
+    storeHours({ '2026-10-20': [{ rubriek: 'n1', uren: 2, omschrijving: 'Overleg' }] })
     const user = userEvent.setup()
     const { unmount } = render(<App />)
     await openSettings(user)
@@ -115,7 +122,7 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
   })
 
   it('voegt rubrieken toe tot het maximum van 8 en verwijdert alleen een rubriek zonder uren', async () => {
-    storeHours({ '2026-10-20': [{ rubriek: 'ilt', uren: 1, omschrijving: '' }] })
+    storeHours({ '2026-10-20': [{ rubriek: 'i1', uren: 1, omschrijving: '' }] })
     const user = userEvent.setup()
     render(<App />)
     await openSettings(user)
@@ -126,17 +133,44 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
     expect(screen.queryByRole('button', { name: 'Rubriek toevoegen' })).not.toBeInTheDocument()
     expect(screen.getByText('Je hebt het maximum van 8 rubrieken.')).toBeInTheDocument()
 
+    // Een rubriek met uren: eerst een bevestiging; bij Annuleren blijft alles staan.
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
     await user.click(screen.getByRole('button', { name: 'Rubriek ILT verwijderen' }))
-    expect(screen.getByText(/ILT heeft nog 1 regel met uren en kan niet worden verwijderd/)).toBeInTheDocument()
+    expect(confirm).toHaveBeenCalledWith('ILT heeft 1 regel met uren. Rubriek en uren verwijderen? Dit kan niet ongedaan worden gemaakt.')
     expect(screen.getByRole('textbox', { name: 'Naam van rubriek ILT' })).toBeInTheDocument()
 
+    confirm.mockReturnValue(true)
+    await user.click(screen.getByRole('button', { name: 'Rubriek ILT verwijderen' }))
+    expect(screen.queryByRole('textbox', { name: 'Naam van rubriek ILT' })).not.toBeInTheDocument()
+    expect(screen.getByText('ILT en 1 regel met uren verwijderd.')).toBeInTheDocument()
+    expect(JSON.parse(localStorage.getItem(HOURS_KEY)!)).toEqual({})
+
+    // Een rubriek zonder uren gaat zonder vraag weg.
+    confirm.mockClear()
     await user.click(screen.getByRole('button', { name: 'Rubriek NVWA verwijderen' }))
+    expect(confirm).not.toHaveBeenCalled()
     expect(screen.queryByRole('textbox', { name: 'Naam van rubriek NVWA' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Rubriek toevoegen' })).toBeInTheDocument()
   })
 
+  it('begint bij een nieuwe installatie met alleen "Mijn 1e rubriek" en laat bestaande rubrieken staan bij een update', async () => {
+    localStorage.removeItem(RUBRIEKEN_KEY)
+    const user = userEvent.setup()
+    const { unmount } = render(<App />)
+    await openSettings(user)
+    const names = () => within(screen.getByRole('list', { name: 'Rubrieken' })).getAllByRole('textbox').map((i) => (i as HTMLInputElement).value)
+    expect(names()).toEqual(['Mijn 1e rubriek'])
+    unmount()
+
+    // Na een update (rubrieken al opgeslagen, ook zonder uren) blijven ze precies zo.
+    localStorage.setItem(RUBRIEKEN_KEY, JSON.stringify([{ id: 'nvwa', naam: 'NVWA' }, { id: 'ilt', naam: 'ILT' }]))
+    render(<App />)
+    await openSettings(user)
+    expect(names()).toEqual(['NVWA', 'ILT'])
+  })
+
   it('verbergt alles van de uren als Uren uit staat, ook na opnieuw openen', async () => {
-    storeHours({ '2026-10-20': [{ rubriek: 'nvwa', uren: 2, omschrijving: '' }] })
+    storeHours({ '2026-10-20': [{ rubriek: 'n1', uren: 2, omschrijving: '' }] })
     const user = userEvent.setup()
     const { unmount } = render(<App />)
     expect(hoursChip('dinsdag 20 oktober')).toHaveTextContent('2 u')
@@ -218,9 +252,9 @@ describe('AC53: uren per dag', () => {
 describe('AC54: overzicht uren', () => {
   it('groepeert per maand (nieuwste eerst) en daarbinnen per rubriek', async () => {
     storeHours({
-      '2026-10-02': [{ rubriek: 'ilt', uren: 1.5, omschrijving: '' }],
-      '2026-10-01': [{ rubriek: 'nvwa', uren: 2, omschrijving: 'Overleg' }],
-      '2026-09-30': [{ rubriek: 'nvwa', uren: 3, omschrijving: '' }],
+      '2026-10-02': [{ rubriek: 'i1', uren: 1.5, omschrijving: '' }],
+      '2026-10-01': [{ rubriek: 'n1', uren: 2, omschrijving: 'Overleg' }],
+      '2026-09-30': [{ rubriek: 'n1', uren: 3, omschrijving: '' }],
     })
     const user = userEvent.setup()
     render(<App />)
@@ -249,31 +283,31 @@ describe('AC54: overzicht uren', () => {
 })
 
 describe('AC55: uren inspreken', () => {
-  function parse(text: string, rubrieken: Rubriek[] | null = DEFAULT_RUBRIEKEN) {
+  function parse(text: string, rubrieken: Rubriek[] | null = NVWA_ILT) {
     return parseVoiceCommand(text, TODAY, mondayOf(TODAY), MODES, rubrieken)
   }
 
   it('begrijpt rubriek, aantal uur, datum en omschrijving', () => {
     expect(parse('2 uur NVWA overleg met de inspectie')).toEqual({
       ok: true,
-      hours: { rubriek: 'nvwa', uren: 2, omschrijving: 'Overleg met de inspectie' },
+      hours: { rubriek: 'n1', uren: 2, omschrijving: 'Overleg met de inspectie' },
       date: new Date(2026, 9, 21),
     })
     expect(parse('gisteren anderhalf uur aan ILT rapport schrijven')).toEqual({
       ok: true,
-      hours: { rubriek: 'ilt', uren: 1.5, omschrijving: 'Rapport schrijven' },
+      hours: { rubriek: 'i1', uren: 1.5, omschrijving: 'Rapport schrijven' },
       date: new Date(2026, 9, 20),
     })
     expect(parse('ILT drie kwartier op 1 oktober intake')).toEqual({
       ok: true,
-      hours: { rubriek: 'ilt', uren: 0.75, omschrijving: 'Intake' },
+      hours: { rubriek: 'i1', uren: 0.75, omschrijving: 'Intake' },
       date: new Date(2026, 9, 1),
     })
-    expect(parse('n v w a 2,5 uur')).toMatchObject({ hours: { rubriek: 'nvwa', uren: 2.5, omschrijving: '' } })
+    expect(parse('n v w a 2,5 uur')).toMatchObject({ hours: { rubriek: 'n1', uren: 2.5, omschrijving: '' } })
     expect(parse('tweeënhalf uur NVWA')).toMatchObject({ hours: { uren: 2.5 } })
     expect(parse('2 uur en een kwartier NVWA')).toMatchObject({ hours: { uren: 2.25 } })
     expect(parse('NVWA 50 minuten')).toMatchObject({ hours: { uren: 0.75 } })
-    expect(parse('2 uur NVWA thuis')).toMatchObject({ hours: { rubriek: 'nvwa', omschrijving: 'Thuis' } })
+    expect(parse('2 uur NVWA thuis')).toMatchObject({ hours: { rubriek: 'n1', omschrijving: 'Thuis' } })
   })
 
   it('geeft een melding als de rubriek of het aantal uur ontbreekt', () => {
@@ -286,7 +320,7 @@ describe('AC55: uren inspreken', () => {
   })
 
   it('voegt met de microfoon een regel toe en haalt hem weg met Ongedaan maken', async () => {
-    storeHours({ '2026-10-21': [{ rubriek: 'ilt', uren: 1, omschrijving: 'Mail' }] })
+    storeHours({ '2026-10-21': [{ rubriek: 'i1', uren: 1, omschrijving: 'Mail' }] })
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Inspreken' }))
@@ -347,7 +381,7 @@ describe('AC56: uren in de backup', () => {
   })
 
   it('laat de huidige uren staan bij een backup zonder uren', async () => {
-    storeHours({ '2026-10-20': [{ rubriek: 'nvwa', uren: 2, omschrijving: '' }] })
+    storeHours({ '2026-10-20': [{ rubriek: 'n1', uren: 2, omschrijving: '' }] })
     const old = JSON.stringify({ app: 'woon-werkvervoer', versie: 2, gemaakt: TODAY.toISOString(), registraties: {} })
     expect(parseBackup(old).uren).toBeNull()
     vi.spyOn(window, 'confirm').mockReturnValue(true)

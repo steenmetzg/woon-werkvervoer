@@ -23,10 +23,8 @@ export const MAX_OMSCHRIJVING = 80
 /** Het meeste wat je op één regel kunt kiezen. */
 export const MAX_UREN_PER_REGEL = 12
 
-export const DEFAULT_RUBRIEKEN: Rubriek[] = [
-  { id: 'nvwa', naam: 'NVWA' },
-  { id: 'ilt', naam: 'ILT' },
-]
+/** Waarmee je begint: één rubriek die je zelf een naam geeft (vanaf WoonWerk 1.17.1). */
+export const DEFAULT_RUBRIEKEN: Rubriek[] = [{ id: 'r1', naam: 'Mijn 1e rubriek' }]
 
 export const HOURS_KEY = 'uren-registraties'
 export const RUBRIEKEN_KEY = 'uren-rubrieken'
@@ -126,9 +124,19 @@ export function saveHours(hours: Hours): void {
   save(HOURS_KEY, hours)
 }
 
-/** Zonder opgeslagen rubrieken begin je met NVWA en ILT. */
+/** Zonder opgeslagen rubrieken (nieuwe installatie) begin je met "Mijn 1e rubriek"; bij een update blijven je rubrieken staan. */
 export function loadRubrieken(): Rubriek[] {
   return load(RUBRIEKEN_KEY, parseRubrieken, () => DEFAULT_RUBRIEKEN.map((r) => ({ ...r })))
+}
+
+/** De uren zonder alle regels van één rubriek (bij het verwijderen van die rubriek). */
+export function withoutRubriek(hours: Hours, id: string): Hours {
+  const result: Hours = {}
+  for (const [date, lines] of Object.entries(hours)) {
+    const rest = lines.filter((l) => l.rubriek !== id)
+    if (rest.length > 0) result[date] = rest
+  }
+  return result
 }
 
 export function saveRubrieken(rubrieken: Rubriek[]): void {

@@ -39,6 +39,8 @@ interface Props {
   hours: Hours
   rubrieken: Rubriek[]
   onChangeRubrieken: (rubrieken: Rubriek[]) => void
+  /** Verwijdert een rubriek met al zijn uren. */
+  onDeleteRubriek: (id: string) => void
   onRestore: (
     registrations: Registrations,
     declared: Declared | null,
@@ -106,6 +108,7 @@ export default function Settings({
   hours,
   rubrieken,
   onChangeRubrieken,
+  onDeleteRubriek,
   onRestore,
   onClose,
 }: Props) {
@@ -149,15 +152,17 @@ export default function Settings({
 
   function deleteRubriek(rubriek: Rubriek) {
     const used = linesWithRubriek(hours, rubriek.id)
+    // Heeft de rubriek uren, dan eerst vragen of die ook weg mogen (F32).
     if (used > 0) {
-      setRubriekMessage({
-        kind: 'error',
-        text: `${rubriek.naam} heeft nog ${used === 1 ? '1 regel' : `${used} regels`} met uren en kan niet worden verwijderd. De naam kun je wel aanpassen.`,
-      })
-      return
+      const ok = window.confirm(
+        `${rubriek.naam} heeft ${used === 1 ? '1 regel' : `${used} regels`} met uren. Rubriek en uren verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+      )
+      if (!ok) return
     }
-    onChangeRubrieken(rubrieken.filter((r) => r.id !== rubriek.id))
-    setRubriekMessage(null)
+    onDeleteRubriek(rubriek.id)
+    setRubriekMessage(
+      used > 0 ? { kind: 'ok', text: `${rubriek.naam} en ${used === 1 ? '1 regel' : `${used} regels`} met uren verwijderd.` } : null,
+    )
   }
 
   function addRubriek() {
