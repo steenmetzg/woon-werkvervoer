@@ -153,7 +153,7 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
     expect(screen.getByRole('button', { name: 'Rubriek toevoegen' })).toBeInTheDocument()
   })
 
-  it('begint met alleen "Mijn 1e rubriek" en vervangt ongebruikte NVWA en ILT van versie 1.17.0', async () => {
+  it('begint bij een nieuwe installatie met alleen "Mijn 1e rubriek" en laat bestaande rubrieken staan bij een update', async () => {
     localStorage.removeItem(RUBRIEKEN_KEY)
     const user = userEvent.setup()
     const { unmount } = render(<App />)
@@ -162,15 +162,8 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
     expect(names()).toEqual(['Mijn 1e rubriek'])
     unmount()
 
+    // Na een update (rubrieken al opgeslagen, ook zonder uren) blijven ze precies zo.
     localStorage.setItem(RUBRIEKEN_KEY, JSON.stringify([{ id: 'nvwa', naam: 'NVWA' }, { id: 'ilt', naam: 'ILT' }]))
-    const second = render(<App />)
-    await openSettings(user)
-    expect(names()).toEqual(['Mijn 1e rubriek'])
-    second.unmount()
-
-    // Met uren blijven NVWA en ILT gewoon staan.
-    localStorage.setItem(RUBRIEKEN_KEY, JSON.stringify([{ id: 'nvwa', naam: 'NVWA' }, { id: 'ilt', naam: 'ILT' }]))
-    localStorage.setItem(HOURS_KEY, JSON.stringify({ '2026-10-20': [{ rubriek: 'nvwa', uren: 1, omschrijving: '' }] }))
     render(<App />)
     await openSettings(user)
     expect(names()).toEqual(['NVWA', 'ILT'])

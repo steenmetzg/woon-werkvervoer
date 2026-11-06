@@ -26,12 +26,6 @@ export const MAX_UREN_PER_REGEL = 12
 /** Waarmee je begint: één rubriek die je zelf een naam geeft (vanaf WoonWerk 1.17.1). */
 export const DEFAULT_RUBRIEKEN: Rubriek[] = [{ id: 'r1', naam: 'Mijn 1e rubriek' }]
 
-/** De rubrieken waarmee WoonWerk 1.17.0 begon; zonder uren worden ze vervangen door de nieuwe standaard. */
-const OLD_DEFAULT = [
-  { id: 'nvwa', naam: 'NVWA' },
-  { id: 'ilt', naam: 'ILT' },
-]
-
 export const HOURS_KEY = 'uren-registraties'
 export const RUBRIEKEN_KEY = 'uren-rubrieken'
 export const HOURS_ENABLED_KEY = 'uren-aan'
@@ -130,16 +124,9 @@ export function saveHours(hours: Hours): void {
   save(HOURS_KEY, hours)
 }
 
-/**
- * Zonder opgeslagen rubrieken begin je met "Mijn 1e rubriek". Staan er nog de ongebruikte NVWA en ILT van
- * WoonWerk 1.17.0 (zelfde namen, geen uren), dan worden die ook vervangen.
- */
+/** Zonder opgeslagen rubrieken (nieuwe installatie) begin je met "Mijn 1e rubriek"; bij een update blijven je rubrieken staan. */
 export function loadRubrieken(): Rubriek[] {
-  const fresh = () => DEFAULT_RUBRIEKEN.map((r) => ({ ...r }))
-  const stored = load(RUBRIEKEN_KEY, parseRubrieken, fresh)
-  const untouched =
-    stored.length === OLD_DEFAULT.length && stored.every((r, i) => r.id === OLD_DEFAULT[i].id && r.naam === OLD_DEFAULT[i].naam)
-  return untouched && lineCount(loadHours()) === 0 ? fresh() : stored
+  return load(RUBRIEKEN_KEY, parseRubrieken, () => DEFAULT_RUBRIEKEN.map((r) => ({ ...r })))
 }
 
 /** De uren zonder alle regels van één rubriek (bij het verwijderen van die rubriek). */
