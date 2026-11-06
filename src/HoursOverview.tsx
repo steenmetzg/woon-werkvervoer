@@ -1,7 +1,8 @@
 import { ArrowLeft, Check, Clock } from 'lucide-react'
+import Amount from './Amount'
 import BadgeIcon from './BadgeIcon'
 import { compactDay, monthName, parseDateKey } from './dates'
-import { formatHours, groupHours, type Hours, type Rubriek } from './hours'
+import { groupHours, type Hours, type Rubriek } from './hours'
 
 interface Props {
   hours: Hours
@@ -13,7 +14,10 @@ function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-/** Overzicht van alle geregistreerde uren per maand (nieuwste eerst) en daarbinnen per rubriek (F34). */
+/**
+ * Overzicht van alle geregistreerde uren per maand (nieuwste eerst) en daarbinnen per rubriek (F34). Alle
+ * aantallen staan rechts in één kolom, op de komma uitgelijnd.
+ */
 export default function HoursOverview({ hours, rubrieken, onClose }: Props) {
   const months = groupHours(hours, rubrieken)
   return (
@@ -34,20 +38,20 @@ export default function HoursOverview({ hours, rubrieken, onClose }: Props) {
           <section key={name} className="hours-month" aria-label={name}>
             <h2>
               <span>{name}</span>
-              <span className="hours-sum">{formatHours(total)} uur</span>
+              <Amount value={total} className="amount-cells" />
             </h2>
             {groups.map((group) => (
               <section key={group.rubriek} className="hours-group" aria-label={`${group.naam} in ${name}`}>
                 <h3>
                   <span>{group.naam}</span>
-                  <span className="hours-sum">{formatHours(group.total)} uur</span>
+                  <Amount value={group.total} className="amount-cells" />
                 </h3>
                 <ul>
                   {group.lines.map(({ date, line }, i) => (
                     <li key={`${date}-${i}`}>
                       <span className="hours-date">{compactDay(parseDateKey(date)!)}</span>
-                      <span className="hours-amount">{formatHours(line.uren)}</span>
                       <span className="hours-text">{line.omschrijving}</span>
+                      <Amount value={line.uren} className="amount-cells" />
                     </li>
                   ))}
                 </ul>
