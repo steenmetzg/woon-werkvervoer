@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, Settings as SettingsIcon, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, Settings as SettingsIcon, Undo2, X } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import DayHours from './DayHours'
@@ -384,8 +384,8 @@ export default function App() {
         <section className={voiceMessage.kind === 'error' ? 'voice error' : 'voice'} aria-live="polite">
           <p role="status">{voiceMessage.text}</p>
           {voiceMessage.undo && (
-            <button type="button" className="voice-undo" onClick={undoVoice}>
-              Ongedaan maken
+            <button type="button" className="voice-undo" aria-label="Ongedaan maken" title="Ongedaan maken" onClick={undoVoice}>
+              <Undo2 size={18} strokeWidth={2} aria-hidden />
             </button>
           )}
           <button type="button" className="voice-close" aria-label="Melding sluiten" onClick={() => setVoiceMessage(null)}>

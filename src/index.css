@@ -567,12 +567,17 @@ h1.wrap {
   white-space: nowrap;
 }
 
-/* "Ongedaan maken" klein, zodat de tekst van de melding meer ruimte heeft. */
+/* "Ongedaan maken" als klein icoon (pijl terug), zodat de tekst van de melding de meeste ruimte heeft. */
 .voice .voice-undo {
-  min-height: 32px;
-  padding: 0 8px;
-  font-size: 0.75rem;
-  border-radius: 8px;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  box-shadow: none;
+  color: var(--accent);
 }
 
 .voice .voice-close {
