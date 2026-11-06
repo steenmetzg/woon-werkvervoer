@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { addDays, longLabel, mondayOf, weekLabel } from './dates'
+import { hoursText, MAX_OMSCHRIJVING, roundQuarter, type HourLine, type Rubriek } from './hours'
 import { MODE_INFO } from './modeInfo'
 import { MODES, type Mode } from './storage'
 
-// Spraakbediening (F29): met de microfoonknop zeg je bijvoorbeeld "fiets op 1 oktober".
+// Spraakbediening (F29, F31, F35): met de microfoonknop zeg je bijvoorbeeld "fiets op 1 oktober" of
+// "2 uur NVWA overleg met de inspectie gisteren".
 // Alles van de spraakbediening staat in dit bestand, zodat het makkelijk weer weg kan.
 
 const MAANDEN: Record<string, number> = {
@@ -32,6 +34,7 @@ const MODE_WORDS: Record<Mode, RegExp> = {
 
 export type VoiceCommand =
   | { ok: true; modes: Mode[]; date: Date }
+  | { ok: true; hours: HourLine; date: Date }
   | { ok: true; goto: Date }
   | { ok: false; error: string }
 
@@ -64,22 +67,42 @@ function toNumber(word: string): number | null {
   return GETALLEN[word] ?? null
 }
 
-/** Zoekt de datum in de zin. `undefined` = geen datum genoemd, `null` = een datum die niet bestaat. */
-function findDate(text: string, today: Date, shownMonday: Date): Date | null | undefined {
-  if (/\beergisteren\b/.test(text)) return addDays(today, -2)
-  if (/\bgisteren\b/.test(text)) return addDays(today, -1)
-  if (/\bvandaag\b/.test(text)) return startOfDay(today)
-  if (/\bmorgen\b/.test(text)) return addDays(today, 1)
+/** Een gevonden datum met de woorden in de zin waar hij stond (vanaf woord `start`, `count` woorden). */
+interface DateMatch {
+  /** `null` = een datum die niet bestaat. */
+  date: Date | null
+  start: number
+  count: number
+}
+
+/** Welke woorden (in een zin met enkele spaties) een gevonden stuk tekst beslaat. */
+function wordRange(text: string, index: number, matched: string): { start: number; count: number } {
+  return { start: text.slice(0, index).split(' ').length - 1, count: matched.trim().split(' ').length }
+}
+
+/** Zoekt de datum in de zin. `undefined` = geen datum genoemd. */
+function findDateMatch(text: string, today: Date, shownMonday: Date): DateMatch | undefined {
+  const words = text.split(' ')
+  const relative: [RegExp, (d: Date) => Date][] = [
+    [/\beergisteren\b/, (d) => addDays(d, -2)],
+    [/\bgisteren\b/, (d) => addDays(d, -1)],
+    [/\bvandaag\b/, (d) => startOfDay(d)],
+    [/\bmorgen\b/, (d) => addDays(d, 1)],
+  ]
+  for (const [pattern, toDate] of relative) {
+    const m = pattern.exec(text)
+    if (m) return { date: toDate(today), ...wordRange(text, m.index, m[0]) }
+  }
 
   // "1 oktober", "1e oktober", "eerste oktober", eventueel met jaartal: "1 oktober 2026".
-  const words = text.split(' ')
   for (let i = 1; i < words.length; i++) {
     const month = MAANDEN[words[i]]
     if (month === undefined) continue
     const day = toNumber(words[i - 1])
     if (day === null) continue
     const year = /^\d{4}$/.test(words[i + 1] ?? '') ? Number(words[i + 1]) : null
-    return year === null ? closestYear(month, day, today) : sameDate(year, month, day)
+    const date = year === null ? closestYear(month, day, today) : sameDate(year, month, day)
+    return { date, start: i - 1, count: year === null ? 2 : 3 }
   }
 
   // "1-10" of "1/10/2026".
@@ -87,18 +110,143 @@ function findDate(text: string, today: Date, shownMonday: Date): Date | null | u
   if (numeric) {
     const day = Number(numeric[1])
     const month = Number(numeric[2]) - 1
-    return numeric[3] ? sameDate(Number(numeric[3]), month, day) : closestYear(month, day, today)
+    const date = numeric[3] ? sameDate(Number(numeric[3]), month, day) : closestYear(month, day, today)
+    return { date, ...wordRange(text, numeric.index, numeric[0]) }
   }
 
   // Een weekdag: in de week die op het scherm staat, of de week ervoor of erna.
-  const weekday = WEEKDAGEN.findIndex((name) => new RegExp(`\\b${name}\\b`).test(text))
+  const weekday = WEEKDAGEN.findIndex((name) => words.includes(name))
   if (weekday >= 0) {
+    let start = words.indexOf(WEEKDAGEN[weekday])
+    let count = 1
     let monday = shownMonday
     if (/\b(vorige|afgelopen) week\b/.test(text)) monday = addDays(monday, -7)
     else if (/\b(volgende|komende) week\b/.test(text)) monday = addDays(monday, 7)
-    return addDays(monday, (weekday + 6) % 7)
+    if (start >= 2 && words[start - 1] === 'week' && /^(vorige|afgelopen|volgende|komende)$/.test(words[start - 2])) {
+      start -= 2
+      count += 2
+    }
+    return { date: addDays(monday, (weekday + 6) % 7), start, count }
   }
   return undefined
+}
+
+/** Zoekt de datum in de zin. `undefined` = geen datum genoemd, `null` = een datum die niet bestaat. */
+function findDate(text: string, today: Date, shownMonday: Date): Date | null | undefined {
+  return findDateMatch(text, today, shownMonday)?.date
+}
+
+// ---- Uren inspreken (F35), bijv. "2 uur NVWA overleg met de inspectie gisteren" ----
+
+const GETAL = '(\\d+(?:_\\d+)?|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)'
+
+function getal(word: string): number {
+  return /^\d/.test(word) ? Number(word.replace('_', '.')) : GETALLEN[word]
+}
+
+// Manieren om een aantal uur te zeggen, de langste eerst. Kommagetallen staan in de zin als "2_5".
+const DUUR: [RegExp, (m: RegExpExecArray) => number][] = [
+  [new RegExp(`\\b${GETAL} ?en ?(?:een )?half uur\\b`), (m) => getal(m[1]) + 0.5],
+  [
+    new RegExp(`\\b${GETAL} (?:uur|uren) (?:en )?(een kwartier|kwartier|een half|half|drie kwartier|(\\d+) (?:minuten|min))\\b`),
+    (m) => getal(m[1]) + (m[3] ? Number(m[3]) / 60 : m[2].startsWith('drie') ? 0.75 : m[2].includes('half') ? 0.5 : 0.25),
+  ],
+  [/\banderhalf uur\b/, () => 1.5],
+  [/\b(?:een )?half uur\b/, () => 0.5],
+  [/\bdrie kwartier\b/, () => 0.75],
+  [/\b(?:een )?kwartier\b/, () => 0.25],
+  [new RegExp(`\\b${GETAL} (?:uur|uren)\\b`), (m) => getal(m[1])],
+  [/\b(\d+) (?:minuten|min)\b/, (m) => Number(m[1]) / 60],
+]
+
+function findDuration(text: string): { uren: number; start: number; count: number } | null {
+  for (const [pattern, value] of DUUR) {
+    const m = pattern.exec(text)
+    if (m) return { uren: value(m), ...wordRange(text, m.index, m[0]) }
+  }
+  return null
+}
+
+/** Dezelfde schrijfwijze als de gesproken zin, zodat de naam van een rubriek te vinden is. */
+function normalizeName(naam: string): string {
+  return naam
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/** De rubriek die het eerst in de zin genoemd wordt. */
+function findRubriek(text: string, rubrieken: readonly Rubriek[]): { rubriek: Rubriek; start: number; count: number } | null {
+  let best: { rubriek: Rubriek; start: number; count: number; index: number } | null = null
+  for (const rubriek of rubrieken) {
+    const name = normalizeName(rubriek.naam)
+    if (!name) continue
+    const m = new RegExp(`(?:^| )(${escapeRegExp(name)})(?= |$)`).exec(text)
+    if (!m) continue
+    const index = m.index + m[0].length - m[1].length
+    if (!best || index < best.index) best = { rubriek, index, ...wordRange(text, index, m[1]) }
+  }
+  return best
+}
+
+// Woordjes aan het begin of eind van de omschrijving die er niet bij horen ("2 uur aan NVWA", "op 1 oktober").
+const VULWOORDEN = new Set([
+  'op', 'voor', 'aan', 'met', 'bij', 'en', 'van', 'de', 'het', 'een', 'in', 'uur', 'rubriek', 'omschrijving',
+  'gewerkt', 'besteed', 'geschreven', 'gedaan',
+])
+
+function joinRubrieken(rubrieken: readonly Rubriek[]): string {
+  const names = rubrieken.map((r) => r.naam)
+  return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} of ${names[names.length - 1]}`
+}
+
+function parseHoursCommand(
+  spoken: string,
+  text: string,
+  cased: string,
+  today: Date,
+  shownMonday: Date,
+  rubrieken: readonly Rubriek[],
+  defaultDay: Date | null,
+): VoiceCommand | null {
+  const duration = findDuration(text)
+  const rubriek = findRubriek(text, rubrieken)
+  if (!duration && !rubriek) return null
+  if (rubrieken.length === 0) return { ok: false, error: 'Maak eerst een rubriek via het tandwiel, bij Uren.' }
+  if (!rubriek) return { ok: false, error: `Ik hoorde "${spoken}", maar geen rubriek (${joinRubrieken(rubrieken)}).` }
+  if (!duration) return { ok: false, error: `Hoeveel uur? Zeg bijvoorbeeld "2 uur ${rubriek.rubriek.naam} overleg".` }
+  const uren = roundQuarter(duration.uren)
+  const match = findDateMatch(text, today, shownMonday)
+  if (match && match.date === null) return { ok: false, error: `Ik hoorde "${spoken}", maar die datum bestaat niet.` }
+  const day = match?.date ?? defaultDay ?? startOfDay(today)
+  if (day.getDay() === 0 || day.getDay() === 6) return { ok: false, error: `${capitalize(longLabel(day))} is geen werkdag.` }
+
+  // De omschrijving is wat overblijft als de rubriek, het aantal uur en de datum eruit zijn.
+  const words = text.split(' ')
+  const casedWords = cased.split(' ')
+  const used = new Set<number>()
+  for (const part of [duration, rubriek, match]) {
+    if (!part) continue
+    for (let i = part.start; i < part.start + part.count; i++) used.add(i)
+    // "op 1 oktober", "op de 1e": die woordjes ervoor horen bij de datum.
+    for (let i = part.start - 1; i >= 0 && (words[i] === 'op' || words[i] === 'de'); i--) used.add(i)
+  }
+  let rest = words.map((_, i) => (used.has(i) ? null : i)).filter((i): i is number => i !== null)
+  while (rest.length > 0 && VULWOORDEN.has(words[rest[0]])) rest = rest.slice(1)
+  while (rest.length > 0 && VULWOORDEN.has(words[rest[rest.length - 1]])) rest = rest.slice(0, -1)
+  const omschrijving = capitalize(
+    rest
+      .map((i) => casedWords[i] ?? words[i])
+      .join(' ')
+      .replace(/(\d)_(\d)/g, '$1,$2'),
+  ).slice(0, MAX_OMSCHRIJVING)
+  return { ok: true, hours: { rubriek: rubriek.rubriek.id, uren, omschrijving }, date: day }
 }
 
 function joinLabels(modes: Mode[]): string {
@@ -106,19 +254,39 @@ function joinLabels(modes: Mode[]): string {
   return labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} en ${labels[labels.length - 1]}`
 }
 
-/** Haalt keuze(s) en datum uit een gesproken zin. Zonder datum geldt vandaag. */
+/** De zin in een vaste schrijfwijze: zonder accenten en leestekens, kommagetallen als "2_5", losse letters aan elkaar ("n v w a" wordt "nvwa"). */
+function normalizeSpoken(spoken: string): string {
+  return spoken
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/(\d)\u00bd/g, '$1_5')
+    .replace(/\u00bd/g, '0_5')
+    .replace(/(\d)[.,](\d)/g, '$1_$2')
+    .replace(/[.,!?;:"']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b[a-zA-Z](?: [a-zA-Z]\b)+/g, (letters) => letters.replace(/ /g, ''))
+}
+
+/**
+ * Haalt keuze(s) en datum, of uren met rubriek en omschrijving, uit een gesproken zin. Zonder datum geldt
+ * vandaag, of bij uren `defaultDay` als die is meegegeven (op het scherm Uren de dag die open staat).
+ * `rubrieken` is `null` als de urenregistratie uit staat.
+ */
 export function parseVoiceCommand(
   spoken: string,
   today: Date,
   shownMonday: Date,
   enabledModes: readonly Mode[],
+  rubrieken: readonly Rubriek[] | null = null,
+  defaultDay: Date | null = null,
 ): VoiceCommand {
-  const text = spoken
-    .toLowerCase()
-    .replace(/é/g, 'e')
-    .replace(/[.,!?;:]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+  const cased = normalizeSpoken(spoken)
+  const text = cased.toLowerCase()
+  if (rubrieken) {
+    const hours = parseHoursCommand(spoken, text, cased, today, shownMonday, rubrieken, defaultDay)
+    if (hours) return hours
+  }
   // "vrijdag" en "vrije dag" niet verwarren: haal eerst de weekdagen weg voordat we keuzes zoeken.
   const withoutDays = WEEKDAGEN.reduce((t, name) => t.replace(new RegExp(`\\b${name}\\b`, 'g'), ' '), text)
   const modes = MODES.filter((mode) => MODE_WORDS[mode].test(withoutDays))
@@ -156,6 +324,12 @@ function capitalize(text: string): string {
 /** Bijv. "Week van 28 sep – 2 okt." */
 export function gotoConfirmation(monday: Date, today: Date): string {
   return `Week van ${weekLabel(monday, today.getFullYear())}.`
+}
+
+/** Bijv. "2,5 uur NVWA vastgelegd op donderdag 1 oktober: Overleg met de inspectie." */
+export function hoursConfirmation(line: HourLine, naam: string, date: Date): string {
+  const what = `${hoursText(line.uren)} ${naam} vastgelegd op ${longLabel(date)}`
+  return line.omschrijving ? `${what}: ${line.omschrijving}.` : `${what}.`
 }
 
 /** Bijv. "Fiets en Trein vastgelegd op woensdag 1 oktober." */

@@ -1,5 +1,6 @@
 import { dateKey } from './dates'
 import { parseDeclared, type Declared } from './declared'
+import { parseHours, parseRubrieken, type Hours, type Rubriek } from './hours'
 import { parseRegistrations, type Registrations } from './storage'
 
 const APP_ID = 'woon-werkvervoer'
@@ -12,6 +13,9 @@ export interface Backup {
   registraties: Registrations
   /** Vanaf WoonWerk 1.10: per vorm de laatst gedeclareerde dag. Oudere apps negeren dit veld. */
   gedeclareerd?: Declared
+  /** Vanaf WoonWerk 1.17: de rubrieken en de uren per dag. Oudere apps negeren deze velden. */
+  rubrieken?: Rubriek[]
+  uren?: Hours
 }
 
 /** Bijvoorbeeld 2026-10-21-woonwerk.json. Tot en met WoonWerk 1.7 was dat woon-werkvervoer-backup-2026-10-21.json. */
@@ -19,13 +23,20 @@ export function backupFileName(now: Date): string {
   return `${dateKey(now)}-woonwerk.json`
 }
 
-export function createBackup(registrations: Registrations, declared: Declared, now: Date): string {
+export function createBackup(
+  registrations: Registrations,
+  declared: Declared,
+  hours: { uren: Hours; rubrieken: Rubriek[] },
+  now: Date,
+): string {
   const backup: Backup = {
     app: APP_ID,
     versie: 2,
     gemaakt: now.toISOString(),
     registraties: registrations,
     gedeclareerd: declared,
+    rubrieken: hours.rubrieken,
+    uren: hours.uren,
   }
   return JSON.stringify(backup, null, 2)
 }
@@ -36,6 +47,8 @@ export function parseBackup(text: string): {
   registraties: Registrations
   /** `null` als de backup geen gedeclareerde dagen bevat (gemaakt voor WoonWerk 1.10). */
   gedeclareerd: Declared | null
+  /** `null` als de backup geen uren bevat (gemaakt voor WoonWerk 1.17). */
+  uren: { uren: Hours; rubrieken: Rubriek[] } | null
 } {
   let data: unknown
   try {
@@ -51,5 +64,12 @@ export function parseBackup(text: string): {
   if (!registraties) throw new Error('Deze backup is beschadigd.')
   const gemaakt = backup.gemaakt ? new Date(backup.gemaakt) : null
   const gedeclareerd = parseDeclared(backup.gedeclareerd)
-  return { gemaakt: gemaakt && !isNaN(gemaakt.getTime()) ? gemaakt : null, registraties, gedeclareerd }
+  const uren = parseHours(backup.uren)
+  const rubrieken = parseRubrieken(backup.rubrieken)
+  return {
+    gemaakt: gemaakt && !isNaN(gemaakt.getTime()) ? gemaakt : null,
+    registraties,
+    gedeclareerd,
+    uren: uren && rubrieken ? { uren, rubrieken } : null,
+  }
 }
