@@ -1,5 +1,6 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Plus, X } from 'lucide-react'
-import { addDays, dateKey, longLabel } from './dates'
+import type { ReactNode } from 'react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, ClockPlus, X } from 'lucide-react'
+import { addDays, longLabel } from './dates'
 import {
   formatHours,
   hoursText,
@@ -18,6 +19,8 @@ interface Props {
   onChange: (lines: HourLine[]) => void
   onChangeDay: (day: Date) => void
   onClose: () => void
+  /** Onderaan: de meldingen en de microfoonknop van de spraakbediening (als die aan staat). */
+  bottom?: ReactNode
 }
 
 // Keuzes voor het aantal uur: 0,25 tot en met 12, per kwartier.
@@ -34,22 +37,22 @@ function otherWorkday(day: Date, step: 1 | -1): Date {
   return d
 }
 
-/** Scherm met de uren van één dag (F33): regels met rubriek, aantal uur en een korte omschrijving. */
-export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay, onClose }: Props) {
+/**
+ * Scherm met de uren van één dag (F33): per rubriek een blok met een knop om een regel toe te voegen, en
+ * daarin de regels met het aantal uur en een korte omschrijving op één regel.
+ */
+export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay, onClose, bottom }: Props) {
   function update(index: number, change: Partial<HourLine>) {
     onChange(lines.map((line, i) => (i === index ? { ...line, ...change } : line)))
   }
 
-  function add() {
-    // Een nieuwe regel krijgt de rubriek van de regel erboven en 1 uur.
-    const rubriek = lines[lines.length - 1]?.rubriek ?? rubrieken[0]?.id
-    if (!rubriek) return
-    onChange([...lines, { rubriek, uren: 1, omschrijving: '' }])
-  }
-
   const label = longLabel(day)
-  // Een regel met een rubriek die niet meer bestaat (bijv. na het inlezen van een backup) blijft zichtbaar.
+  // Regels van een rubriek die niet meer bestaat (bijv. na het inlezen van een backup) blijven zichtbaar.
   const missing = [...new Set(lines.map((l) => l.rubriek))].filter((id) => !rubrieken.some((r) => r.id === id))
+  const groups = [
+    ...rubrieken.map((r) => ({ id: r.id, naam: r.naam, known: true })),
+    ...missing.map((id) => ({ id, naam: rubriekNaam(rubrieken, id), known: false })),
+  ]
 
   return (
     <main className="app day-hours">
@@ -71,74 +74,75 @@ export default function DayHours({ day, lines, rubrieken, onChange, onChangeDay,
         </button>
       </nav>
 
-      {lines.length > 0 && (
-        <ol className="hour-lines" aria-label={`Uren op ${label}`}>
-          {lines.map((line, index) => (
-            <li key={`${dateKey(day)}-${index}`} className="hour-line" aria-label={`Regel ${index + 1}`}>
-              <div className="hour-line-top">
-                <select
-                  aria-label="Rubriek"
-                  value={line.rubriek}
-                  onChange={(e) => update(index, { rubriek: e.target.value })}
-                >
-                  {rubrieken.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.naam}
-                    </option>
-                  ))}
-                  {missing.map((id) => (
-                    <option key={id} value={id}>
-                      {rubriekNaam(rubrieken, id)}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  aria-label="Aantal uur"
-                  className="hour-amount"
-                  value={String(line.uren)}
-                  onChange={(e) => update(index, { uren: Number(e.target.value) })}
-                >
-                  {/* Een ingesproken regel kan meer dan 12 uur hebben; die waarde moet er dan ook bij staan. */}
-                  {(UREN_KEUZES.includes(line.uren) ? UREN_KEUZES : [...UREN_KEUZES, line.uren]).map((value) => (
-                    <option key={value} value={String(value)}>
-                      {hoursText(value)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="icon-button line-delete"
-                  aria-label="Regel verwijderen"
-                  onClick={() => onChange(lines.filter((_, i) => i !== index))}
-                >
-                  <X size={18} strokeWidth={1.75} aria-hidden />
-                </button>
-              </div>
-              <input
-                type="text"
-                aria-label="Omschrijving"
-                placeholder="Korte omschrijving"
-                maxLength={MAX_OMSCHRIJVING}
-                value={line.omschrijving}
-                onChange={(e) => update(index, { omschrijving: e.target.value })}
-              />
-            </li>
-          ))}
-        </ol>
-      )}
+      {groups.length === 0 && <p className="muted">Maak eerst een rubriek via het tandwiel, bij Uren.</p>}
 
-      {rubrieken.length > 0 ? (
-        <button type="button" className="wide-button add-line" onClick={add}>
-          <Plus size={20} strokeWidth={1.75} aria-hidden />
-          Regel toevoegen
-        </button>
-      ) : (
-        <p className="muted">Maak eerst een rubriek via het tandwiel, bij Uren.</p>
-      )}
+      <div className="hour-groups">
+        {groups.map((group) => {
+          const own = lines.map((line, index) => ({ line, index })).filter(({ line }) => line.rubriek === group.id)
+          const total = sumHours(own.map(({ line }) => line))
+          return (
+            <section key={group.id} className="hour-group" aria-label={group.naam}>
+              <div className="hour-group-head">
+                <h2>{group.naam}</h2>
+                {total > 0 && <span className="hours-sum">{formatHours(total)} uur</span>}
+                {group.known && (
+                  <button
+                    type="button"
+                    className="icon-button add-line"
+                    aria-label={`Regel toevoegen bij ${group.naam}`}
+                    onClick={() => onChange([...lines, { rubriek: group.id, uren: 1, omschrijving: '' }])}
+                  >
+                    <ClockPlus size={20} strokeWidth={1.75} aria-hidden />
+                  </button>
+                )}
+              </div>
+              {own.length > 0 && (
+                <ul>
+                  {own.map(({ line, index }) => (
+                    <li key={index} className="hour-line">
+                      <select
+                        aria-label="Aantal uur"
+                        className="hour-amount"
+                        value={String(line.uren)}
+                        onChange={(e) => update(index, { uren: Number(e.target.value) })}
+                      >
+                        {/* Een ingesproken regel kan meer dan 12 uur hebben; die waarde moet er dan ook bij staan. */}
+                        {(UREN_KEUZES.includes(line.uren) ? UREN_KEUZES : [...UREN_KEUZES, line.uren]).map((value) => (
+                          <option key={value} value={String(value)}>
+                            {hoursText(value)}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        aria-label="Omschrijving"
+                        placeholder="Omschrijving"
+                        maxLength={MAX_OMSCHRIJVING}
+                        value={line.omschrijving}
+                        onChange={(e) => update(index, { omschrijving: e.target.value })}
+                      />
+                      <button
+                        type="button"
+                        className="icon-button line-delete"
+                        aria-label="Regel verwijderen"
+                        onClick={() => onChange(lines.filter((_, i) => i !== index))}
+                      >
+                        <X size={18} strokeWidth={1.75} aria-hidden />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )
+        })}
+      </div>
 
       <p className="hours-total">
         Totaal: <strong>{formatHours(sumHours(lines))} uur</strong>
       </p>
+
+      {bottom && <div className="bottom">{bottom}</div>}
     </main>
   )
 }

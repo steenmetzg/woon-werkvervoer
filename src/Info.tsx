@@ -37,8 +37,9 @@ export default function Info({ onClose }: Props) {
       <section className="setting info">
         <h2>Uren</h2>
         <p>
-          Tik in de week op het klokje rechts naast een datum. Daar voeg je regels toe met een rubriek, het aantal uur
-          (per kwartier) en een korte omschrijving; met het x-je haal je een regel weer weg. Met de pijltjes ga je naar de
+          Tik in de week op het klokje rechts naast een datum. Je ziet dan een blok per rubriek. Met het klokje met
+          plusje voeg je in dat blok een regel toe met het aantal uur (per kwartier) en een korte omschrijving; met het
+          x-je haal je een regel weer weg. Met de microfoon onderaan kun je hier ook uren inspreken voor deze dag. Met de pijltjes ga je naar de
           vorige of volgende werkdag. Bij de dag zie je daarna het totaal, bijvoorbeeld "7,5 u". Met de knop met het klokje
           onderaan open je het overzicht van al je uren, per maand en daarbinnen per rubriek. De rubrieken (eerst NVWA en
           ILT) maak, hernoem en verwijder je via het tandwiel, bij Uren; daar zet je de urenregistratie ook uit als je

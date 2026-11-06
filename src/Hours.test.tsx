@@ -57,7 +57,7 @@ function hoursChip(dayName: string) {
 
 function lines() {
   return screen.queryAllByRole('listitem').map((li) => ({
-    rubriek: (within(li).getByRole('combobox', { name: 'Rubriek' }) as HTMLSelectElement).selectedOptions[0].textContent,
+    rubriek: li.closest('section')!.getAttribute('aria-label'),
     uren: (within(li).getByRole('combobox', { name: 'Aantal uur' }) as HTMLSelectElement).selectedOptions[0].textContent,
     omschrijving: (within(li).getByRole('textbox', { name: 'Omschrijving' }) as HTMLInputElement).value,
   }))
@@ -166,12 +166,14 @@ describe('AC53: uren per dag', () => {
     expect(screen.getByText('Dinsdag 20 oktober')).toBeInTheDocument()
     expect(screen.getByText(/Totaal:/)).toHaveTextContent('Totaal: 0 uur')
 
-    await user.click(screen.getByRole('button', { name: 'Regel toevoegen' }))
+    // Per rubriek een blok met een knop om een regel toe te voegen; aantal uur en omschrijving op één regel.
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['NVWA', 'ILT'])
+    await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij NVWA' }))
     expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '1 uur', omschrijving: '' }])
     await user.selectOptions(screen.getByRole('combobox', { name: 'Aantal uur' }), '2.5')
     await user.type(screen.getByRole('textbox', { name: 'Omschrijving' }), 'Overleg')
-    await user.click(screen.getByRole('button', { name: 'Regel toevoegen' }))
-    await user.selectOptions(screen.getAllByRole('combobox', { name: 'Rubriek' })[1], 'ilt')
+    await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij ILT' }))
+    expect(within(screen.getByRole('region', { name: 'NVWA' })).getByText('2,5 uur', { selector: '.hours-sum' })).toBeInTheDocument()
     expect(lines()).toEqual([
       { rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Overleg' },
       { rubriek: 'ILT', uren: '1 uur', omschrijving: '' },
@@ -208,7 +210,7 @@ describe('AC53: uren per dag', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(hoursChip('dinsdag 20 oktober'))
-    expect(screen.queryByRole('button', { name: 'Regel toevoegen' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Regel toevoegen/ })).not.toBeInTheDocument()
     expect(screen.getByText('Maak eerst een rubriek via het tandwiel, bij Uren.')).toBeInTheDocument()
   })
 })
@@ -296,6 +298,30 @@ describe('AC55: uren inspreken', () => {
     expect(hoursChip('woensdag 21 oktober')).toHaveTextContent('1 u')
     await user.click(hoursChip('woensdag 21 oktober'))
     expect(lines()).toEqual([{ rubriek: 'ILT', uren: '1 uur', omschrijving: 'Mail' }])
+  })
+})
+
+describe('AC58: uren inspreken op het scherm Uren', () => {
+  it('legt de regel vast op de dag die open staat, of op de genoemde dag', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(hoursChip('maandag 19 oktober'))
+    await user.click(screen.getByRole('button', { name: 'Inspreken' }))
+    expect(screen.getByText(/Luisteren/).closest('section')).toHaveTextContent('"2 uur NVWA overleg"')
+    FakeRecognition.last!.hear('2 uur NVWA overleg')
+    expect(screen.getByRole('status')).toHaveTextContent('2 uur NVWA vastgelegd op maandag 19 oktober: Overleg.')
+    expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '2 uur', omschrijving: 'Overleg' }])
+
+    await user.click(screen.getByRole('button', { name: 'Inspreken' }))
+    FakeRecognition.last!.hear('ILT een uur gisteren')
+    expect(screen.getByText('Dinsdag 20 oktober')).toBeInTheDocument()
+    expect(lines()).toEqual([{ rubriek: 'ILT', uren: '1 uur', omschrijving: '' }])
+    await user.click(screen.getByRole('button', { name: 'Ongedaan maken' }))
+    expect(lines()).toEqual([])
+
+    await user.click(screen.getByRole('button', { name: 'Inspreken' }))
+    FakeRecognition.last!.hear('fiets vandaag')
+    expect(screen.getByRole('status')).toHaveTextContent('Hier spreek je uren in, bijvoorbeeld "2 uur NVWA overleg".')
   })
 })
 

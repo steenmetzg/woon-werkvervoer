@@ -213,6 +213,7 @@ function parseHoursCommand(
   today: Date,
   shownMonday: Date,
   rubrieken: readonly Rubriek[],
+  defaultDay: Date | null,
 ): VoiceCommand | null {
   const duration = findDuration(text)
   const rubriek = findRubriek(text, rubrieken)
@@ -223,7 +224,7 @@ function parseHoursCommand(
   const uren = roundQuarter(duration.uren)
   const match = findDateMatch(text, today, shownMonday)
   if (match && match.date === null) return { ok: false, error: `Ik hoorde "${spoken}", maar die datum bestaat niet.` }
-  const day = match?.date ?? startOfDay(today)
+  const day = match?.date ?? defaultDay ?? startOfDay(today)
   if (day.getDay() === 0 || day.getDay() === 6) return { ok: false, error: `${capitalize(longLabel(day))} is geen werkdag.` }
 
   // De omschrijving is wat overblijft als de rubriek, het aantal uur en de datum eruit zijn.
@@ -269,7 +270,8 @@ function normalizeSpoken(spoken: string): string {
 
 /**
  * Haalt keuze(s) en datum, of uren met rubriek en omschrijving, uit een gesproken zin. Zonder datum geldt
- * vandaag. `rubrieken` is `null` als de urenregistratie uit staat.
+ * vandaag, of bij uren `defaultDay` als die is meegegeven (op het scherm Uren de dag die open staat).
+ * `rubrieken` is `null` als de urenregistratie uit staat.
  */
 export function parseVoiceCommand(
   spoken: string,
@@ -277,11 +279,12 @@ export function parseVoiceCommand(
   shownMonday: Date,
   enabledModes: readonly Mode[],
   rubrieken: readonly Rubriek[] | null = null,
+  defaultDay: Date | null = null,
 ): VoiceCommand {
   const cased = normalizeSpoken(spoken)
   const text = cased.toLowerCase()
   if (rubrieken) {
-    const hours = parseHoursCommand(spoken, text, cased, today, shownMonday, rubrieken)
+    const hours = parseHoursCommand(spoken, text, cased, today, shownMonday, rubrieken, defaultDay)
     if (hours) return hours
   }
   // "vrijdag" en "vrije dag" niet verwarren: haal eerst de weekdagen weg voordat we keuzes zoeken.

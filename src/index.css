@@ -636,26 +636,66 @@ h1.wrap {
   font-weight: 500;
 }
 
-.hour-lines {
-  list-style: none;
-  margin: 0 0 12px;
-  padding: 0;
+/* Scherm Uren: de balk met de microfoon staat onderaan, net als op het weekscherm. */
+.app.day-hours {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-bottom: 0;
+}
+
+.app.day-hours .bottom {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.hour-groups {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
-.hour-line {
-  display: grid;
-  gap: 8px;
-  padding: 10px;
+/* Per rubriek een wit blok met de naam, het totaal en de knop om een regel toe te voegen. */
+.hour-group {
+  padding: 4px 10px;
   border-radius: 14px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.hour-line-top {
+.hour-group-head {
   display: flex;
+  align-items: center;
   gap: 8px;
+  min-height: 48px;
+}
+
+.hour-group-head h2 {
+  flex: 1;
+  margin: 0;
+  color: var(--accent);
+}
+
+.hour-group-head .add-line {
+  box-shadow: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.hour-group ul {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+/* Aantal uur en omschrijving op één regel. */
+.hour-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .hour-line select,
@@ -671,16 +711,19 @@ h1.wrap {
   border-radius: 10px;
 }
 
-.hour-line select:first-child {
-  flex: 1;
-}
-
 .hour-line .hour-amount {
   width: 104px;
   flex-shrink: 0;
+  padding: 0 6px;
+}
+
+.hour-line input {
+  flex: 1;
+  width: 0;
 }
 
 .hour-line .line-delete {
+  width: 36px;
   box-shadow: none;
   background: transparent;
   color: var(--muted);

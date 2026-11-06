@@ -301,12 +301,20 @@ export default function App() {
 
   // De spraakherkenning geeft soms een paar mogelijke zinnen; de eerste die klopt, telt.
   function handleHeard(alternatives: string[]) {
+    // Op het scherm Uren geldt zonder datum de dag die open staat, en zijn alleen uren mogelijk (F35).
+    const onDayScreen = screen === 'dag'
     const results = alternatives.map((text) =>
-      parseVoiceCommand(text, new Date(), shownMonday, enabledModes, hoursEnabled ? rubrieken : null),
+      onDayScreen
+        ? parseVoiceCommand(text, new Date(), mondayOf(hoursDay), enabledModes, rubrieken, hoursDay)
+        : parseVoiceCommand(text, new Date(), shownMonday, enabledModes, hoursEnabled ? rubrieken : null),
     )
-    const command = results.find((r) => r.ok) ?? results[0]
+    const command = (onDayScreen ? results.find((r) => r.ok && 'hours' in r) : undefined) ?? results.find((r) => r.ok) ?? results[0]
     if (!command.ok) {
       setVoiceMessage({ kind: 'error', text: command.error })
+      return
+    }
+    if (onDayScreen && !('hours' in command)) {
+      setVoiceMessage({ kind: 'error', text: 'Hier spreek je uren in, bijvoorbeeld "2 uur NVWA overleg".' })
       return
     }
     // Alleen naar een week gaan (F31), er verandert niets aan de keuzes.
@@ -340,6 +348,10 @@ export default function App() {
           }),
       })
     }
+    if (onDayScreen) {
+      setHoursDay(command.date)
+      return
+    }
     const week = mondayOf(command.date)
     if (week.getTime() !== shownMonday.getTime()) goToWeek(week)
   }
@@ -357,6 +369,45 @@ export default function App() {
     setVoiceMessage(null)
     speech.start()
   }
+
+  // Meldingen en microfoonknop van de spraakbediening, op het weekscherm en op het scherm Uren.
+  const voiceMessages = (
+    <>
+      {showMic && speech.listening && (
+        <section className="voice" aria-live="polite">
+          <p>
+            <strong>Luisteren…</strong> Zeg bijvoorbeeld: {screen === 'dag' ? '"2 uur NVWA overleg".' : '"fiets op 1 oktober".'}
+          </p>
+        </section>
+      )}
+      {showMic && !speech.listening && voiceMessage && (
+        <section className={voiceMessage.kind === 'error' ? 'voice error' : 'voice'} aria-live="polite">
+          <p role="status">{voiceMessage.text}</p>
+          {voiceMessage.undo && (
+            <button type="button" className="voice-undo" onClick={undoVoice}>
+              Ongedaan maken
+            </button>
+          )}
+          <button type="button" className="voice-close" aria-label="Melding sluiten" onClick={() => setVoiceMessage(null)}>
+            <X size={18} strokeWidth={1.75} aria-hidden />
+          </button>
+        </section>
+      )}
+    </>
+  )
+  const micButton = (
+    showMic && (
+      <button
+        type="button"
+        className={speech.listening ? 'icon-button mic listening' : 'icon-button mic'}
+        aria-label={speech.listening ? 'Stoppen met luisteren' : 'Inspreken'}
+        aria-pressed={speech.listening}
+        onClick={toggleListening}
+      >
+        <Mic size={18} strokeWidth={2} aria-hidden />
+      </button>
+    )
+  )
 
   if (screen === 'settings') {
     return (
@@ -403,6 +454,16 @@ export default function App() {
         rubrieken={rubrieken}
         onChange={(lines) => setDayHours(hoursDay, lines)}
         onChangeDay={setHoursDay}
+        bottom={
+          showMic ? (
+            <>
+              {voiceMessages}
+              <nav className="overview-bar" aria-label="Spraak">
+                {micButton}
+              </nav>
+            </>
+          ) : undefined
+        }
         onClose={() => {
           // Terug naar de week van de dag die als laatste open stond.
           setSlide(null)
@@ -548,41 +609,12 @@ export default function App() {
             </span>
           </button>
         ))}
-        {showMic && speech.listening && (
-          <section className="voice" aria-live="polite">
-            <p>
-              <strong>Luisteren…</strong> Zeg bijvoorbeeld: "fiets op 1 oktober".
-            </p>
-          </section>
-        )}
-        {showMic && !speech.listening && voiceMessage && (
-          <section className={voiceMessage.kind === 'error' ? 'voice error' : 'voice'} aria-live="polite">
-            <p role="status">{voiceMessage.text}</p>
-            {voiceMessage.undo && (
-              <button type="button" className="voice-undo" onClick={undoVoice}>
-                Ongedaan maken
-              </button>
-            )}
-            <button type="button" className="voice-close" aria-label="Melding sluiten" onClick={() => setVoiceMessage(null)}>
-              <X size={18} strokeWidth={1.75} aria-hidden />
-            </button>
-          </section>
-        )}
+        {voiceMessages}
         <nav
           className={overviewModes.length + (hoursEnabled ? 1 : 0) >= 6 ? 'overview-bar crowded' : 'overview-bar'}
           aria-label="Overzichten"
         >
-          {showMic && (
-            <button
-              type="button"
-              className={speech.listening ? 'icon-button mic listening' : 'icon-button mic'}
-              aria-label={speech.listening ? 'Stoppen met luisteren' : 'Inspreken'}
-              aria-pressed={speech.listening}
-              onClick={toggleListening}
-            >
-              <Mic size={18} strokeWidth={2} aria-hidden />
-            </button>
-          )}
+          {micButton}
           {overviewModes.map((mode) => {
             const { title, check } = OVERVIEWS[mode]
             return (
