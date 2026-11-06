@@ -905,8 +905,16 @@ h1.wrap {
   overflow-wrap: anywhere;
 }
 
-/* Het totaal van een rubriek in de accentkleur, net als de naam van de rubriek. */
-.hour-group-head .amount-sum {
+/* Het totaal van een rubriek onder de regels, in de kolom van de uren (rechts de ruimte van het x-je),
+   in de accentkleur, net als de naam van de rubriek. */
+.hour-group-total {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 4px;
+  padding-right: 40px;
+}
+
+.hour-group-total .amount-sum {
   color: var(--accent);
 }
 

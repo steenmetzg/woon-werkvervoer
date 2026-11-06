@@ -230,6 +230,10 @@ describe('AC53: uren per dag', () => {
     await user.type(screen.getByRole('textbox', { name: 'Omschrijving' }), 'Overleg')
     await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij ILT' }))
     expect(within(screen.getByRole('region', { name: 'NVWA' })).getByText((_, el) => el?.className === 'amount-sum' && el.textContent === '2,5')).toBeInTheDocument()
+    // Het rubriektotaal staat onder de regels, niet naast de naam (vanaf 1.20.1).
+    const nvwa = screen.getByRole('region', { name: 'NVWA' })
+    expect(nvwa.querySelector('.hour-group-head .amount-sum')).toBeNull()
+    expect(nvwa.querySelector('ul + .hour-group-total')).toHaveTextContent('2,5')
     expect(lines()).toEqual([
       { rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Overleg' },
       { rubriek: 'ILT', uren: '1 uur', omschrijving: '' },
