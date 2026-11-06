@@ -8,6 +8,12 @@ import { HOURS_KEY, RUBRIEKEN_KEY, type Rubriek } from './hours'
 import { parseVoiceCommand } from './speech'
 import { MODES } from './storage'
 
+/** Bevestigt de vraag "Backup inlezen?" met de knop Inlezen. */
+async function confirmRestore() {
+  await userEvent.click(within(await screen.findByRole('alertdialog', { name: 'Backup inlezen?' })).getByRole('button', { name: 'Inlezen' }))
+}
+
+
 vi.mock('./folderStore', () => ({
   loadStoredFolder: async () => null,
   storeFolder: async () => {},
@@ -133,22 +139,23 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
     expect(screen.queryByRole('button', { name: 'Rubriek toevoegen' })).not.toBeInTheDocument()
     expect(screen.getByText('Je hebt het maximum van 8 rubrieken.')).toBeInTheDocument()
 
-    // Een rubriek met uren: eerst een bevestiging; bij Annuleren blijft alles staan.
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    // Een rubriek met uren: eerst een eigen bevestigingsvenster; bij Annuleren blijft alles staan.
     await user.click(screen.getByRole('button', { name: 'Rubriek ILT verwijderen' }))
-    expect(confirm).toHaveBeenCalledWith('ILT heeft 1 regel met uren. Rubriek en uren verwijderen? Dit kan niet ongedaan worden gemaakt.')
+    const dialog = screen.getByRole('alertdialog', { name: 'Deze rubriek bevat gegevens' })
+    expect(dialog).toHaveTextContent('ILT heeft 1 regel met uren. Rubriek en uren verwijderen? Dit kan niet ongedaan worden gemaakt.')
+    await user.click(within(dialog).getByRole('button', { name: 'Annuleren' }))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Naam van rubriek ILT' })).toBeInTheDocument()
 
-    confirm.mockReturnValue(true)
     await user.click(screen.getByRole('button', { name: 'Rubriek ILT verwijderen' }))
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Verwijderen' }))
     expect(screen.queryByRole('textbox', { name: 'Naam van rubriek ILT' })).not.toBeInTheDocument()
     expect(screen.getByText('ILT en 1 regel met uren verwijderd.')).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem(HOURS_KEY)!)).toEqual({})
 
     // Een rubriek zonder uren gaat zonder vraag weg.
-    confirm.mockClear()
     await user.click(screen.getByRole('button', { name: 'Rubriek NVWA verwijderen' }))
-    expect(confirm).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Naam van rubriek NVWA' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Rubriek toevoegen' })).toBeInTheDocument()
   })
@@ -367,14 +374,16 @@ describe('AC56: uren in de backup', () => {
     expect(JSON.parse(text)).toMatchObject({ versie: 2, rubrieken, uren })
     expect(parseBackup(text).uren).toEqual({ uren, rubrieken })
 
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
     const input = screen.getByLabelText('Backupbestand') as HTMLInputElement
     fireEvent.change(input, { target: { files: [new File([text], 'backup.json', { type: 'application/json' })] } })
+    expect(await screen.findByRole('alertdialog', { name: 'Backup inlezen?' })).toHaveTextContent(
+      'met 1 dag en 1 urenregel inlezen? Dit vervangt al je huidige keuzes en uren.',
+    )
+    await confirmRestore()
     expect(await screen.findByText('Backup ingelezen: 1 dag en 1 urenregel.')).toBeInTheDocument()
-    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('met 1 dag en 1 urenregel inlezen? Dit vervangt al je huidige keuzes en uren.'))
     expect(screen.getByRole('textbox', { name: 'Naam van rubriek Project X' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(hoursChip('maandag 19 oktober')).toHaveTextContent('4 u')
@@ -384,13 +393,13 @@ describe('AC56: uren in de backup', () => {
     storeHours({ '2026-10-20': [{ rubriek: 'n1', uren: 2, omschrijving: '' }] })
     const old = JSON.stringify({ app: 'woon-werkvervoer', versie: 2, gemaakt: TODAY.toISOString(), registraties: {} })
     expect(parseBackup(old).uren).toBeNull()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
     fireEvent.change(screen.getByLabelText('Backupbestand'), {
       target: { files: [new File([old], 'oud.json', { type: 'application/json' })] },
     })
+    await confirmRestore()
     expect(await screen.findByText('Backup ingelezen: 0 dagen.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Terug' }))
     expect(hoursChip('dinsdag 20 oktober')).toHaveTextContent('2 u')
