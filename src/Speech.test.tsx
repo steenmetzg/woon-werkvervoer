@@ -215,8 +215,13 @@ describe('AC50: met spraak naar een week gaan', () => {
   })
 })
 
+// Laat de tijd verstrijken in stapjes van 100 ms, zodat elke seconde van de afteller aan bod komt.
+function wait(ms: number) {
+  for (let t = 0; t < ms; t += 100) act(() => vi.advanceTimersByTime(100))
+}
+
 describe('AC51: melding verdwijnt vanzelf', () => {
-  it('sluit na 6 seconden, met en zonder Ongedaan maken', () => {
+  it('sluit na 8 seconden, met en zonder Ongedaan maken', () => {
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
     vi.setSystemTime(TODAY)
     render(<App />)
@@ -224,11 +229,50 @@ describe('AC51: melding verdwijnt vanzelf', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
       FakeRecognition.last!.hear(zin)
       expect(screen.getByRole('status')).toBeInTheDocument()
-      act(() => vi.advanceTimersByTime(5900))
+      wait(7900)
       expect(screen.getByRole('status')).toBeInTheDocument()
-      act(() => vi.advanceTimersByTime(200))
+      wait(200)
       expect(screen.queryByRole('status')).toBeNull()
     }
+  })
+})
+
+describe('AC48a: afteller bij Ongedaan maken', () => {
+  it('telt af van 8 tot 1 en sluit dan', () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    vi.setSystemTime(TODAY)
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
+    FakeRecognition.last!.hear('gisteren auto')
+    const undo = screen.getByRole('button', { name: 'Ongedaan maken' })
+    expect(within(undo).getByTestId('afteller')).toHaveTextContent('8')
+    wait(1000)
+    expect(within(undo).getByTestId('afteller')).toHaveTextContent('7')
+    wait(6000)
+    expect(within(undo).getByTestId('afteller')).toHaveTextContent('1')
+    wait(1000)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('begint bij een nieuwe melding weer bij 8', () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    vi.setSystemTime(TODAY)
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
+    FakeRecognition.last!.hear('gisteren auto')
+    wait(3000)
+    expect(screen.getByTestId('afteller')).toHaveTextContent('5')
+    fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
+    FakeRecognition.last!.hear('vandaag fiets')
+    expect(screen.getByTestId('afteller')).toHaveTextContent('8')
+  })
+
+  it('staat niet in een melding zonder Ongedaan maken', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspreken' }))
+    FakeRecognition.last!.hear('ga naar 1 oktober')
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.queryByTestId('afteller')).toBeNull()
   })
 })
 
