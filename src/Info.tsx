@@ -46,7 +46,7 @@ export default function Info({ onClose }: Props) {
           <h2>Inspreken</h2>
           <p>
             Je kunt een dag ook inspreken, bijvoorbeeld "fiets op 1 oktober", "gisteren thuis" of "2 uur overleg". Met
-            "ga naar 1 oktober" spring je naar die week. Is er iets verkeerd vastgelegd, dan maak je het meteen
+            "ga naar 1 oktober" spring je naar die week. Ook een ritomschrijving kun je inspreken. Is er iets verkeerd vastgelegd, dan maak je het meteen
             ongedaan. Inspreken werkt alleen met internet.
           </p>
         </section>

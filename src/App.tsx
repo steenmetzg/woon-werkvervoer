@@ -269,6 +269,7 @@ export default function App() {
           <TripDialog
             title={`Rit ${shortLabel(day)} · ${modesText(travel)}`}
             value={trips[key] ?? ''}
+            speech={showMic}
             onCancel={() => setEditingTrip(null)}
             onSave={(text) => {
               setTrips((prev) => {

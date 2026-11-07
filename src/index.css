@@ -984,7 +984,7 @@ h1.wrap {
   flex-shrink: 0;
   margin-left: auto;
   height: 22px;
-  padding: 0 8px;
+  padding: 0 5px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -1104,4 +1104,30 @@ h1.wrap {
 .trip-dialog input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* Microfoontje linksonder in het invulvenster van de ritomschrijving (F37). */
+.confirm-buttons .trip-mic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 40px;
+  margin-right: auto;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  box-shadow: none;
+  color: var(--accent);
+}
+
+.confirm-buttons .trip-mic.listening {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.trip-speech-error {
+  margin: 4px 0 0;
+  color: #b42318;
+  font-size: 0.8125rem;
 }
