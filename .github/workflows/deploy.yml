@@ -47,11 +47,11 @@ jobs:
         if: steps.test.outputs.exists == 'true'
         working-directory: testversie
         run: |
-          # Een andere naam, zodat je de testversie niet verwart met de echte app.
-          sed -i 's/<title>WoonWerk<\/title>/<title>WoonWerk test<\/title>/; s/content="WoonWerk"/content="WoonWerk test"/' index.html
-          sed -i 's/"name": "WoonWerk"/"name": "WoonWerk test"/; s/"short_name": "WoonWerk"/"short_name": "WoonWerk test"/' public/manifest.webmanifest
           npm ci
           npm test
+          # Een andere naam, zodat je de testversie niet verwart met de echte app (na de tests, die de echte naam controleren).
+          sed -i 's/<title>WoonWerk<\/title>/<title>WoonWerk test<\/title>/; s/content="WoonWerk"/content="WoonWerk test"/' index.html
+          sed -i 's/"name": "WoonWerk"/"name": "WoonWerk test"/; s/"short_name": "WoonWerk"/"short_name": "WoonWerk test"/' public/manifest.webmanifest
           npm run build
           cp -r dist ../dist/test
 
