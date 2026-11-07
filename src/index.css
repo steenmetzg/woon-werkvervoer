@@ -961,3 +961,137 @@ h1.wrap {
   box-shadow: var(--shadow-accent);
   color: #ffffff;
 }
+
+/* ---- Ritomschrijving (F37, F38) ---- */
+
+/* De omschrijving staat klein en grijs op de regel van de datum, zodat de dag niet hoger wordt. */
+.trip-text {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+/* Potloodje naast het klokje: klein, met een onzichtbare rand een groter aanraakgebied. */
+.trip-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  height: 22px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.trip-chip::after {
+  content: '';
+  position: absolute;
+  inset: -11px -4px;
+}
+
+.trip-chip.filled {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.trip-chip + .hours-chip {
+  margin-left: 0;
+}
+
+.hours-chip {
+  flex-shrink: 0;
+}
+
+.trip-dialog {
+  margin: 0 0 8px;
+}
+
+.trip-dialog input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+}
+
+/* Overzichten Trein, Fiets en Auto: een lijst per maand met de omschrijving achter de datum (F38). */
+.trip-months {
+  padding-top: 4px;
+}
+
+.trip-month {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.trip-month:first-child {
+  border-top: none;
+}
+
+.trip-month h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+}
+
+.trip-month h2 small {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.trip-month ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.trip-month li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trip-date {
+  white-space: nowrap;
+}
+
+.trip-description {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.trip-month .muted {
+  margin: 0;
+}
+
+/* Een lange ritomschrijving mag de week niet breder maken dan het scherm. */
+.week-track > .days {
+  min-width: 0;
+}
+
+.trip-dialog input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

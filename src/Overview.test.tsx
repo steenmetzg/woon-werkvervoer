@@ -262,7 +262,7 @@ describe('AC36: datum laatste declaratie', () => {
 describe('AC41: laatst gedeclareerde dagen in de backup', () => {
   it('neemt de dagen mee in de backup en zet ze terug bij inlezen', async () => {
     localStorage.setItem(DECLARED_KEY, JSON.stringify({ thuis: '2026-09-30', auto: '2026-10-02' }))
-    expect(JSON.parse(createBackup({}, { thuis: '2026-09-30', auto: '2026-10-02' }, { uren: {}, rubrieken: [] }, new Date(2026, 9, 20))).gedeclareerd).toEqual({
+    expect(JSON.parse(createBackup({}, { thuis: '2026-09-30', auto: '2026-10-02' }, { uren: {}, rubrieken: [] }, {}, new Date(2026, 9, 20))).gedeclareerd).toEqual({
       thuis: '2026-09-30',
       auto: '2026-10-02',
     })

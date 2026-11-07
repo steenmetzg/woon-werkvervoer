@@ -433,7 +433,7 @@ describe('AC56: uren in de backup', () => {
   it('neemt uren en rubrieken mee en zet ze terug bij inlezen', async () => {
     const rubrieken = [{ id: 'x1', naam: 'Project X' }]
     const uren = { '2026-10-19': [{ rubriek: 'x1', uren: 4, omschrijving: 'Bouwen' }] }
-    const text = createBackup({ '2026-10-19': ['thuis'] }, {}, { uren, rubrieken }, TODAY)
+    const text = createBackup({ '2026-10-19': ['thuis'] }, {}, { uren, rubrieken }, {}, TODAY)
     expect(JSON.parse(text)).toMatchObject({ versie: 2, rubrieken, uren })
     expect(parseBackup(text).uren).toEqual({ uren, rubrieken })
 

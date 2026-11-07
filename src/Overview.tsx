@@ -3,6 +3,7 @@ import { ArrowLeft, X, type LucideIcon } from 'lucide-react'
 import BadgeIcon from './BadgeIcon'
 import { addDays, addMonths, compactDay, dateKey, monthName, monthsBetween, nextWorkday, parseDateKey, workdayFrom } from './dates'
 import type { Mode, Registrations } from './storage'
+import type { Trips } from './trips'
 
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
@@ -17,6 +18,8 @@ interface Props {
   Badge?: LucideIcon
   iconLabel: string
   registrations: Registrations
+  /** Alleen bij Trein, Fiets en Auto: de ritomschrijvingen; dan is het overzicht een lijst per maand (F38). */
+  trips?: Trips
   today: Date
   /** Alleen bij Thuis, Trein en Auto: de datum van de laatste declaratie (leeg als die nog niet is gekozen). */
   declared?: { date: string | undefined; onChange: (date: string | undefined) => void }
@@ -27,7 +30,7 @@ interface Props {
  * Overzicht van alle dagen met één bepaalde keuze, per maand een kolom (vier naast elkaar, daarna een
  * nieuwe rij). De periode is aan te passen; zie F15 en F25 in SPEC.md voor de standaardperiode.
  */
-export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, today, declared, onClose }: Props) {
+export default function Overview({ mode, title, Icon, Badge, iconLabel, registrations, trips, today, declared, onClose }: Props) {
   // Een met de hand gekozen vanaf- of tot-datum; zonder keuze geldt de standaard.
   const [chosenStart, setChosenStart] = useState<Date | null>(null)
   const [chosenEnd, setChosenEnd] = useState<Date | null>(null)
@@ -122,7 +125,31 @@ export default function Overview({ mode, title, Icon, Badge, iconLabel, registra
         </div>
       </div>
 
-      {columns.length > 0 ? (
+      {columns.length > 0 && trips ? (
+        // Lijst per maand met achter elke datum de ritomschrijving (F38).
+        <div className="trip-months">
+          {columns.map(({ month, name, days }) => (
+            <section key={dateKey(month)} className="trip-month" aria-label={name}>
+              <h2>
+                <span>{capitalize(name)}</span>
+                {days.length > 0 && <small>{days.length === 1 ? '1 dag' : `${days.length} dagen`}</small>}
+              </h2>
+              {days.length > 0 ? (
+                <ul>
+                  {days.map((d) => (
+                    <li key={dateKey(d)}>
+                      <span className="trip-date">{compactDay(d)}</span>
+                      {trips[dateKey(d)] && <span className="trip-description">{trips[dateKey(d)]}</span>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">–</p>
+              )}
+            </section>
+          ))}
+        </div>
+      ) : columns.length > 0 ? (
         <div className="months">
           {columns.map(({ month, name, days }) => (
             <section key={dateKey(month)} className="month" aria-label={name}>

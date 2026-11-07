@@ -29,7 +29,7 @@ export default function Info({ onClose }: Props) {
         <h2>Vervoer of thuiswerken registreren</h2>
         <p>
           Kies per dag Thuis, Trein, Fiets, Auto of Vrij. Trein, Fiets en Auto kun je combineren; Thuis en Vrij staan
-          altijd alleen.
+          altijd alleen. Op een reisdag kun je er een korte ritomschrijving bij zetten.
         </p>
       </section>
 
@@ -65,7 +65,8 @@ export default function Info({ onClose }: Props) {
         <p>
           Je kan verschillende overzichten per maand zien. Bij thuiswerk, trein en auto (de vergoedingen) hou je in de
           app bij tot wanneer je hebt gedeclareerd en laat het overzicht zien wat daarna nog open staat. Je krijgt
-          vanzelf een herinnering als het tijd is om weer te declareren. Het urenoverzicht toont al je uren per maand
+          vanzelf een herinnering als het tijd is om weer te declareren. Bij trein, fiets en auto zie je ook je
+          ritomschrijvingen. Het urenoverzicht toont al je uren per maand
           en per rubriek.
         </p>
       </section>
