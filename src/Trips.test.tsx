@@ -50,6 +50,16 @@ describe('AC60: ritomschrijving invullen', () => {
     expect(day('maandag 19 oktober').getByText('Zwolle v.v.')).toBeInTheDocument()
     expect(pencil('maandag 19 oktober')).toHaveClass('filled')
 
+    // Getypte tekst zonder leesteken krijgt bij opslaan een punt.
+    await user.click(pencil('maandag 19 oktober')!)
+    await user.type(screen.getByRole('textbox', { name: 'Ritomschrijving' }), ' en Kampen')
+    await user.click(screen.getByRole('button', { name: 'Opslaan' }))
+    expect(day('maandag 19 oktober').getByText('Zwolle v.v. en Kampen.')).toBeInTheDocument()
+    await user.click(pencil('maandag 19 oktober')!)
+    await user.clear(screen.getByRole('textbox', { name: 'Ritomschrijving' }))
+    await user.type(screen.getByRole('textbox', { name: 'Ritomschrijving' }), 'Zwolle v.v.')
+    await user.click(screen.getByRole('button', { name: 'Opslaan' }))
+
     unmount()
     render(<App />)
     expect(day('maandag 19 oktober').getByText('Zwolle v.v.')).toBeInTheDocument()

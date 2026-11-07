@@ -269,14 +269,14 @@ describe('AC65: ritomschrijving inspreken', () => {
     expect(FakeRecognition.last?.lang).toBe('nl-NL')
     expect(dialog.getByRole('button', { name: 'Stoppen met luisteren' })).toHaveAttribute('aria-pressed', 'true')
     FakeRecognition.last!.hear('fiets naar station')
-    expect(field).toHaveValue('Fiets naar station')
+    expect(field).toHaveValue('Fiets naar station.')
 
     await user.click(dialog.getByRole('button', { name: 'Ritomschrijving inspreken' }))
     FakeRecognition.last!.hear('trein Zwolle v.v.')
-    expect(field).toHaveValue('Fiets naar station trein Zwolle v.v.')
+    expect(field).toHaveValue('Fiets naar station. Trein Zwolle v.v.')
 
     await user.click(dialog.getByRole('button', { name: 'Opslaan' }))
-    expect(within(day(/maandag 19 oktober/)).getByText('Fiets naar station trein Zwolle v.v.')).toBeInTheDocument()
+    expect(within(day(/maandag 19 oktober/)).getByText('Fiets naar station. Trein Zwolle v.v.')).toBeInTheDocument()
   })
 
   it('heeft geen microfoontje als de spraakbediening uit staat', async () => {

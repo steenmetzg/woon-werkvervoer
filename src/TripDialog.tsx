@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Mic } from 'lucide-react'
 import { useSpeech } from './speech'
-import { MAX_TRIP } from './trips'
+import { MAX_TRIP, withPeriod } from './trips'
 
 interface Props {
   title: string
@@ -19,15 +19,15 @@ interface Props {
 export default function TripDialog({ title, value, onSave, onCancel, speech = false }: Props) {
   const [text, setText] = useState(value)
   const [speechError, setSpeechError] = useState<string | null>(null)
-  // Ingesproken tekst komt achter wat er al staat; in een leeg veld met een hoofdletter.
+  // Ingesproken tekst wordt een eigen zin achter wat er al staat: met een hoofdletter en een punt.
   const dictation = useSpeech(
     (alternatives) => {
       const heard = alternatives[0].trim()
       if (!heard) return
+      const sentence = withPeriod(heard.charAt(0).toUpperCase() + heard.slice(1))
       setText((prev) => {
-        const current = prev.trim()
-        const next = current ? `${current} ${heard}` : heard.charAt(0).toUpperCase() + heard.slice(1)
-        return next.slice(0, MAX_TRIP)
+        const current = withPeriod(prev)
+        return (current ? `${current} ${sentence}` : sentence).slice(0, MAX_TRIP)
       })
     },
     setSpeechError,
@@ -46,7 +46,7 @@ export default function TripDialog({ title, value, onSave, onCancel, speech = fa
       aria-labelledby={`${id}-title`}
       onSubmit={(e) => {
         e.preventDefault()
-        onSave(text.trim())
+        onSave(withPeriod(text))
       }}
       onKeyDown={(e) => {
         if (e.key === 'Escape') onCancel()

@@ -21,6 +21,12 @@ export function modesText(modes: readonly Mode[]): string {
   return labels.length <= 1 ? labels.join('') : `${labels.slice(0, -1).join(', ')} en ${labels[labels.length - 1]}`
 }
 
+/** Sluit een omschrijving af met een punt, tenzij hij al op een leesteken eindigt (F37). */
+export function withPeriod(text: string): string {
+  const trimmed = text.trim()
+  return !trimmed || /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed}.`
+}
+
 /** Haalt de geldige omschrijvingen uit willekeurige gegevens; `null` als het geen object is. */
 export function parseTrips(value: unknown): Trips | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
