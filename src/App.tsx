@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, Settings as SettingsIcon, Undo2, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, PenLine, Settings as SettingsIcon, Undo2, X } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import DayHours from './DayHours'
@@ -25,6 +25,8 @@ import Info from './Info'
 import Overview from './Overview'
 import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
+import TripDialog from './TripDialog'
+import { loadTrips, modesText, saveTrips, travelModes, type Trips } from './trips'
 import Settings from './Settings'
 import {
   confirmation,
@@ -90,6 +92,9 @@ export default function App() {
   const [hoursEnabled, setHoursEnabled] = useState(loadHoursEnabled)
   // De dag waarvan het scherm Uren open staat.
   const [hoursDay, setHoursDay] = useState<Date>(today)
+  // Ritomschrijving per dag (F37) en de dag waarvan het invulvenster open staat.
+  const [trips, setTrips] = useState<Trips>(loadTrips)
+  const [editingTrip, setEditingTrip] = useState<string | null>(null)
   const installPrompt = useInstallPrompt()
   // Spraakbediening (F29, F30).
   const [speechEnabled, setSpeechEnabled] = useState(loadSpeechEnabled)
@@ -122,6 +127,10 @@ export default function App() {
   useEffect(() => {
     saveHours(hours)
   }, [hours])
+
+  useEffect(() => {
+    saveTrips(trips)
+  }, [trips])
 
   useEffect(() => {
     saveRubrieken(rubrieken)
@@ -229,6 +238,9 @@ export default function App() {
     const key = dateKey(day)
     const isToday = key === todayKey
     const chosen = registrations[key] ?? []
+    // Ritomschrijving (F37): alleen op een dag met Trein, Fiets of Auto die aan staan.
+    const travel = travelModes(chosen, enabledModes)
+    const trip = travel.length > 0 ? trips[key] : undefined
     return (
       <li
         key={key}
@@ -239,8 +251,37 @@ export default function App() {
         <div className="day-label">
           {shortLabel(day)}
           {isToday && <span className="today-tag">vandaag</span>}
+          {trip && <span className="trip-text">{trip}</span>}
+          {travel.length > 0 && (
+            <button
+              type="button"
+              className={trip ? 'trip-chip filled' : 'trip-chip'}
+              aria-label={`Ritomschrijving op ${longLabel(day)}`}
+              aria-expanded={editingTrip === key}
+              onClick={() => setEditingTrip(editingTrip === key ? null : key)}
+            >
+              <PenLine size={14} strokeWidth={2} aria-hidden />
+            </button>
+          )}
           {hoursEnabled && renderHoursChip(day)}
         </div>
+        {editingTrip === key && travel.length > 0 && (
+          <TripDialog
+            title={`Rit ${shortLabel(day)} · ${modesText(travel)}`}
+            value={trips[key] ?? ''}
+            speech={showMic}
+            onCancel={() => setEditingTrip(null)}
+            onSave={(text) => {
+              setTrips((prev) => {
+                const next = { ...prev }
+                if (text) next[key] = text
+                else delete next[key]
+                return next
+              })
+              setEditingTrip(null)
+            }}
+          />
+        )}
         <div className="modes" role="group" aria-label={`Vervoer op ${longLabel(day)}`}>
           {enabledModes.map((mode) => {
             const { label, Icon } = MODE_INFO[mode]
@@ -453,12 +494,15 @@ export default function App() {
         onChangeHoursEnabled={setHoursEnabled}
         hours={hours}
         rubrieken={rubrieken}
+        trips={trips}
         onChangeRubrieken={setRubrieken}
         onDeleteRubriek={(id) => {
           setRubrieken((prev) => prev.filter((r) => r.id !== id))
           setHours((prev) => withoutRubriek(prev, id))
         }}
-        onRestore={(restored, restoredDeclared, restoredHours) => {
+        onRestore={(restored, restoredDeclared, restoredHours, restoredTrips) => {
+          // Een backup van voor WoonWerk 1.21 heeft geen ritomschrijvingen; dan blijven de huidige staan.
+          if (restoredTrips) setTrips(restoredTrips)
           setRegistrations(restored)
           // Een backup van voor WoonWerk 1.10 heeft geen gedeclareerde dagen; dan blijven de huidige staan.
           if (restoredDeclared) setDeclared(restoredDeclared)
@@ -515,6 +559,7 @@ export default function App() {
         Badge={check ? Check : undefined}
         iconLabel={label}
         registrations={registrations}
+        trips={screen === 'trein' || screen === 'fiets' || screen === 'auto' ? trips : undefined}
         today={today}
         declared={
           isDeclaredMode(screen)

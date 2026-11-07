@@ -255,3 +255,36 @@ describe('AC49: microfoonknop aan en uit', () => {
     expect(screen.queryByRole('group', { name: 'Spraak' })).toBeNull()
   })
 })
+
+describe('AC65: ritomschrijving inspreken', () => {
+  it('zet de ingesproken tekst in het veld, achter wat er al stond', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-19': ['trein'] }))
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Ritomschrijving op maandag 19 oktober' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Rit ma 19 okt · Trein' }))
+    const field = dialog.getByRole('textbox', { name: 'Ritomschrijving' })
+
+    await user.click(dialog.getByRole('button', { name: 'Ritomschrijving inspreken' }))
+    expect(FakeRecognition.last?.lang).toBe('nl-NL')
+    expect(dialog.getByRole('button', { name: 'Stoppen met luisteren' })).toHaveAttribute('aria-pressed', 'true')
+    FakeRecognition.last!.hear('fiets naar station')
+    expect(field).toHaveValue('Fiets naar station.')
+
+    await user.click(dialog.getByRole('button', { name: 'Ritomschrijving inspreken' }))
+    FakeRecognition.last!.hear('trein Zwolle v.v.')
+    expect(field).toHaveValue('Fiets naar station. Trein Zwolle v.v.')
+
+    await user.click(dialog.getByRole('button', { name: 'Opslaan' }))
+    expect(within(day(/maandag 19 oktober/)).getByText('Fiets naar station. Trein Zwolle v.v.')).toBeInTheDocument()
+  })
+
+  it('heeft geen microfoontje als de spraakbediening uit staat', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ '2026-10-19': ['auto'] }))
+    localStorage.setItem('spraak-aan', 'nee')
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Ritomschrijving op maandag 19 oktober' }))
+    expect(screen.queryByRole('button', { name: 'Ritomschrijving inspreken' })).toBeNull()
+  })
+})

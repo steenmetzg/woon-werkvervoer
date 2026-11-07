@@ -509,7 +509,8 @@ h1.wrap {
   color: var(--muted);
 }
 
-/* Spraakbediening (F29): de microfoonknop links in de balk onderaan, rond en gevuld blauw zodat hij opvalt. */
+/* Spraakbediening (F29): de microfoonknop links in de balk onderaan, rond en lichtblauw zoals alle
+   microfoontjes in de app; tijdens het luisteren gevuld blauw. */
 .overview-bar .mic {
   /* Een ronde knop, iets kleiner dan de andere knoppen, zodat hij er anders uitziet. */
   width: 38px;
@@ -517,16 +518,14 @@ h1.wrap {
   align-self: center;
   border-radius: 50%;
   margin-right: auto;
-  background: var(--accent);
-  box-shadow: var(--shadow-accent);
-  color: #ffffff;
+  background: var(--accent-soft);
+  box-shadow: none;
+  color: var(--accent);
 }
 
-/* Tijdens het luisteren een witte knop met blauwe rand. */
 .overview-bar .mic.listening {
-  background: var(--surface);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
 }
 
 /* Melding van de spraakbediening, net boven de balk onderaan. */
@@ -960,4 +959,174 @@ h1.wrap {
   background: var(--accent);
   box-shadow: var(--shadow-accent);
   color: #ffffff;
+}
+
+/* ---- Ritomschrijving (F37, F38) ---- */
+
+/* De omschrijving staat klein en grijs op de regel van de datum, zodat de dag niet hoger wordt. */
+.trip-text {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+/* Potloodje naast het klokje: klein, met een onzichtbare rand een groter aanraakgebied. */
+.trip-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  height: 22px;
+  padding: 0 5px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.trip-chip::after {
+  content: '';
+  position: absolute;
+  inset: -11px -4px;
+}
+
+.trip-chip.filled {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Potloodje dicht bij het klokje. */
+.trip-chip + .hours-chip {
+  margin-left: -8px;
+}
+
+/* De omschrijving staat met de onderkant van de letters gelijk aan de datum; de rondjes blijven in het midden. */
+.day-label:has(.trip-text) {
+  align-items: baseline;
+}
+
+.day-label:has(.trip-text) > :is(.today-tag, .trip-chip, .hours-chip) {
+  align-self: center;
+}
+
+.hours-chip {
+  flex-shrink: 0;
+}
+
+.trip-dialog {
+  margin: 0 0 8px;
+}
+
+.trip-dialog input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+}
+
+/* Overzichten Trein, Fiets en Auto: een lijst per maand met de omschrijving achter de datum (F38). */
+.trip-months {
+  padding-top: 4px;
+}
+
+.trip-month {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.trip-month:first-child {
+  border-top: none;
+}
+
+.trip-month h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+}
+
+.trip-month h2 small {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.trip-month ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.trip-month li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trip-date {
+  white-space: nowrap;
+}
+
+.trip-description {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.trip-month .muted {
+  margin: 0;
+}
+
+/* Een lange ritomschrijving mag de week niet breder maken dan het scherm. */
+.week-track > .days {
+  min-width: 0;
+}
+
+.trip-dialog input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Microfoontje linksonder in het invulvenster van de ritomschrijving (F37). */
+.confirm-buttons .trip-mic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 40px;
+  margin-right: auto;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  box-shadow: none;
+  color: var(--accent);
+}
+
+.confirm-buttons .trip-mic.listening {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.trip-speech-error {
+  margin: 4px 0 0;
+  color: #b42318;
+  font-size: 0.8125rem;
 }

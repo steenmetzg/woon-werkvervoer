@@ -27,6 +27,7 @@ import { askAgainFrom, forgetLater, isInstalledApp } from './installPrompt'
 import { MODE_INFO } from './modeInfo'
 import { speechSupported } from './speech'
 import { MODES, type Mode, type Registrations } from './storage'
+import type { Trips } from './trips'
 
 interface Props {
   registrations: Registrations
@@ -39,6 +40,7 @@ interface Props {
   onChangeHoursEnabled: (on: boolean) => void
   hours: Hours
   rubrieken: Rubriek[]
+  trips: Trips
   onChangeRubrieken: (rubrieken: Rubriek[]) => void
   /** Verwijdert een rubriek met al zijn uren. */
   onDeleteRubriek: (id: string) => void
@@ -46,6 +48,7 @@ interface Props {
     registrations: Registrations,
     declared: Declared | null,
     hours: { uren: Hours; rubrieken: Rubriek[] } | null,
+    trips: Trips | null,
   ) => void
   onClose: () => void
 }
@@ -108,6 +111,7 @@ export default function Settings({
   onChangeHoursEnabled,
   hours,
   rubrieken,
+  trips,
   onChangeRubrieken,
   onDeleteRubriek,
   onRestore,
@@ -193,7 +197,7 @@ export default function Settings({
   async function handleBackup() {
     const now = new Date()
     const name = backupFileName(now)
-    const text = createBackup(registrations, declared, { uren: hours, rubrieken }, now)
+    const text = createBackup(registrations, declared, { uren: hours, rubrieken }, trips, now)
     if (folder) {
       try {
         if (!(await ensureWriteAccess(folder))) {
@@ -230,7 +234,7 @@ export default function Settings({
   function confirmRestore() {
     if (!pendingRestore) return
     const { result } = pendingRestore
-    onRestore(result.registraties, result.gedeclareerd, result.uren)
+    onRestore(result.registraties, result.gedeclareerd, result.uren, result.ritten)
     setMessage({ kind: 'ok', text: `Backup ingelezen: ${contentCount(result.registraties, result.uren?.uren ?? null)}.` })
     setPendingRestore(null)
   }
