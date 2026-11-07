@@ -1002,8 +1002,18 @@ h1.wrap {
   color: var(--accent);
 }
 
+/* Potloodje dicht bij het klokje. */
 .trip-chip + .hours-chip {
-  margin-left: 0;
+  margin-left: -8px;
+}
+
+/* De omschrijving staat met de onderkant van de letters gelijk aan de datum; de rondjes blijven in het midden. */
+.day-label:has(.trip-text) {
+  align-items: baseline;
+}
+
+.day-label:has(.trip-text) > :is(.today-tag, .trip-chip, .hours-chip) {
+  align-self: center;
 }
 
 .hours-chip {
