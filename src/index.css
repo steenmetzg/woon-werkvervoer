@@ -569,15 +569,28 @@ h1.wrap {
 
 /* "Ongedaan maken" als klein icoon (pijl terug), zodat de tekst van de melding de meeste ruimte heeft. */
 .voice .voice-undo {
-  width: 36px;
   min-height: 36px;
-  padding: 0;
-  display: grid;
-  place-items: center;
+  padding: 0 6px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   border-radius: 10px;
   background: var(--accent-soft);
   box-shadow: none;
   color: var(--accent);
+}
+
+.voice .voice-countdown {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #d6e2ff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .voice .voice-close {

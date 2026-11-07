@@ -63,8 +63,8 @@ const SWIPE_MIN_DISTANCE = 50
 const SWIPE_LOCK_DISTANCE = 10
 // Duur van het schuiven naar een andere week, in milliseconden (zelfde waarde als in index.css).
 const SLIDE_MS = 250
-// Zo lang blijft een melding van de spraakbediening staan, in milliseconden.
-const VOICE_MESSAGE_MS = 6000
+// Zo lang blijft een melding van de spraakbediening staan, in seconden.
+const VOICE_MESSAGE_SECONDS = 8
 
 // "Minder beweging" in de telefoon: dan wisselt de week direct, zonder schuiven.
 function prefersReducedMotion() {
@@ -141,11 +141,22 @@ export default function App() {
   }, [hoursEnabled])
 
   // De melding van de spraakbediening verdwijnt vanzelf na een paar seconden.
+  // Elke seconde telt het rondje bij "Ongedaan maken" één af (8, 7 … 1).
+  // Bij een nieuwe melding begint het tellen meteen weer bij 6.
+  const [voiceSecondsLeft, setVoiceSecondsLeft] = useState(VOICE_MESSAGE_SECONDS)
+  const [countedMessage, setCountedMessage] = useState(voiceMessage)
+  if (countedMessage !== voiceMessage) {
+    setCountedMessage(voiceMessage)
+    setVoiceSecondsLeft(VOICE_MESSAGE_SECONDS)
+  }
   useEffect(() => {
     if (!voiceMessage) return
-    const timer = setTimeout(() => setVoiceMessage(null), VOICE_MESSAGE_MS)
+    const timer = setTimeout(() => {
+      if (voiceSecondsLeft <= 1) setVoiceMessage(null)
+      else setVoiceSecondsLeft(voiceSecondsLeft - 1)
+    }, 1000)
     return () => clearTimeout(timer)
-  }, [voiceMessage])
+  }, [voiceMessage, voiceSecondsLeft])
 
   // Een app op het beginscherm blijft soms dagen open staan: werk "vandaag" bij
   // zodra de app weer in beeld komt.
@@ -458,6 +469,9 @@ export default function App() {
           {voiceMessage.undo && (
             <button type="button" className="voice-undo" aria-label="Ongedaan maken" title="Ongedaan maken" onClick={undoVoice}>
               <Undo2 size={18} strokeWidth={2} aria-hidden />
+              <span className="voice-countdown" data-testid="afteller" aria-hidden>
+                {voiceSecondsLeft}
+              </span>
             </button>
           )}
           <button type="button" className="voice-close" aria-label="Melding sluiten" onClick={() => setVoiceMessage(null)}>
