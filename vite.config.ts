@@ -24,6 +24,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         cleanupOutdatedCaches: true,
+        // De testversie staat in de submap test/ met een eigen service worker; de echte app laat die adressen met rust.
+        navigateFallbackDenylist: [/\/test\//],
       },
     }),
   ],

@@ -1,8 +1,13 @@
 name: Testen en online zetten
 
+# De echte app (branch main) staat in de hoofdmap van de site. Bestaat de branch test, dan staat die
+# als testversie in de submap test/ (https://steenmetzg.github.io/woon-werkvervoer/test/).
+# GitHub Pages zet alleen online vanaf main; een push op test start daarom deze workflow op main
+# (zie testversie.yml), en het weggooien van de branch test haalt de testversie weer weg.
 on:
   push:
     branches: [main]
+  delete:
   workflow_dispatch:
 
 permissions:
@@ -19,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -26,6 +33,28 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+      - name: Bestaat de branch test?
+        id: test
+        run: |
+          if git ls-remote --exit-code --heads origin test > /dev/null; then echo "exists=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v4
+        if: steps.test.outputs.exists == 'true'
+        with:
+          ref: test
+          path: testversie
+      - name: Testversie bouwen in de submap test/
+        if: steps.test.outputs.exists == 'true'
+        working-directory: testversie
+        run: |
+          # Een andere naam, zodat je de testversie niet verwart met de echte app.
+          sed -i 's/<title>WoonWerk<\/title>/<title>WoonWerk test<\/title>/; s/content="WoonWerk"/content="WoonWerk test"/' index.html
+          sed -i 's/"name": "WoonWerk"/"name": "WoonWerk test"/; s/"short_name": "WoonWerk"/"short_name": "WoonWerk test"/' public/manifest.webmanifest
+          npm ci
+          npm test
+          npm run build
+          cp -r dist ../dist/test
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
