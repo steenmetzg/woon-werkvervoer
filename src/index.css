@@ -509,7 +509,8 @@ h1.wrap {
   color: var(--muted);
 }
 
-/* Spraakbediening (F29): de microfoonknop links in de balk onderaan, rond en gevuld blauw zodat hij opvalt. */
+/* Spraakbediening (F29): de microfoonknop links in de balk onderaan, rond en lichtblauw zoals alle
+   microfoontjes in de app; tijdens het luisteren gevuld blauw. */
 .overview-bar .mic {
   /* Een ronde knop, iets kleiner dan de andere knoppen, zodat hij er anders uitziet. */
   width: 38px;
@@ -517,16 +518,14 @@ h1.wrap {
   align-self: center;
   border-radius: 50%;
   margin-right: auto;
-  background: var(--accent);
-  box-shadow: var(--shadow-accent);
-  color: #ffffff;
+  background: var(--accent-soft);
+  box-shadow: none;
+  color: var(--accent);
 }
 
-/* Tijdens het luisteren een witte knop met blauwe rand. */
 .overview-bar .mic.listening {
-  background: var(--surface);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
 }
 
 /* Melding van de spraakbediening, net boven de balk onderaan. */
