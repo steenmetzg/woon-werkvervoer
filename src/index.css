@@ -847,6 +847,11 @@ h1.wrap {
   border-top: 1px solid var(--line);
 }
 
+/* Onder de datumvelden staat al een lijn. */
+.period + .hours-month {
+  border-top: none;
+}
+
 .hours-month h2,
 .hours-group h3 {
   display: flex;

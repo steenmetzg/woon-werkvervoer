@@ -321,6 +321,42 @@ describe('AC54: overzicht uren', () => {
     expect(screen.getAllByRole('listitem')[0]).toHaveAttribute('aria-label', 'maandag 19 oktober')
   })
 
+  it('toont standaard 3 maanden geleden tot en met vandaag; de periode is aan te passen (AC67)', async () => {
+    storeHours({
+      '2026-10-22': [{ rubriek: 'n1', uren: 4, omschrijving: 'Morgen' }],
+      '2026-10-02': [{ rubriek: 'i1', uren: 1.5, omschrijving: '' }],
+      '2026-09-30': [{ rubriek: 'n1', uren: 3, omschrijving: '' }],
+      '2026-07-21': [{ rubriek: 'n1', uren: 1, omschrijving: 'Eerste dag' }],
+      '2026-07-20': [{ rubriek: 'n1', uren: 5, omschrijving: 'Te oud' }],
+    })
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Overzicht uren' }))
+    const vanaf = screen.getByLabelText('Toon vanaf')
+    const tot = screen.getByLabelText('Tot en met')
+    expect(vanaf).toHaveValue('2026-07-21')
+    expect(tot).toHaveValue('2026-10-21')
+    const headings = () => screen.queryAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+    expect(headings()).toEqual(['Oktober 20261,5', 'September 20263', 'Juli 20261'])
+
+    fireEvent.change(vanaf, { target: { value: '2026-10-01' } })
+    fireEvent.change(tot, { target: { value: '2026-10-31' } })
+    expect(headings()).toEqual(['Oktober 20265,5'])
+
+    fireEvent.change(vanaf, { target: { value: '2026-08-01' } })
+    fireEvent.change(tot, { target: { value: '2026-08-31' } })
+    expect(headings()).toEqual([])
+    expect(screen.getByText('Geen uren in deze periode.')).toBeInTheDocument()
+
+    fireEvent.change(vanaf, { target: { value: '2026-09-01' } })
+    expect(screen.getByText('Geen uren: de vanaf-datum ligt na de tot en met-datum.')).toBeInTheDocument()
+
+    // Opnieuw openen: weer de standaardperiode.
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    await user.click(screen.getByRole('button', { name: 'Overzicht uren' }))
+    expect(screen.getByLabelText('Toon vanaf')).toHaveValue('2026-07-21')
+  })
+
   it('meldt dat er nog geen uren zijn', async () => {
     const user = userEvent.setup()
     render(<App />)
