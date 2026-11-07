@@ -66,8 +66,8 @@ export default function Info({ onClose }: Props) {
           Je kan verschillende overzichten per maand zien. Bij thuiswerk, trein en auto (de vergoedingen) hou je in de
           app bij tot wanneer je hebt gedeclareerd en laat het overzicht zien wat daarna nog open staat. Je krijgt
           vanzelf een herinnering als het tijd is om weer te declareren. Bij trein, fiets en auto zie je ook je
-          ritomschrijvingen. Het urenoverzicht toont al je uren per maand
-          en per rubriek.
+          ritomschrijvingen. Het urenoverzicht toont je uren per maand
+          en per rubriek, over de periode die je kiest.
         </p>
       </section>
 
