@@ -1,0 +1,17 @@
+name: Testversie bijwerken
+
+# Een push op de branch test zet de site opnieuw online vanaf main, met de testversie in de submap test/.
+on:
+  push:
+    branches: [test]
+
+permissions:
+  actions: write
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run deploy.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
