@@ -536,7 +536,7 @@ export default function App() {
   }
 
   if (screen === 'uren') {
-    return <HoursOverview hours={hours} rubrieken={rubrieken} onClose={() => setScreen('week')} />
+    return <HoursOverview hours={hours} rubrieken={rubrieken} today={today} onClose={() => setScreen('week')} />
   }
 
   if (screen === 'dag') {
