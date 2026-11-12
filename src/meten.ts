@@ -17,16 +17,19 @@ export type Telling =
   | 'overzicht-vrij'
   | 'overzicht-uren'
 
+/** Elke telling begint met de naam van de app, zodat je hem bij GoatCounter herkent tussen andere apps. */
+const VOORVOEGSEL = 'woonwerk-'
+
 const TITELS: Record<Telling, string> = {
-  'start-geinstalleerd': 'App gestart (geïnstalleerd)',
-  'start-browser': 'App gestart (browser)',
-  installatie: 'App geïnstalleerd',
-  'overzicht-thuis': 'Overzicht Thuis',
-  'overzicht-trein': 'Overzicht Trein',
-  'overzicht-fiets': 'Overzicht Fiets',
-  'overzicht-auto': 'Overzicht Auto',
-  'overzicht-vrij': 'Overzicht Vrij',
-  'overzicht-uren': 'Overzicht Uren',
+  'start-geinstalleerd': 'WoonWerk gestart (geïnstalleerd)',
+  'start-browser': 'WoonWerk gestart (browser)',
+  installatie: 'WoonWerk geïnstalleerd',
+  'overzicht-thuis': 'WoonWerk overzicht Thuis',
+  'overzicht-trein': 'WoonWerk overzicht Trein',
+  'overzicht-fiets': 'WoonWerk overzicht Fiets',
+  'overzicht-auto': 'WoonWerk overzicht Auto',
+  'overzicht-vrij': 'WoonWerk overzicht Vrij',
+  'overzicht-uren': 'WoonWerk overzicht Uren',
 }
 
 interface Plek {
@@ -41,7 +44,7 @@ export function mayCount(plek: Plek, online: boolean): boolean {
 
 /** Het adres van één telling, met alleen de naam en de titel. */
 export function countUrl(telling: Telling, rnd = Math.random().toString(36).slice(2)): string {
-  const params = new URLSearchParams({ p: telling, t: TITELS[telling], e: 'true', rnd })
+  const params = new URLSearchParams({ p: VOORVOEGSEL + telling, t: TITELS[telling], e: 'true', rnd })
   return `${COUNT_URL}?${params}`
 }
 
@@ -73,10 +76,9 @@ function isInstalled(): boolean {
   return window.matchMedia?.('(display-mode: standalone)').matches ?? false
 }
 
-/** Eén keer bij het openen van de app: telt de start en luistert naar een installatie. */
+/** Eén keer bij het openen van de app: telt de start. Een installatie telt apart, zie installPrompt.ts. */
 export function startMeten() {
   tel(isInstalled() ? 'start-geinstalleerd' : 'start-browser')
-  window.addEventListener('appinstalled', () => tel('installatie'))
 }
 
 /** De telling voor het openen van een scherm, of `null` als het geen overzicht is. */
