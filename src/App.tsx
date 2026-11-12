@@ -22,6 +22,7 @@ import HoursOverview from './HoursOverview'
 import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
+import { overviewTelling, tel } from './meten'
 import Overview from './Overview'
 import { dueReminders } from './reminders'
 import { MODE_INFO } from './modeInfo'
@@ -90,6 +91,12 @@ export default function App() {
   const [hours, setHours] = useState<Hours>(loadHours)
   const [rubrieken, setRubrieken] = useState<Rubriek[]>(loadRubrieken)
   const [hoursEnabled, setHoursEnabled] = useState(loadHoursEnabled)
+
+  // Gebruik meten (F39): elk geopend overzicht telt één keer.
+  useEffect(() => {
+    const telling = overviewTelling(screen)
+    if (telling) tel(telling)
+  }, [screen])
   // De dag waarvan het scherm Uren open staat.
   const [hoursDay, setHoursDay] = useState<Date>(today)
   // Ritomschrijving per dag (F37) en de dag waarvan het invulvenster open staat.
