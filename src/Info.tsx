@@ -84,6 +84,8 @@ export default function Info({ onClose }: Props) {
         <p>
           Alles wat je invult staat <strong>alleen</strong> op deze telefoon. Maak daarom regelmatig een backup;
           daarmee zet je je gegevens later terug. Bijvoorbeeld als je een andere telefoon gaat gebruiken.
+          De app telt anoniem hoe vaak hij wordt geopend en welke overzichten worden bekeken; wat je invult, wordt
+          nooit verstuurd.
         </p>
       </section>
 
