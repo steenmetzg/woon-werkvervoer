@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -7,7 +7,7 @@ import { countUrl, setMetenVoorTest, startMeten, tel } from './meten'
 const ECHT = { hostname: 'steenmetzg.github.io', pathname: '/woon-werkvervoer/' }
 
 function tellingen(send: ReturnType<typeof vi.fn>) {
-  return send.mock.calls.map(([url]) => new URL(url as string).searchParams.get('p'))
+  return send.mock.calls.map(([url]) => new URL(url as string).searchParams.get('p')!.replace(/^woonwerk-/, ''))
 }
 
 afterEach(() => {
@@ -51,19 +51,34 @@ describe('AC68 (F39): tellen bij starten en bij elk overzicht', () => {
     const url = new URL(countUrl('overzicht-fiets', 'abc'))
     expect(url.origin + url.pathname).toBe('https://steenmetzg.goatcounter.com/count')
     expect([...url.searchParams.entries()]).toEqual([
-      ['p', 'overzicht-fiets'],
-      ['t', 'Overzicht Fiets'],
+      ['p', 'woonwerk-overzicht-fiets'],
+      ['t', 'WoonWerk overzicht Fiets'],
       ['e', 'true'],
       ['rnd', 'abc'],
     ])
   })
 
-  it('telt een installatie', () => {
+  it('telt een installatie apart, alleen als ik Installeren bevestig', async () => {
     const send = vi.fn()
     setMetenVoorTest(ECHT, send)
-    startMeten()
+    const user = userEvent.setup()
+    render(<App />)
+    for (const outcome of ['dismissed', 'accepted'] as const) {
+      localStorage.clear()
+      const event = Object.assign(new Event('beforeinstallprompt', { cancelable: true }), {
+        prompt: vi.fn(async () => {}),
+        userChoice: Promise.resolve({ outcome }),
+      })
+      act(() => {
+        window.dispatchEvent(event)
+      })
+      await user.click(screen.getByRole('button', { name: 'Installeren' }))
+      if (outcome === 'dismissed') expect(tellingen(send)).toEqual([])
+    }
+    expect(tellingen(send)).toEqual(['installatie'])
+    expect(send.mock.calls[0][0]).toContain('p=woonwerk-installatie')
     window.dispatchEvent(new Event('appinstalled'))
-    expect(tellingen(send)).toContain('installatie')
+    expect(tellingen(send)).toEqual(['installatie'])
   })
 })
 
