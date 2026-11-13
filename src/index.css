@@ -1148,3 +1148,8 @@ h1.wrap {
   color: #b42318;
   font-size: 0.8125rem;
 }
+
+/* Uitleg op een iPhone of iPad (F18): het Deel-icoon staat in de tekst. */
+.install p svg {
+  vertical-align: -3px;
+}
