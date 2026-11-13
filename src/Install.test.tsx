@@ -16,6 +16,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   // Ruim een opgevangen signaal op, zodat elke test schoon begint.
   window.dispatchEvent(new Event('appinstalled'))
   vi.unstubAllGlobals()
@@ -161,5 +162,50 @@ describe('AC28: vraag weer tonen vanuit de instellingen', () => {
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
     expect(screen.queryByRole('heading', { name: 'App installeren' })).not.toBeInTheDocument()
+  })
+})
+
+const IPHONE =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+
+describe('AC73: vraag om te installeren op een iPhone of iPad', () => {
+  beforeEach(() => {
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IPHONE)
+  })
+
+  it('toont de vraag zonder melding van Chrome, met Niet nu en Hoe?', () => {
+    render(<App />)
+    expect(installQuestion()).toHaveTextContent('WoonWerk als app installeren?')
+    expect(screen.getByRole('button', { name: 'Hoe?' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Niet nu' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Installeren' })).not.toBeInTheDocument()
+  })
+
+  it('legt bij Hoe? uit hoe je de app op het beginscherm zet; Oké sluit de vraag voor 30 dagen', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Hoe?' }))
+    expect(installQuestion()).toHaveTextContent('Tik op de Deel-knop')
+    expect(installQuestion()).toHaveTextContent('Zet op beginscherm')
+    await user.click(screen.getByRole('button', { name: 'Oké' }))
+    expect(installQuestion()).not.toBeInTheDocument()
+    expect(localStorage.getItem(INSTALL_LATER_KEY)).not.toBeNull()
+  })
+
+  it('vraagt na "Niet nu" pas na 30 dagen opnieuw', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Niet nu' }))
+    expect(installQuestion()).not.toBeInTheDocument()
+    unmount()
+    vi.setSystemTime(new Date(2026, 10, 20, 9, 1))
+    render(<App />)
+    expect(installQuestion()).toBeInTheDocument()
+  })
+
+  it('toont geen vraag in de app op het beginscherm', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(display-mode: standalone)' }))
+    render(<App />)
+    expect(installQuestion()).not.toBeInTheDocument()
   })
 })

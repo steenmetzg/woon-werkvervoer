@@ -84,13 +84,16 @@ export default function Info({ onClose }: Props) {
         <p>
           Alles wat je invult staat <strong>alleen</strong> op deze telefoon. Maak daarom regelmatig een backup;
           daarmee zet je je gegevens later terug. Bijvoorbeeld als je een andere telefoon gaat gebruiken.
+          De app telt anoniem hoe vaak hij wordt geopend en welke overzichten worden bekeken; wat je invult, wordt
+          nooit verstuurd.
         </p>
       </section>
 
       <section className="setting info">
         <h2>Zonder internet</h2>
         <p>
-          De app werkt ook zonder internet en houdt zichzelf vanzelf up-to-date.
+          De app werkt ook zonder internet en houdt zichzelf vanzelf up-to-date. Je kunt WoonWerk als app op je
+          telefoon zetten, ook op een iPhone of iPad.
         </p>
       </section>
     </main>
