@@ -2,6 +2,8 @@
 // Alleen de naam van de telling gaat weg, nooit wat je invult. Alles hierover staat in dit bestand,
 // zodat de functie makkelijk weer weg kan.
 
+import { isIos } from './installPrompt'
+
 const COUNT_URL = 'https://steenmetzg.goatcounter.com/count'
 /** Alleen de echte app telt; de testversie (submap test/), de tests en de computer van de ontwikkelaar niet. */
 const LIVE_HOST = 'steenmetzg.github.io'
@@ -76,9 +78,29 @@ function isInstalled(): boolean {
   return window.matchMedia?.('(display-mode: standalone)').matches ?? false
 }
 
+/** Onthoudt dat de installatie op een iPhone of iPad al geteld is. */
+export const IOS_INSTALLATIE_KEY = 'installatie-geteld'
+
+/**
+ * Een iPhone of iPad meldt een installatie niet. Daarom telt daar de eerste start vanaf het beginscherm
+ * als installatie (vanaf versie 1.24.0); de app op het beginscherm heeft daar zijn eigen, nog lege opslag.
+ */
+function telIosInstallatie() {
+  try {
+    if (!isIos() || localStorage.getItem(IOS_INSTALLATIE_KEY)) return
+    localStorage.setItem(IOS_INSTALLATIE_KEY, '1')
+  } catch {
+    return
+  }
+  tel('installatie')
+}
+
 /** Eén keer bij het openen van de app: telt de start. Een installatie telt apart, zie installPrompt.ts. */
 export function startMeten() {
-  tel(isInstalled() ? 'start-geinstalleerd' : 'start-browser')
+  if (isInstalled()) {
+    tel('start-geinstalleerd')
+    telIosInstallatie()
+  } else tel('start-browser')
 }
 
 /** De telling voor het openen van een scherm, of `null` als het geen overzicht is. */
