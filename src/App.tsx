@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
-import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, PenLine, Settings as SettingsIcon, Undo2, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Clock, Info as InfoIcon, Mic, PenLine, Settings as SettingsIcon, Share, Undo2, X } from 'lucide-react'
 import { dateKey, longLabel, mondayOf, shortLabel, addDays, weekLabel, workdays } from './dates'
 import BadgeIcon from './BadgeIcon'
 import DayHours from './DayHours'
@@ -103,6 +103,8 @@ export default function App() {
   const [trips, setTrips] = useState<Trips>(loadTrips)
   const [editingTrip, setEditingTrip] = useState<string | null>(null)
   const installPrompt = useInstallPrompt()
+  // Op een iPhone of iPad: de uitleg na "Hoe?" (F18).
+  const [installHow, setInstallHow] = useState(false)
   // Spraakbediening (F29, F30).
   const [speechEnabled, setSpeechEnabled] = useState(loadSpeechEnabled)
   const [voiceMessage, setVoiceMessage] = useState<{
@@ -685,7 +687,7 @@ export default function App() {
       </div>
 
       <div className="bottom">
-        {installPrompt.show && (
+        {installPrompt.show && !installPrompt.ios && (
           <section className="install" aria-label="App installeren">
             <p>WoonWerk als app installeren?</p>
             <button type="button" onClick={installPrompt.notNow}>
@@ -694,6 +696,32 @@ export default function App() {
             <button type="button" className="install-now" onClick={installPrompt.install}>
               Installeren
             </button>
+          </section>
+        )}
+        {installPrompt.show && installPrompt.ios && (
+          // Een iPhone of iPad kan het installeren niet zelf vragen: de app legt uit hoe het moet (F18).
+          <section className="install" aria-label="App installeren">
+            {installHow ? (
+              <>
+                <p>
+                  Tik op de Deel-knop <Share size={16} strokeWidth={2} aria-label="(vierkantje met pijl omhoog)" />{' '}
+                  (in Safari soms eerst op ⋯) en kies <strong>Zet op beginscherm</strong>.
+                </p>
+                <button type="button" className="install-now" onClick={installPrompt.notNow}>
+                  Oké
+                </button>
+              </>
+            ) : (
+              <>
+                <p>WoonWerk als app installeren?</p>
+                <button type="button" onClick={installPrompt.notNow}>
+                  Niet nu
+                </button>
+                <button type="button" className="install-now" onClick={() => setInstallHow(true)}>
+                  Hoe?
+                </button>
+              </>
+            )}
           </section>
         )}
         {reminders.map(({ mode, title, text }) => (

@@ -35,6 +35,19 @@ export function isInstalledApp(): boolean {
   return window.matchMedia?.('(display-mode: standalone)').matches ?? false
 }
 
+/**
+ * Of dit een iPhone of iPad is. Daar stuurt geen enkele browser het signaal van Chrome: je installeert zelf
+ * via de Deel-knop en "Zet op beginscherm" (F18). Een iPad doet zich soms voor als Mac, maar heeft een touchscreen.
+ */
+export function isIos(): boolean {
+  try {
+    const nav = window.navigator
+    return /iPhone|iPad|iPod/.test(nav.userAgent) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1)
+  } catch {
+    return false
+  }
+}
+
 /** Tot wanneer de vraag na "Niet nu" wegblijft; `null` als hij niet wegblijft. */
 export function askAgainFrom(now: Date): Date | null {
   try {
@@ -74,6 +87,7 @@ function rememberLater(now: Date) {
 export function useInstallPrompt() {
   const [event, setEvent] = useState(() => pending)
   const [later, setLater] = useState(() => askedLaterRecently(new Date()))
+  const [ios] = useState(isIos)
 
   useEffect(() => {
     const update = () => {
@@ -105,7 +119,9 @@ export function useInstallPrompt() {
   }
 
   return {
-    show: event !== null && !later && !isInstalledApp(),
+    // Op een iPhone of iPad komt de vraag zonder signaal, met uitleg in plaats van het venster van Chrome.
+    show: (event !== null || ios) && !later && !isInstalledApp(),
+    ios: ios && event === null,
     install,
     notNow,
   }

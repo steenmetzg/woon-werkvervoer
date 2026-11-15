@@ -92,7 +92,8 @@ export default function Info({ onClose }: Props) {
       <section className="setting info">
         <h2>Zonder internet</h2>
         <p>
-          De app werkt ook zonder internet en houdt zichzelf vanzelf up-to-date.
+          De app werkt ook zonder internet en houdt zichzelf vanzelf up-to-date. Je kunt WoonWerk als app op je
+          telefoon zetten, ook op een iPhone of iPad.
         </p>
       </section>
     </main>
