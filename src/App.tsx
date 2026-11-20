@@ -22,6 +22,8 @@ import HoursOverview from './HoursOverview'
 import { isDeclaredMode, loadDeclared, saveDeclared, type Declared } from './declared'
 import { useInstallPrompt } from './installPrompt'
 import Info from './Info'
+import NewVersion from './NewVersion'
+import { markVersionSeen, versionToAnnounce } from './newVersion'
 import { overviewTelling, tel } from './meten'
 import Overview from './Overview'
 import { dueReminders } from './reminders'
@@ -103,6 +105,8 @@ export default function App() {
   const [trips, setTrips] = useState<Trips>(loadTrips)
   const [editingTrip, setEditingTrip] = useState<string | null>(null)
   const installPrompt = useInstallPrompt()
+  // Melding na het bijwerken van de app (F41). Bij de eerste keer openen is er niets te melden.
+  const [newVersion, setNewVersion] = useState(() => versionToAnnounce(__APP_VERSION__))
   // Op een iPhone of iPad: de uitleg na "Hoe?" (F18).
   const [installHow, setInstallHow] = useState(false)
   // Spraakbediening (F29, F30).
@@ -116,6 +120,10 @@ export default function App() {
   const [voiceRubriek, setVoiceRubriek] = useState<string | null>(null)
   const speech = useSpeech(handleHeard, (text) => setVoiceMessage({ kind: 'error', text }))
   const showMic = speechEnabled && speechSupported()
+
+  useEffect(() => {
+    if (newVersion === null) markVersionSeen(__APP_VERSION__)
+  }, [newVersion])
 
   useEffect(() => {
     saveRegistrations(registrations)
@@ -724,6 +732,7 @@ export default function App() {
             )}
           </section>
         )}
+        {newVersion && <NewVersion version={newVersion} onClose={() => setNewVersion(null)} />}
         {reminders.map(({ mode, title, text }) => (
           <button key={mode} type="button" className="reminder" onClick={() => setScreen(mode)}>
             <BadgeIcon Icon={MODE_INFO[mode].Icon} />
