@@ -4,12 +4,12 @@ import Amount from './Amount'
 import MicPlus from './MicPlus'
 import { addDays, dateKey, shortLabel } from './dates'
 import {
-  DEFAULT_OMSCHRIJVING,
   hoursText,
   MAX_OMSCHRIJVING,
-  MAX_UREN_PER_REGEL,
   rubriekNaam,
+  standaardRegel,
   sumHours,
+  UREN_KEUZES,
   type HourLine,
   type Hours,
   type Rubriek,
@@ -33,9 +33,6 @@ interface Props {
   /** Onderaan: de meldingen van de spraakbediening. */
   bottom?: ReactNode
 }
-
-// Keuzes voor het aantal uur: 0,25 tot en met 12, per kwartier.
-const UREN_KEUZES = Array.from({ length: MAX_UREN_PER_REGEL * 4 }, (_, i) => (i + 1) / 4)
 
 /** De werkdag ervoor of erna (het weekend slaan we over). */
 function otherWorkday(day: Date, step: 1 | -1): Date {
@@ -143,8 +140,8 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
     // Regels van een rubriek die niet meer bestaat (bijv. na het inlezen van een backup) blijven zichtbaar.
     const missing = [...new Set(lines.map((l) => l.rubriek))].filter((id) => !rubrieken.some((r) => r.id === id))
     const groups = [
-      ...rubrieken.map((r) => ({ id: r.id, naam: r.naam, known: true })),
-      ...missing.map((id) => ({ id, naam: rubriekNaam(rubrieken, id), known: false })),
+      ...rubrieken.map((r) => ({ id: r.id, naam: r.naam, rubriek: r as Rubriek | null })),
+      ...missing.map((id) => ({ id, naam: rubriekNaam(rubrieken, id), rubriek: null as Rubriek | null })),
     ]
     return (
       <>
@@ -156,7 +153,7 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
               <section key={group.id} className="hour-group" aria-label={group.naam}>
                 <div className="hour-group-head">
                   <h2>{group.naam}</h2>
-                  {group.known && speakLine && (
+                  {group.rubriek && speakLine && (
                     <button
                       type="button"
                       className={speakLine.listening === group.id ? 'icon-button add-line listening' : 'icon-button add-line'}
@@ -169,12 +166,12 @@ export default function DayHours({ day, today, hours, rubrieken, onChange, onCha
                       <MicPlus size={20} strokeWidth={1.75} aria-hidden />
                     </button>
                   )}
-                  {group.known && (
+                  {group.rubriek && (
                     <button
                       type="button"
                       className="icon-button add-line"
                       aria-label={`Regel toevoegen bij ${group.naam}`}
-                      onClick={() => onChange([...lines, { rubriek: group.id, uren: 1, omschrijving: DEFAULT_OMSCHRIJVING }])}
+                      onClick={() => onChange([...lines, standaardRegel(group.rubriek!)])}
                     >
                       <ClockPlus size={20} strokeWidth={1.75} aria-hidden />
                     </button>

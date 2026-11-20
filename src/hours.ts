@@ -5,6 +5,10 @@ export interface Rubriek {
   /** Vaste sleutel; de naam kun je aanpassen zonder dat de geregistreerde uren hun rubriek kwijtraken. */
   id: string
   naam: string
+  /** Aantal uur van een nieuwe regel via het klokje met plusje (F32, F33; vanaf WoonWerk 1.25.0). Ontbreekt: 1 uur. */
+  standaardUren?: number
+  /** Omschrijving van zo'n nieuwe regel. Ontbreekt of leeg: "Diversen". */
+  standaardOmschrijving?: string
 }
 
 export interface HourLine {
@@ -28,6 +32,21 @@ export const DEFAULT_RUBRIEKEN: Rubriek[] = [{ id: 'r1', naam: 'Mijn 1e rubriek'
 
 /** De omschrijving van een nieuwe regel als je zelf niets invult of inspreekt (vanaf WoonWerk 1.20.1). */
 export const DEFAULT_OMSCHRIJVING = 'Diversen'
+
+/** Zonder ingestelde standaardregel krijgt een nieuwe regel 1 uur (vanaf WoonWerk 1.17.0). */
+export const DEFAULT_UREN = 1
+
+/** De keuzes voor een aantal uur: 0,25 tot en met 12, per kwartier. */
+export const UREN_KEUZES = Array.from({ length: MAX_UREN_PER_REGEL * 4 }, (_, i) => (i + 1) / 4)
+
+/** De regel die het klokje met plusje bij deze rubriek neerzet (F33): de standaardregel uit de instellingen (F32). */
+export function standaardRegel(rubriek: Rubriek): HourLine {
+  return {
+    rubriek: rubriek.id,
+    uren: rubriek.standaardUren ?? DEFAULT_UREN,
+    omschrijving: rubriek.standaardOmschrijving?.trim() || DEFAULT_OMSCHRIJVING,
+  }
+}
 
 export const HOURS_KEY = 'uren-registraties'
 export const RUBRIEKEN_KEY = 'uren-rubrieken'
@@ -77,7 +96,14 @@ export function parseRubrieken(value: unknown): Rubriek[] | null {
     if (!isObject(item) || typeof item.id !== 'string' || typeof item.naam !== 'string') continue
     const naam = item.naam.trim().slice(0, MAX_NAAM)
     if (!item.id || !naam || result.some((r) => r.id === item.id)) continue
-    result.push({ id: item.id, naam })
+    const rubriek: Rubriek = { id: item.id, naam }
+    if (typeof item.standaardUren === 'number' && item.standaardUren > 0) {
+      rubriek.standaardUren = Math.min(MAX_UREN_PER_REGEL, roundQuarter(item.standaardUren))
+    }
+    if (typeof item.standaardOmschrijving === 'string') {
+      rubriek.standaardOmschrijving = item.standaardOmschrijving.slice(0, MAX_OMSCHRIJVING)
+    }
+    result.push(rubriek)
     if (result.length === MAX_RUBRIEKEN) break
   }
   return result

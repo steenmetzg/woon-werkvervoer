@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { ArrowLeft, Clock, Download, FolderOpen, Mic, Plus, RotateCcw, Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, Clock, ClockPlus, Download, FolderOpen, Mic, Plus, RotateCcw, Trash2, Upload } from 'lucide-react'
 import { backupFileName, createBackup, parseBackup } from './backup'
+import Amount from './Amount'
 import ConfirmDialog from './ConfirmDialog'
 import {
   canChooseFolder,
@@ -15,11 +16,16 @@ import {
 import type { Declared } from './declared'
 import { loadStoredFolder, storeFolder } from './folderStore'
 import {
+  DEFAULT_OMSCHRIJVING,
+  DEFAULT_UREN,
+  hoursText,
   lineCount,
   linesWithRubriek,
   MAX_NAAM,
+  MAX_OMSCHRIJVING,
   MAX_RUBRIEKEN,
   newRubriekId,
+  UREN_KEUZES,
   type Hours,
   type Rubriek,
 } from './hours'
@@ -67,35 +73,72 @@ function contentCount(registrations: Registrations, hours: Hours | null): string
   return `${dayCount(registrations)} en ${n === 1 ? '1 urenregel' : `${n} urenregels`}`
 }
 
-/** Naam van een rubriek, aan te passen; pas bij het verlaten van het veld wordt de nieuwe naam gecontroleerd. */
+/**
+ * Naam van een rubriek, aan te passen; pas bij het verlaten van het veld wordt de nieuwe naam gecontroleerd.
+ * Daaronder de standaardregel (F32): de omschrijving en het aantal uur van een nieuwe regel via het klokje met plusje.
+ */
 function RubriekRow({
   rubriek,
   onRename,
+  onChangeStandaard,
   onDelete,
 }: {
   rubriek: Rubriek
   onRename: (naam: string) => boolean
+  onChangeStandaard: (change: Pick<Rubriek, 'standaardUren' | 'standaardOmschrijving'>) => void
   onDelete: () => void
 }) {
   const [draft, setDraft] = useState(rubriek.naam)
+  const uren = rubriek.standaardUren ?? DEFAULT_UREN
   return (
     <li className="rubriek">
-      <input
-        type="text"
-        aria-label={`Naam van rubriek ${rubriek.naam}`}
-        value={draft}
-        maxLength={MAX_NAAM}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          if (!onRename(draft.trim())) setDraft(rubriek.naam)
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') e.currentTarget.blur()
-        }}
-      />
-      <button type="button" className="icon-button" aria-label={`Rubriek ${rubriek.naam} verwijderen`} onClick={onDelete}>
-        <Trash2 size={18} strokeWidth={1.75} aria-hidden />
-      </button>
+      <div className="rubriek-naam">
+        <input
+          type="text"
+          aria-label={`Naam van rubriek ${rubriek.naam}`}
+          value={draft}
+          maxLength={MAX_NAAM}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => {
+            if (!onRename(draft.trim())) setDraft(rubriek.naam)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+          }}
+        />
+        <button type="button" className="icon-button" aria-label={`Rubriek ${rubriek.naam} verwijderen`} onClick={onDelete}>
+          <Trash2 size={18} strokeWidth={1.75} aria-hidden />
+        </button>
+      </div>
+      <div className="rubriek-standaard">
+        <ClockPlus size={16} strokeWidth={1.75} aria-hidden />
+        <input
+          type="text"
+          aria-label={`Standaardomschrijving van ${rubriek.naam}`}
+          placeholder={DEFAULT_OMSCHRIJVING}
+          maxLength={MAX_OMSCHRIJVING}
+          value={rubriek.standaardOmschrijving ?? DEFAULT_OMSCHRIJVING}
+          onChange={(e) => onChangeStandaard({ standaardOmschrijving: e.target.value })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+          }}
+        />
+        {/* Net als bij een urenregel: het getal in beeld, de keuzelijst van de telefoon er onzichtbaar overheen. */}
+        <span className="hour-amount">
+          <Amount value={uren} className="amount-cells" />
+          <select
+            aria-label={`Standaard aantal uur van ${rubriek.naam}`}
+            value={String(uren)}
+            onChange={(e) => onChangeStandaard({ standaardUren: Number(e.target.value) })}
+          >
+            {UREN_KEUZES.map((value) => (
+              <option key={value} value={String(value)}>
+                {hoursText(value)}
+              </option>
+            ))}
+          </select>
+        </span>
+      </div>
     </li>
   )
 }
@@ -321,6 +364,9 @@ export default function Settings({
                     key={`${r.id}-${r.naam}`}
                     rubriek={r}
                     onRename={(naam) => renameRubriek(r.id, naam)}
+                    onChangeStandaard={(change) =>
+                      onChangeRubrieken(rubrieken.map((x) => (x.id === r.id ? { ...x, ...change } : x)))
+                    }
                     onDelete={() => deleteRubriek(r)}
                   />
                 ))}
