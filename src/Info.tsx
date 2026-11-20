@@ -37,7 +37,8 @@ export default function Info({ onClose }: Props) {
         <h2>Uren bijhouden</h2>
         <p>
           Per dag kun je je uren per rubriek vastleggen, met een korte omschrijving. Ga naar een werkdag en registreer
-          een nieuwe regel in een rubriek. Je rubrieken beheer je zelf bij de instellingen.
+          een nieuwe regel in een rubriek. Je rubrieken beheer je zelf bij de instellingen, en per rubriek bepaal je
+          met welk aantal uur en welke omschrijving een nieuwe regel begint.
         </p>
       </section>
 

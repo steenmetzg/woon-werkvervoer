@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { createBackup, parseBackup } from './backup'
 import { mondayOf } from './dates'
-import { HOURS_KEY, RUBRIEKEN_KEY, type Rubriek } from './hours'
+import { HOURS_KEY, RUBRIEKEN_KEY, standaardRegel, type Rubriek } from './hours'
 import { parseHoursLine, parseVoiceCommand } from './speech'
 import { MODES } from './storage'
 
@@ -108,7 +108,7 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
     await openSettings(user)
     const uren = within(screen.getByRole('group', { name: 'Uren' })).getByRole('button', { name: 'Uren' })
     expect(uren).toHaveAttribute('aria-pressed', 'true')
-    const names = () => within(screen.getByRole('list', { name: 'Rubrieken' })).getAllByRole('textbox').map((i) => (i as HTMLInputElement).value)
+    const names = () => within(screen.getByRole('list', { name: 'Rubrieken' })).getAllByRole('textbox', { name: /^Naam van rubriek/ }).map((i) => (i as HTMLInputElement).value)
     expect(names()).toEqual(['NVWA', 'ILT'])
 
     const nvwa = screen.getByRole('textbox', { name: 'Naam van rubriek NVWA' })
@@ -180,7 +180,7 @@ describe('AC52: uren en rubrieken in de instellingen', () => {
     const user = userEvent.setup()
     const { unmount } = render(<App />)
     await openSettings(user)
-    const names = () => within(screen.getByRole('list', { name: 'Rubrieken' })).getAllByRole('textbox').map((i) => (i as HTMLInputElement).value)
+    const names = () => within(screen.getByRole('list', { name: 'Rubrieken' })).getAllByRole('textbox', { name: /^Naam van rubriek/ }).map((i) => (i as HTMLInputElement).value)
     expect(names()).toEqual(['Mijn 1e rubriek'])
     unmount()
 
@@ -509,5 +509,57 @@ describe('AC57: past op het scherm', () => {
   it('zet zes overzichtsknoppen dichter op elkaar', () => {
     render(<App />)
     expect(screen.getByRole('navigation', { name: 'Overzichten' })).toHaveClass('crowded')
+  })
+})
+
+describe('AC74: standaardregel per rubriek', () => {
+  it('zet met het klokje met plusje de ingestelde regel neer', async () => {
+    localStorage.setItem(HOURS_KEY, JSON.stringify({ '2026-10-20': [{ rubriek: 'n1', uren: 3, omschrijving: 'Oud' }] }))
+    const user = userEvent.setup()
+    const { unmount } = render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    const omschrijving = screen.getByRole('textbox', { name: 'Standaardomschrijving van NVWA' })
+    const aantal = screen.getByRole('combobox', { name: 'Standaard aantal uur van NVWA' })
+    expect(omschrijving).toHaveValue('Diversen')
+    expect(aantal).toHaveValue('1')
+    await user.selectOptions(aantal, '2.5')
+    await user.clear(omschrijving)
+    await user.type(omschrijving, 'Inspecties')
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+
+    await user.click(hoursChip('dinsdag 20 oktober'))
+    await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij NVWA' }))
+    await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij ILT' }))
+    expect(lines()).toEqual([
+      { rubriek: 'NVWA', uren: '3 uur', omschrijving: 'Oud' },
+      { rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Inspecties' },
+      { rubriek: 'ILT', uren: '1 uur', omschrijving: 'Diversen' },
+    ])
+
+    // Ook na opnieuw openen; een leeg veld geeft "Diversen".
+    unmount()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Instellingen en backup' }))
+    expect(screen.getByRole('textbox', { name: 'Standaardomschrijving van NVWA' })).toHaveValue('Inspecties')
+    expect(screen.getByRole('combobox', { name: 'Standaard aantal uur van NVWA' })).toHaveValue('2.5')
+    await user.clear(screen.getByRole('textbox', { name: 'Standaardomschrijving van NVWA' }))
+    expect(screen.getByRole('textbox', { name: 'Standaardomschrijving van NVWA' })).toHaveAttribute('placeholder', 'Diversen')
+    await user.click(screen.getByRole('button', { name: 'Terug' }))
+    await user.click(hoursChip('woensdag 21 oktober'))
+    await user.click(screen.getByRole('button', { name: 'Regel toevoegen bij NVWA' }))
+    expect(lines()).toEqual([{ rubriek: 'NVWA', uren: '2,5 uur', omschrijving: 'Diversen' }])
+  })
+})
+
+describe('AC75: standaardregels in de backup', () => {
+  it('neemt de standaardregels mee; een oudere backup geeft 1 uur Diversen', () => {
+    const rubrieken = [{ id: 'x1', naam: 'Project X', standaardUren: 2.5, standaardOmschrijving: 'Bouwen' }]
+    const text = createBackup({}, {}, { uren: {}, rubrieken }, {}, TODAY)
+    expect(JSON.parse(text).rubrieken).toEqual(rubrieken)
+    expect(parseBackup(text).uren?.rubrieken).toEqual(rubrieken)
+
+    const old = createBackup({}, {}, { uren: {}, rubrieken: [{ id: 'x1', naam: 'Project X' }] }, {}, TODAY)
+    const [rubriek] = parseBackup(old).uren!.rubrieken
+    expect(standaardRegel(rubriek)).toEqual({ rubriek: 'x1', uren: 1, omschrijving: 'Diversen' })
   })
 })

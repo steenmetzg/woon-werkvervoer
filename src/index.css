@@ -840,14 +840,49 @@ h1.wrap {
 }
 
 .rubriek {
+  display: grid;
+  gap: 4px;
+}
+
+.rubriek-naam {
   display: flex;
   gap: 8px;
 }
 
-.rubriek input {
+.rubriek-naam input {
   flex: 1;
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+/* De standaardregel (F32): kleiner en iets ingesprongen onder de naam, met rechts de ruimte van de prullenbak. */
+.rubriek-standaard {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 52px 0 12px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.rubriek-standaard svg {
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+.rubriek-standaard input {
+  flex: 1;
+  width: 0;
+  min-height: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.rubriek-standaard .hour-amount {
+  color: var(--text);
+  background: var(--surface);
 }
 
 .rubriek .icon-button {
