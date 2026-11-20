@@ -75,3 +75,14 @@ describe('AC78: releasetekst per versie', () => {
     RELEASE_TEKSTEN[VERSIE] = oud
   })
 })
+
+describe('AC76: testversie apart', () => {
+  it('onthoudt het sluiten in de testversie los van de echte app', () => {
+    localStorage.setItem(LAATSTE_VERSIE_KEY, '1.25.0')
+    window.history.pushState({}, '', '/woon-werkvervoer/test/')
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Melding nieuwe versie sluiten' }))
+    expect(localStorage.getItem(LAATSTE_VERSIE_KEY)).toBe('1.25.0')
+    window.history.pushState({}, '', '/')
+  })
+})

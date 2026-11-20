@@ -7,8 +7,15 @@ import { TRIPS_KEY } from './trips'
 /** De versie van de app die het laatst is geopend (F41). */
 export const LAATSTE_VERSIE_KEY = 'laatst-geopende-versie'
 
+// De testversie (adres met /test/) deelt de opslag met de echte app. Met een eigen sleutel zie je de
+// melding in de echte app ook nog als je hem in de testversie al hebt gesloten.
+function sleutel(): string {
+  return location.pathname.includes('/test/') ? `${LAATSTE_VERSIE_KEY}-test` : LAATSTE_VERSIE_KEY
+}
+
 // Staat een van deze er al, dan is de app eerder gebruikt (ook als hij van voor F41 is).
 const BESTAANDE_GEGEVENS = [
+  LAATSTE_VERSIE_KEY,
   STORAGE_KEY,
   ENABLED_KEY,
   DECLARED_KEY,
@@ -26,7 +33,7 @@ const BESTAANDE_GEGEVENS = [
  */
 export function versionToAnnounce(current: string): string | null {
   try {
-    const last = localStorage.getItem(LAATSTE_VERSIE_KEY)
+    const last = localStorage.getItem(sleutel())
     if (last === current) return null
     if (last === null && !BESTAANDE_GEGEVENS.some((key) => localStorage.getItem(key) !== null)) return null
     return current
@@ -38,7 +45,7 @@ export function versionToAnnounce(current: string): string | null {
 /** Onthoudt dat deze versie is geopend en gemeld. */
 export function markVersionSeen(current: string): void {
   try {
-    localStorage.setItem(LAATSTE_VERSIE_KEY, current)
+    localStorage.setItem(sleutel(), current)
   } catch {
     // Geen opslag: dan komt de melding de volgende keer gewoon nog eens.
   }
